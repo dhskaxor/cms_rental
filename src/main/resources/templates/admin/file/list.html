@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>파일 관리</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">파일 관리</h1>
+
+            <!-- 업로드 영역 -->
+            <div class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+                <h2 class="text-lg font-medium text-gray-800 mb-3">파일 업로드</h2>
+                <form id="uploadForm" class="flex flex-wrap gap-3 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">파일</label>
+                        <input type="file" id="fileInput" name="files" multiple
+                               class="block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">참조 타입</label>
+                        <select id="uploadRefType" class="rounded-md border-gray-300">
+                            <option value="GENERAL" selected>GENERAL</option>
+                            <option value="POST">POST</option>
+                            <option value="PAGE">PAGE</option>
+                            <option value="POPUP">POPUP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">참조 ID</label>
+                        <input type="number" id="uploadRefId" value="0" min="0" class="rounded-md border-gray-300 w-24">
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">업로드</button>
+                </form>
+                <p class="mt-2 text-xs text-gray-500">여러 파일 선택 가능 · 허용: 이미지(jpg, png, gif, webp), 문서(pdf, doc, docx, xls, xlsx, hwp) · 최대 3MB</p>
+            </div>
+
+            <!-- 검색 -->
+            <form th:action="@{/admin/files}" method="get" class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+                <input type="hidden" name="page" value="1">
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">참조 타입</label>
+                        <select name="refType" class="rounded-md border-gray-300">
+                            <option value="">전체</option>
+                            <option value="GENERAL" th:selected="${search?.refType == 'GENERAL'}">GENERAL</option>
+                            <option value="POST" th:selected="${search?.refType == 'POST'}">POST</option>
+                            <option value="PAGE" th:selected="${search?.refType == 'PAGE'}">PAGE</option>
+                            <option value="POPUP" th:selected="${search?.refType == 'POPUP'}">POPUP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">참조 ID</label>
+                        <input type="number" name="refId" th:value="${search?.refId}"
+                               placeholder="비우면 전체" class="rounded-md border-gray-300 w-28">
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">검색</button>
+                </div>
+            </form>
+
+            <!-- 파일 목록 -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">파일명</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">참조</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">크기</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MIME</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">등록일</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="f : ${files}" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${f.id}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="font-medium text-gray-900" th:text="${f.originalName}"></span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span th:text="${f.refType + '/' + f.refId}"></span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${f.fileSize != null ? (T(java.lang.String).format('%.1f', f.fileSize / 1024.0) + ' KB') : '-'}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${f.mimeType ?: '-'}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${f.createdAt != null ? #temporals.format(f.createdAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a th:href="@{/api/v1/files/{id}/download(id=${f.id})}" class="text-indigo-600 hover:text-indigo-900 mr-3" download>다운로드</a>
+                                <button type="button" th:data-id="${f.id}" onclick="deleteFile(this)" class="text-red-600 hover:text-red-900">삭제</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(files)}">
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-500">등록된 파일이 없습니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이징 -->
+            <div th:if="${page != null and page.totalPages > 1}" class="mt-6 flex justify-center gap-2">
+                <a th:if="${page.hasPrevious()}"
+                   th:href="@{/admin/files(page=${page.page - 1}, size=${page.size}, refType=${search?.refType}, refId=${search?.refId})}"
+                   class="px-3 py-1 border rounded hover:bg-gray-100">이전</a>
+                <span class="px-3 py-1 text-gray-600" th:text="${page.page + ' / ' + page.totalPages}"></span>
+                <a th:if="${page.hasNext()}"
+                   th:href="@{/admin/files(page=${page.page + 1}, size=${page.size}, refType=${search?.refType}, refId=${search?.refId})}"
+                   class="px-3 py-1 border rounded hover:bg-gray-100">다음</a>
+            </div>
+        </div>
+
+    <script th:inline="javascript">
+        document.getElementById('uploadForm').onsubmit = function(e) {
+            e.preventDefault();
+            var fileInput = document.getElementById('fileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('파일을 선택해주세요.');
+                return;
+            }
+            var refType = document.getElementById('uploadRefType').value;
+            var refId = document.getElementById('uploadRefId').value || '0';
+            var formData = new FormData();
+            for (var i = 0; i < fileInput.files.length; i++) {
+                formData.append('files', fileInput.files[i]);
+            }
+            formData.append('refType', refType);
+            formData.append('refId', refId);
+            formData.append('maxCount', 20);
+            fetch('/api/v1/files/upload/batch', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    alert('업로드되었습니다.');
+                    location.reload();
+                } else {
+                    alert(d.error?.message || '업로드에 실패했습니다.');
+                }
+            })
+            .catch(function() { alert('오류가 발생했습니다.'); });
+        };
+
+        function deleteFile(btn) {
+            var id = btn.dataset.id;
+            if (!confirm('선택한 파일을 삭제하시겠습니까?')) return;
+            fetch('/api/v1/files/' + id, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    alert('삭제되었습니다.');
+                    location.reload();
+                } else {
+                    alert(d.error?.message || '삭제에 실패했습니다.');
+                }
+            })
+            .catch(function() { alert('오류가 발생했습니다.'); });
+        }
+    </script>
+    </div>
+</body>
+</html>

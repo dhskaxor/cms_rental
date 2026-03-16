@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>페이지 관리</title>
+</head>
+<body>
+    <div layout:fragment="content">
+            <div class="max-w-6xl mx-auto">
+                <!-- 헤더 -->
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold text-gray-800">페이지 관리</h1>
+                    <a href="/admin/pages/new" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        + 페이지 추가
+                    </a>
+                </div>
+
+                <!-- 페이지 목록 테이블 -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">페이지 제목</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">코드</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">게시 상태</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">생성일</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">수정일</th>
+                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="page : ${pages}" class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span th:text="${page.pageTitle}" class="font-medium text-gray-900"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span th:text="${page.pageCode}" class="text-sm text-gray-600"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span th:if="${page.isPublished}" class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">게시중</span>
+                                    <span th:unless="${page.isPublished}" class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">비공개</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <span th:text="${#temporals.format(page.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    <span th:if="${page.updatedAt}" th:text="${#temporals.format(page.updatedAt, 'yyyy-MM-dd HH:mm')}"></span>
+                                    <span th:unless="${page.updatedAt}">-</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <a th:href="@{'/admin/pages/' + ${page.id} + '/edit'}" class="text-blue-600 hover:text-blue-900 mr-3">수정</a>
+                                    <button th:data-id="${page.id}" th:data-title="${page.pageTitle}"
+                                            onclick="deletePage(this)" class="text-red-600 hover:text-red-900">삭제</button>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(pages)}">
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                    등록된 페이지가 없습니다.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+    <script th:inline="javascript">
+        function deletePage(button) {
+            const id = button.dataset.id;
+            const title = button.dataset.title;
+            
+            if (!confirm('선택한 페이지를 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            fetch(`/api/v1/pages/${id}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('삭제되었습니다.');
+                    location.reload();
+                } else {
+                    alert(data.error?.message || '삭제에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+        }
+    </script>
+    </div>
+</body>
+</html>

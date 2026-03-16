@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.audit.mapper.AuditLogMapper">
+
+    <!-- 감사 로그 ResultMap -->
+    <resultMap id="AuditLogResultMap" type="com.nt.cms.audit.vo.AuditLogVO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="action" column="action"/>
+        <result property="targetType" column="target_type"/>
+        <result property="targetId" column="target_id"/>
+        <result property="beforeData" column="before_data"/>
+        <result property="afterData" column="after_data"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 검색 조건 SQL -->
+    <sql id="searchCondition">
+        <if test="request.userId != null">
+            AND user_id = #{request.userId}
+        </if>
+        <if test="request.action != null and request.action != ''">
+            AND action = #{request.action}
+        </if>
+        <if test="request.targetType != null and request.targetType != ''">
+            AND target_type = #{request.targetType}
+        </if>
+        <if test="request.targetId != null">
+            AND target_id = #{request.targetId}
+        </if>
+        <if test="request.startDate != null and request.startDate != ''">
+            AND DATE(created_at) &gt;= #{request.startDate}
+        </if>
+        <if test="request.endDate != null and request.endDate != ''">
+            AND DATE(created_at) &lt;= #{request.endDate}
+        </if>
+    </sql>
+
+    <!-- 감사 로그 등록 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO audit_log (
+            user_id,
+            username,
+            action,
+            target_type,
+            target_id,
+            before_data,
+            after_data,
+            ip_address,
+            user_agent,
+            created_at
+        ) VALUES (
+            #{userId},
+            #{username},
+            #{action},
+            #{targetType},
+            #{targetId},
+            #{beforeData},
+            #{afterData},
+            #{ipAddress},
+            #{userAgent},
+            NOW()
+        )
+    </insert>
+
+    <!-- ID로 감사 로그 조회 -->
+    <select id="findById" resultMap="AuditLogResultMap">
+        SELECT
+            id,
+            user_id,
+            username,
+            action,
+            target_type,
+            target_id,
+            before_data,
+            after_data,
+            ip_address,
+            user_agent,
+            created_at
+        FROM audit_log
+        WHERE id = #{id}
+    </select>
+
+    <!-- 감사 로그 목록 조회 (페이징) -->
+    <select id="findAll" resultMap="AuditLogResultMap">
+        SELECT
+            id,
+            user_id,
+            username,
+            action,
+            target_type,
+            target_id,
+            before_data,
+            after_data,
+            ip_address,
+            user_agent,
+            created_at
+        FROM audit_log
+        <where>
+            <include refid="searchCondition"/>
+        </where>
+        ORDER BY created_at DESC
+        LIMIT #{request.size} OFFSET #{request.offset}
+    </select>
+
+    <!-- 감사 로그 총 개수 -->
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM audit_log
+        <where>
+            <include refid="searchCondition"/>
+        </where>
+    </select>
+</mapper>

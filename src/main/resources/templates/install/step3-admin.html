@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{install/layout :: layout(~{::content})}">
+<th:block th:fragment="content">
+    <div class="bg-white rounded-xl shadow-sm border p-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">관리자 계정 생성</h2>
+            <p class="text-gray-600">시스템 관리자 계정을 생성합니다.</p>
+        </div>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-red-700" th:text="${error}"></p>
+        </div>
+        <div th:if="${success}" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p class="text-green-700" th:text="${success}"></p>
+        </div>
+
+        <!-- Form -->
+        <form th:action="@{/install/step3}" th:object="${adminAccount}" method="post">
+            <div class="space-y-6">
+                <!-- Username -->
+                <div>
+                    <label class="label-text" for="username">아이디</label>
+                    <input type="text" id="username" th:field="*{username}" 
+                           class="input-field" placeholder="admin">
+                    <p th:if="${#fields.hasErrors('username')}" 
+                       th:errors="*{username}" class="mt-1 text-sm text-red-600"></p>
+                    <p class="mt-1 text-sm text-gray-500">4~20자의 영문, 숫자 조합</p>
+                </div>
+
+                <!-- Name -->
+                <div>
+                    <label class="label-text" for="name">이름</label>
+                    <input type="text" id="name" th:field="*{name}" 
+                           class="input-field" placeholder="관리자">
+                    <p th:if="${#fields.hasErrors('name')}" 
+                       th:errors="*{name}" class="mt-1 text-sm text-red-600"></p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="label-text" for="email">이메일</label>
+                    <input type="email" id="email" th:field="*{email}" 
+                           class="input-field" placeholder="admin@example.com">
+                    <p th:if="${#fields.hasErrors('email')}" 
+                       th:errors="*{email}" class="mt-1 text-sm text-red-600"></p>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="label-text" for="password">비밀번호</label>
+                    <input type="password" id="password" th:field="*{password}" 
+                           class="input-field" placeholder="비밀번호 입력">
+                    <p th:if="${#fields.hasErrors('password')}" 
+                       th:errors="*{password}" class="mt-1 text-sm text-red-600"></p>
+                    <p class="mt-1 text-sm text-gray-500">영문, 숫자, 특수문자 포함 6~12자</p>
+                </div>
+
+                <!-- Password Confirm -->
+                <div>
+                    <label class="label-text" for="passwordConfirm">비밀번호 확인</label>
+                    <input type="password" id="passwordConfirm" th:field="*{passwordConfirm}" 
+                           class="input-field" placeholder="비밀번호 재입력">
+                    <p th:if="${#fields.hasErrors('passwordConfirm')}" 
+                       th:errors="*{passwordConfirm}" class="mt-1 text-sm text-red-600"></p>
+                </div>
+            </div>
+
+            <!-- Password Policy Info -->
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 class="font-medium text-blue-900 mb-2">비밀번호 정책</h4>
+                <ul class="text-sm text-blue-800 space-y-1">
+                    <li id="policy-length" class="flex items-center gap-2">
+                        <span class="policy-icon">○</span> 6~12자 이내
+                    </li>
+                    <li id="policy-alpha" class="flex items-center gap-2">
+                        <span class="policy-icon">○</span> 영문 포함
+                    </li>
+                    <li id="policy-number" class="flex items-center gap-2">
+                        <span class="policy-icon">○</span> 숫자 포함
+                    </li>
+                    <li id="policy-special" class="flex items-center gap-2">
+                        <span class="policy-icon">○</span> 특수문자 포함 (!@#$%^&*...)
+                    </li>
+                    <li id="policy-match" class="flex items-center gap-2">
+                        <span class="policy-icon">○</span> 비밀번호 일치
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center justify-between mt-8 pt-6 border-t">
+                <a th:href="@{/install/step2}" class="btn-secondary">
+                    <span class="mr-1">←</span>
+                    이전 단계
+                </a>
+                <button type="submit" class="btn-primary">
+                    다음 단계
+                    <span class="ml-1">→</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('passwordConfirm');
+
+        function validatePassword() {
+            const password = passwordInput.value;
+            const confirm = confirmInput.value;
+
+            // 길이 체크
+            updatePolicy('policy-length', password.length >= 6 && password.length <= 12);
+            // 영문 체크
+            updatePolicy('policy-alpha', /[a-zA-Z]/.test(password));
+            // 숫자 체크
+            updatePolicy('policy-number', /[0-9]/.test(password));
+            // 특수문자 체크
+            updatePolicy('policy-special', /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password));
+            // 일치 체크
+            updatePolicy('policy-match', password.length > 0 && password === confirm);
+        }
+
+        function updatePolicy(id, valid) {
+            const element = document.getElementById(id);
+            const icon = element.querySelector('.policy-icon');
+            if (valid) {
+                icon.textContent = '✓';
+                icon.classList.add('text-green-600');
+                icon.classList.remove('text-blue-800');
+            } else {
+                icon.textContent = '○';
+                icon.classList.remove('text-green-600');
+                icon.classList.add('text-blue-800');
+            }
+        }
+
+        passwordInput.addEventListener('input', validatePassword);
+        confirmInput.addEventListener('input', validatePassword);
+    </script>
+</th:block>
+</html>

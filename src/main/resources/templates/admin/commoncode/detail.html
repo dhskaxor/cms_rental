@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>공통 코드 상세</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-5xl mx-auto">
+            <div class="mb-6 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800" th:text="${group.groupName}">공통 코드</h1>
+                <div class="space-x-2">
+                    <a th:href="@{/admin/common-codes/group/{groupId}/code/new(groupId=${group.id})}"
+                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">+ 코드 등록</a>
+                    <a th:href="@{/admin/common-codes}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">목록</a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow mb-6 p-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">그룹 정보</h2>
+                <dl class="grid grid-cols-2 gap-4">
+                    <div><dt class="text-sm text-gray-500">그룹 코드</dt><dd class="font-mono" th:text="${group.groupCode}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">설명</dt><dd th:text="${group.description ?: '-'}"></dd></div>
+                </dl>
+                <div class="mt-4 flex space-x-2">
+                    <a th:href="@{/admin/common-codes/group/{id}/edit(id=${group.id})}" th:if="${!group.isSystem}"
+                       class="text-indigo-600 hover:text-indigo-800">수정</a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <h2 class="px-6 py-4 border-b text-lg font-semibold text-gray-800">코드 목록</h2>
+                <div class="p-6">
+                    <div th:if="${codes == null or codes.isEmpty()}" class="text-gray-500 py-8 text-center">등록된 코드가 없습니다.</div>
+                    <ul th:unless="${codes == null or codes.isEmpty()}" class="space-y-2">
+                        <li th:each="c : ${codes}" th:with="depth=${c.depth != null ? c.depth : 1}, pad=${(c.depth != null and c.depth > 1) ? (c.depth - 1) * 20 : 0}">
+                            <div class="flex items-center justify-between py-2 border-b border-gray-100" th:style="${pad > 0 ? 'padding-left: ' + pad + 'px' : ''}">
+                                <div>
+                                    <span class="font-mono text-sm" th:text="${c.code}"></span>
+                                    <span class="ml-2 text-gray-700" th:text="${c.codeName}"></span>
+                                    <span th:if="${c.isSystem}" class="ml-2 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded">시스템</span>
+                                </div>
+                                <div class="space-x-2 text-sm">
+                                    <a th:href="@{/admin/common-codes/code/{id}/edit(id=${c.id})}"
+                                       th:if="${!c.isSystem}" class="text-indigo-600 hover:text-indigo-800">수정</a>
+                                    <button type="button" th:if="${!c.isSystem}"
+                                            th:data-id="${c.id}" th:data-has-children="${c.childCount != null and c.childCount > 0}"
+                                            onclick="deleteCode(this)" class="text-red-600 hover:text-red-800">삭제</button>
+                                </div>
+                            </div>
+                            <ul th:if="${c.children != null and !c.children.isEmpty()}" class="ml-6 mt-1 space-y-1"
+                                th:each="child : ${c.children}">
+                                <li>
+                                    <div class="flex items-center justify-between py-1" th:style="'padding-left: 20px'">
+                                        <span class="font-mono text-sm" th:text="${child.code}"></span>
+                                        <span class="ml-2 text-gray-600" th:text="${child.codeName}"></span>
+                                        <a th:href="@{/admin/common-codes/code/{id}/edit(id=${child.id})}"
+                                           th:if="${!child.isSystem}" class="text-indigo-600 text-sm">수정</a>
+                                        <button th:if="${!child.isSystem}" type="button"
+                                                th:data-id="${child.id}" th:data-has-children="false"
+                                                onclick="deleteCode(this)" class="text-red-600 text-sm">삭제</button>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    <script th:inline="javascript">
+        function deleteCode(btn) {
+            var id = btn.dataset.id;
+            var hasChildren = btn.dataset.hasChildren === 'true';
+            if (hasChildren) { alert('하위 코드가 있는 코드는 삭제할 수 없습니다.'); return; }
+            if (!confirm('선택한 코드를 삭제하시겠습니까?')) return;
+            fetch('/api/v1/common-codes/' + id, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) { location.reload(); }
+                else { alert(d.error?.message || '삭제 실패'); }
+            })
+            .catch(e => { alert('오류 발생'); console.error(e); });
+        }
+    </script>
+    </div>
+</body>
+</html>

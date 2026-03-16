@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.popup.mapper.PopupMapper">
+
+    <resultMap id="PopupResultMap" type="com.nt.cms.popup.vo.SitePopupVO">
+        <id property="id" column="id"/>
+        <result property="popupCode" column="popup_code"/>
+        <result property="popupName" column="popup_name"/>
+        <result property="popupType" column="popup_type"/>
+        <result property="positionType" column="position_type"/>
+        <result property="deviceType" column="device_type"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="posX" column="pos_x"/>
+        <result property="posY" column="pos_y"/>
+        <result property="content" column="content"/>
+        <result property="linkUrl" column="link_url"/>
+        <result property="linkTarget" column="link_target"/>
+        <result property="isLoginRequired" column="is_login_required"/>
+        <result property="isTodayCloseEnabled" column="is_today_close_enabled"/>
+        <result property="startAt" column="start_at"/>
+        <result property="endAt" column="end_at"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="isActive" column="is_active"/>
+        <result property="isPublished" column="is_published"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <sql id="popupColumns">
+        id, popup_code, popup_name, popup_type, position_type, device_type,
+        width, height, pos_x, pos_y, content, link_url, link_target,
+        is_login_required, is_today_close_enabled, start_at, end_at,
+        sort_order, is_active, is_published,
+        created_at, created_by, updated_at, updated_by, deleted
+    </sql>
+
+    <sql id="popupWhere">
+        <where>
+            deleted = 0
+            <if test="keyword != null and keyword != ''">
+                AND (popup_code LIKE CONCAT('%', #{keyword}, '%')
+                     OR popup_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="popupType != null and popupType != ''">
+                AND popup_type = #{popupType}
+            </if>
+            <if test="positionType != null and positionType != ''">
+                AND position_type = #{positionType}
+            </if>
+            <if test="deviceType != null and deviceType != ''">
+                AND device_type = #{deviceType}
+            </if>
+            <if test="isActive != null">
+                AND is_active = #{isActive}
+            </if>
+            <if test="isPublished != null">
+                AND is_published = #{isPublished}
+            </if>
+        </where>
+    </sql>
+
+    <select id="findAll" resultMap="PopupResultMap">
+        SELECT <include refid="popupColumns"/>
+        FROM site_popup
+        <include refid="popupWhere"/>
+        ORDER BY sort_order ASC, id ASC
+        <if test="page != null and size != null">
+            LIMIT #{size} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*) FROM site_popup
+        <include refid="popupWhere"/>
+    </select>
+
+    <select id="findById" resultMap="PopupResultMap">
+        SELECT <include refid="popupColumns"/>
+        FROM site_popup
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="findByPopupCode" resultMap="PopupResultMap">
+        SELECT <include refid="popupColumns"/>
+        FROM site_popup
+        WHERE popup_code = #{popupCode} AND deleted = 0
+    </select>
+
+    <select id="existsByPopupCode" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM site_popup
+            WHERE popup_code = #{popupCode} AND deleted = 0
+        )
+    </select>
+
+    <select id="findDisplayTarget" resultMap="PopupResultMap">
+        SELECT <include refid="popupColumns"/>
+        FROM site_popup
+        WHERE deleted = 0
+          AND is_active = 1
+          AND is_published = 1
+          AND (position_type = #{positionType} OR position_type = 'ALL')
+          AND (device_type = #{deviceType} OR device_type = 'ALL')
+          AND (is_login_required = 0 OR (#{isLogin} = 1 AND is_login_required = 1))
+          AND (start_at IS NULL OR start_at &lt;= NOW())
+          AND (end_at IS NULL OR end_at &gt;= NOW())
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO site_popup (
+            popup_code, popup_name, popup_type, position_type, device_type,
+            width, height, pos_x, pos_y, content, link_url, link_target,
+            is_login_required, is_today_close_enabled, start_at, end_at,
+            sort_order, is_active, is_published,
+            created_at, created_by, deleted
+        ) VALUES (
+            #{popupCode}, #{popupName},
+            IFNULL(#{popupType}, 'LAYER'),
+            IFNULL(#{positionType}, 'MAIN'),
+            IFNULL(#{deviceType}, 'ALL'),
+            #{width}, #{height},
+            IFNULL(#{posX}, 0), IFNULL(#{posY}, 0),
+            #{content}, #{linkUrl}, IFNULL(#{linkTarget}, '_self'),
+            IFNULL(#{isLoginRequired}, 0),
+            IFNULL(#{isTodayCloseEnabled}, 1),
+            #{startAt}, #{endAt},
+            IFNULL(#{sortOrder}, 0),
+            IFNULL(#{isActive}, 1),
+            IFNULL(#{isPublished}, 1),
+            NOW(), #{createdBy}, 0
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE site_popup
+        <set>
+            <if test="popupName != null">popup_name = #{popupName},</if>
+            <if test="popupType != null">popup_type = #{popupType},</if>
+            <if test="positionType != null">position_type = #{positionType},</if>
+            <if test="deviceType != null">device_type = #{deviceType},</if>
+            <if test="width != null">width = #{width},</if>
+            <if test="height != null">height = #{height},</if>
+            <if test="posX != null">pos_x = #{posX},</if>
+            <if test="posY != null">pos_y = #{posY},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="linkUrl != null">link_url = #{linkUrl},</if>
+            <if test="linkTarget != null">link_target = #{linkTarget},</if>
+            <if test="isLoginRequired != null">is_login_required = #{isLoginRequired},</if>
+            <if test="isTodayCloseEnabled != null">is_today_close_enabled = #{isTodayCloseEnabled},</if>
+            <if test="startAt != null">start_at = #{startAt},</if>
+            <if test="endAt != null">end_at = #{endAt},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="isPublished != null">is_published = #{isPublished},</if>
+            updated_at = NOW(),
+            updated_by = #{updatedBy}
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="delete">
+        UPDATE site_popup
+        SET deleted = 1, updated_at = NOW(), updated_by = #{deletedBy}
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

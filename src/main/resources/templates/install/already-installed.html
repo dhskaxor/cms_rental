@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Core - 이미 설치됨</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full mx-4">
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            <!-- Warning Icon -->
+            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">이미 설치되어 있습니다</h1>
+            <p class="text-gray-600 mb-8">CMS Core 플랫폼은 이미 설치가 완료된 상태입니다.</p>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8 text-left">
+                <div class="flex gap-3">
+                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <h4 class="font-medium text-blue-800">안내</h4>
+                        <p class="text-sm text-blue-700 mt-1">
+                            재설치가 필요한 경우 <code class="bg-blue-100 px-1 rounded">cms-config.yml</code> 파일을 삭제하거나 
+                            <code class="bg-blue-100 px-1 rounded">installed: false</code>로 변경해주세요.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="space-y-3">
+                <a href="/" class="block w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-colors">
+                    홈으로 이동
+                </a>
+                <a href="/swagger-ui.html" class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-lg transition-colors">
+                    API 문서 보기
+                </a>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-sm text-gray-500 mt-6">
+            CMS Core Platform &copy; 2026
+        </p>
+    </div>
+</body>
+</html>

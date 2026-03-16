@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>역할 상세</title>
+</head>
+<body>
+    <div layout:fragment="content">
+            <!-- 페이지 헤더 -->
+            <div class="mb-6 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800">역할 상세</h1>
+                <div class="space-x-2">
+                    <a th:href="@{/admin/roles/{id}/edit(id=${role.id})}" 
+                       class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        수정
+                    </a>
+                    <a href="/admin/roles" 
+                       class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        목록
+                    </a>
+                </div>
+            </div>
+
+            <!-- 기본 정보 -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">기본 정보</h2>
+                </div>
+                <div class="p-6">
+                    <dl class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">ID</dt>
+                            <dd class="mt-1 text-sm text-gray-900" th:text="${role.id}"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">역할 코드</dt>
+                            <dd class="mt-1 text-sm text-gray-900 font-mono" th:text="${role.roleCode}"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">역할명</dt>
+                            <dd class="mt-1 text-sm text-gray-900" th:text="${role.roleName}"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">사용자 수</dt>
+                            <dd class="mt-1 text-sm text-gray-900" th:text="${role.userCount ?: 0} + '명'"></dd>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <dt class="text-sm font-medium text-gray-500">설명</dt>
+                            <dd class="mt-1 text-sm text-gray-900" th:text="${role.description ?: '-'}"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">등록일</dt>
+                            <dd class="mt-1 text-sm text-gray-900" 
+                                th:text="${role.createdAt != null} ? ${#temporals.format(role.createdAt, 'yyyy-MM-dd HH:mm:ss')} : '-'"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-sm font-medium text-gray-500">수정일</dt>
+                            <dd class="mt-1 text-sm text-gray-900" 
+                                th:text="${role.updatedAt != null} ? ${#temporals.format(role.updatedAt, 'yyyy-MM-dd HH:mm:ss')} : '-'"></dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- 권한 목록 -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">부여된 권한</h2>
+                </div>
+                <div class="p-6">
+                    <div th:if="${role.permissions == null or role.permissions.size() == 0}" class="text-gray-500 text-sm">
+                        부여된 권한이 없습니다.
+                    </div>
+                    <div th:unless="${role.permissions == null or role.permissions.size() == 0}" class="flex flex-wrap gap-2">
+                        <span th:each="perm : ${role.permissions}" 
+                              class="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full font-mono"
+                              th:text="${perm.permissionCode}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 역할 삭제 -->
+            <div class="bg-white rounded-lg shadow">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800">역할 삭제</h2>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                        <div>
+                            <h3 class="text-sm font-medium text-red-900">역할 삭제</h3>
+                            <p class="text-sm text-red-700">이 작업은 되돌릴 수 없습니다.</p>
+                        </div>
+                        <button type="button" 
+                                th:data-id="${role.id}"
+                                th:data-code="${role.roleCode}"
+                                th:data-count="${role.userCount ?: 0}"
+                                onclick="deleteRole(this)"
+                                th:disabled="${role.userCount != null and role.userCount > 0}"
+                                th:class="${role.userCount != null and role.userCount > 0} ? 
+                                    'px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed' : 
+                                    'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition'">
+                            삭제
+                        </button>
+                    </div>
+                    <p th:if="${role.userCount != null and role.userCount > 0}" class="mt-2 text-sm text-red-600">
+                        사용자가 할당된 역할은 삭제할 수 없습니다.
+                    </p>
+                </div>
+            </div>
+    <script th:inline="javascript">
+        function deleteRole(button) {
+            const id = button.dataset.id;
+            const roleCode = button.dataset.code;
+            const userCount = parseInt(button.dataset.count || 0);
+            if (userCount > 0) {
+                alert('사용자가 할당된 역할은 삭제할 수 없습니다.');
+                return;
+            }
+            if (confirm(roleCode + ' 역할을 삭제하시겠습니까?')) {
+                fetch('/api/v1/roles/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('삭제되었습니다.');
+                        location.href = '/admin/roles';
+                    } else {
+                        alert(data.error?.message || '삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    alert('오류가 발생했습니다.');
+                    console.error('Error:', error);
+                });
+            }
+        }
+    </script>
+    </div>
+</body>
+</html>

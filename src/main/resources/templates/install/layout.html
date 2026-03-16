@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Core - 설치 마법사</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        'primary-dark': '#2563eb',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-primary {
+                @apply bg-primary hover:bg-primary-dark text-white font-medium py-2.5 px-6 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+            }
+            .btn-secondary {
+                @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-6 rounded-lg transition-colors duration-200;
+            }
+            .input-field {
+                @apply w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 outline-none;
+            }
+            .label-text {
+                @apply block text-sm font-medium text-gray-700 mb-1.5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold text-gray-900">CMS Core</h1>
+                <span class="text-sm text-gray-500">설치 마법사</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="bg-white border-b">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div th:each="step, stat : ${#numbers.sequence(1, 5)}" 
+                     class="flex items-center">
+                    <!-- Step Circle -->
+                    <div th:classappend="${currentStep > step} ? 'bg-green-500 text-white' : (${currentStep == step} ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600')"
+                         class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors">
+                        <span th:if="${currentStep > step}">✓</span>
+                        <span th:if="${currentStep <= step}" th:text="${step}"></span>
+                    </div>
+                    <!-- Step Label -->
+                    <span th:classappend="${currentStep >= step} ? 'text-gray-900' : 'text-gray-400'"
+                          class="ml-2 text-sm font-medium hidden sm:inline">
+                        <span th:switch="${step}">
+                            <span th:case="1">DB 연결</span>
+                            <span th:case="2">테이블 생성</span>
+                            <span th:case="3">관리자</span>
+                            <span th:case="4">설정</span>
+                            <span th:case="5">완료</span>
+                        </span>
+                    </span>
+                    <!-- Connector -->
+                    <div th:if="${stat.index < 4}" 
+                         th:classappend="${currentStep > step} ? 'bg-green-500' : 'bg-gray-200'"
+                         class="w-8 sm:w-16 h-0.5 mx-2 transition-colors"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        <th:block th:replace="${content}" />
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto py-6 text-center text-sm text-gray-500">
+        <p>CMS Core Platform &copy; 2026</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title>연락처</title>
+</head>
+<body>
+    <article layout:fragment="content" class="site-page site-page-contact">
+        <h1 class="site-page-title">연락처</h1>
+        <div class="site-contact-content">
+            <p th:if="${siteConfig == null || (siteConfig.companyAddress == null or siteConfig.companyAddress.isEmpty()) and (siteConfig.companyPhone == null or siteConfig.companyPhone.isEmpty()) and (siteConfig.adminEmail == null or siteConfig.adminEmail.isEmpty())}"
+               class="site-contact-empty">연락처 정보가 등록되지 않았습니다. 관리자 사이트 설정에서 등록해 주세요.</p>
+            <dl class="site-contact-list" th:if="${siteConfig != null}">
+                <div th:if="${siteConfig.companyAddress != null and !siteConfig.companyAddress.isEmpty()}">
+                    <dt><i class="bi bi-geo-alt"></i> 주소</dt>
+                    <dd th:text="${siteConfig.companyAddress}">주소</dd>
+                </div>
+                <div th:if="${siteConfig.companyPhone != null and !siteConfig.companyPhone.isEmpty()}">
+                    <dt><i class="bi bi-telephone"></i> 전화</dt>
+                    <dd><a th:href="'tel:' + ${siteConfig.companyPhone}" th:text="${siteConfig.companyPhone}">전화번호</a></dd>
+                </div>
+                <div th:if="${siteConfig.adminEmail != null and !siteConfig.adminEmail.isEmpty()}">
+                    <dt><i class="bi bi-envelope"></i> 이메일</dt>
+                    <dd><a th:href="'mailto:' + ${siteConfig.adminEmail}" th:text="${siteConfig.adminEmail}">이메일</a></dd>
+                </div>
+            </dl>
+        </div>
+    </article>
+</body>
+</html>

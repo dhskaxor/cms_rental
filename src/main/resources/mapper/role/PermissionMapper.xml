@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.role.mapper.PermissionMapper">
+
+    <!-- 권한 ResultMap -->
+    <resultMap id="PermissionResultMap" type="com.nt.cms.role.vo.PermissionVO">
+        <id property="id" column="id"/>
+        <result property="permissionCode" column="permission_code"/>
+        <result property="permissionName" column="permission_name"/>
+        <result property="description" column="description"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <!-- 권한 목록 조회 -->
+    <select id="findAll" resultMap="PermissionResultMap">
+        SELECT
+            id,
+            permission_code,
+            permission_name,
+            description,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        FROM permission
+        WHERE deleted = 0
+        ORDER BY permission_code ASC
+    </select>
+
+    <!-- ID로 권한 조회 -->
+    <select id="findById" resultMap="PermissionResultMap">
+        SELECT
+            id,
+            permission_code,
+            permission_name,
+            description,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        FROM permission
+        WHERE id = #{id}
+          AND deleted = 0
+    </select>
+
+    <!-- 권한 코드로 조회 -->
+    <select id="findByPermissionCode" resultMap="PermissionResultMap">
+        SELECT
+            id,
+            permission_code,
+            permission_name,
+            description,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        FROM permission
+        WHERE permission_code = #{permissionCode}
+          AND deleted = 0
+    </select>
+
+    <!-- 역할 ID로 권한 목록 조회 -->
+    <select id="findByRoleId" resultMap="PermissionResultMap">
+        SELECT
+            p.id,
+            p.permission_code,
+            p.permission_name,
+            p.description,
+            p.created_at,
+            p.created_by,
+            p.updated_at,
+            p.updated_by,
+            p.deleted
+        FROM permission p
+        INNER JOIN role_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+          AND p.deleted = 0
+        ORDER BY p.permission_code ASC
+    </select>
+
+    <!-- 권한 코드 존재 여부 -->
+    <select id="existsByPermissionCode" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM permission
+            WHERE permission_code = #{permissionCode}
+              AND deleted = 0
+        )
+    </select>
+
+    <!-- 권한 등록 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO permission (
+            permission_code,
+            permission_name,
+            description,
+            created_at,
+            created_by,
+            deleted
+        ) VALUES (
+            #{permissionCode},
+            #{permissionName},
+            #{description},
+            NOW(),
+            #{createdBy},
+            0
+        )
+    </insert>
+
+    <!-- 권한 수정 -->
+    <update id="update">
+        UPDATE permission
+        SET
+            permission_name = #{permissionName},
+            description = #{description},
+            updated_at = NOW(),
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+    <!-- 권한 삭제 (Soft Delete) -->
+    <update id="delete">
+        UPDATE permission
+        SET
+            deleted = 1,
+            updated_at = NOW(),
+            updated_by = #{deletedBy}
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+    <!-- 권한이 역할에 매핑되어 있는지 확인 -->
+    <select id="countRoleMappings" resultType="long">
+        SELECT COUNT(*)
+        FROM role_permission
+        WHERE permission_id = #{permissionId}
+    </select>
+
+</mapper>

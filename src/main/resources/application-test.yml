@@ -1,0 +1,38 @@
+# ==============================================
+# CMS Core Platform - Test Environment
+# ==============================================
+spring:
+  # H2 database for testing
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:cmstest;MODE=MariaDB;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  
+  # H2 콘솔 비활성화 (테스트)
+  h2:
+    console:
+      enabled: false
+  
+  # 캐시 비활성화 (테스트)
+  cache:
+    type: none
+
+# CMS 테스트 설정
+cms:
+  installed: true
+  jwt:
+    # Base64 인코딩된 비밀키 (테스트용)
+    secret: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3Rpbmctb25seS0xMjM0NTY3ODkw
+    access-token-validity: 3600
+    refresh-token-validity: 86400
+  file:
+    upload-path: build/test-files
+  security:
+    max-login-attempts: 5
+
+# 테스트 로깅 (간소화)
+logging:
+  level:
+    root: WARN
+    com.nt.cms: DEBUG

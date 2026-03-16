@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>게시글 관리</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">게시글 관리</h1>
+            <p class="text-gray-600 mb-6">관리할 게시판을 선택하세요.</p>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" th:if="${!#lists.isEmpty(boards)}">
+                <a th:each="board : ${boards}"
+                   th:href="@{'/admin/boards/' + ${board.id} + '/posts'}"
+                   class="block p-6 bg-white rounded-lg border border-gray-200 shadow-sm hover:border-indigo-500 hover:shadow-md transition">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800" th:text="${board.boardCode}"></span>
+                        <span class="text-sm text-gray-500" th:text="${(board.postCount != null ? board.postCount : 0) + '건'}"></span>
+                    </div>
+                    <h3 class="mt-2 text-lg font-medium text-gray-900" th:text="${board.boardName}"></h3>
+                    <p class="mt-1 text-sm text-gray-500" th:text="${board.groupName ?: '미분류'}"></p>
+                </a>
+            </div>
+
+            <div th:if="${#lists.isEmpty(boards)}" class="p-12 bg-white rounded-lg border border-gray-200 text-center">
+                <p class="text-gray-500">등록된 게시판이 없습니다.</p>
+                <a th:href="@{/admin/boards}" class="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    게시판 관리로 이동
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

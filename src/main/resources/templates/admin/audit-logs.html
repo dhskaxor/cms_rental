@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>감사 로그</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-7xl mx-auto">
+            <!-- 페이지 헤더 -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">감사 로그</h1>
+                <p class="text-sm text-gray-500 mt-1">시스템 수정/삭제 이력을 조회합니다.</p>
+            </div>
+
+            <!-- 검색 필터 -->
+            <div class="bg-white rounded-lg shadow mb-6 p-4">
+                <form method="get" action="/admin/audit-logs" class="flex flex-wrap gap-4 items-end">
+                    <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">액션</label>
+                        <select name="action" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">전체</option>
+                            <option value="CREATE" th:selected="${request?.action == 'CREATE'}">생성</option>
+                            <option value="UPDATE" th:selected="${request?.action == 'UPDATE'}">수정</option>
+                            <option value="DELETE" th:selected="${request?.action == 'DELETE'}">삭제</option>
+                        </select>
+                    </div>
+                    <div class="w-40">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">대상 타입</label>
+                        <select name="targetType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">전체</option>
+                            <option value="USER" th:selected="${request?.targetType == 'USER'}">사용자</option>
+                            <option value="POST" th:selected="${request?.targetType == 'POST'}">게시글</option>
+                            <option value="BOARD" th:selected="${request?.targetType == 'BOARD'}">게시판</option>
+                            <option value="ROLE" th:selected="${request?.targetType == 'ROLE'}">역할</option>
+                            <option value="MENU" th:selected="${request?.targetType == 'MENU'}">메뉴</option>
+                            <option value="PAGE" th:selected="${request?.targetType == 'PAGE'}">페이지</option>
+                            <option value="POPUP" th:selected="${request?.targetType == 'POPUP'}">팝업</option>
+                        </select>
+                    </div>
+                    <div class="w-28">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">사용자 ID</label>
+                        <input type="number" name="userId" th:value="${request?.userId}" placeholder="ID"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">시작일</label>
+                        <input type="date" name="startDate" th:value="${request?.startDate}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="w-32">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
+                        <input type="date" name="endDate" th:value="${request?.endDate}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <button type="submit"
+                                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                            검색
+                        </button>
+                        <a href="/admin/audit-logs"
+                           class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition ml-2">
+                            초기화
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 감사 로그 목록 -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">일시</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">사용자</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">액션</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">대상</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">IP</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상세</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr th:each="log : ${auditLogs}">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${log.id}"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
+                                    th:text="${#temporals.format(log.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${log.username}"></td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span th:if="${log.action == 'CREATE'}" class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">생성</span>
+                                    <span th:if="${log.action == 'UPDATE'}" class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">수정</span>
+                                    <span th:if="${log.action == 'DELETE'}" class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">삭제</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                    th:text="${log.targetType + ' #' + log.targetId}"></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${log.ipAddress}"></td>
+                                <td class="px-6 py-4">
+                                    <a th:href="@{/admin/audit-logs/{id}(id=${log.id})}"
+                                       class="text-blue-600 hover:text-blue-800 text-sm">상세</a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(auditLogs)}">
+                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">등록된 감사 로그가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 페이징 -->
+                <div th:if="${totalPages > 1}" class="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+                    <div class="text-sm text-gray-700">
+                        전체 <span th:text="${totalElements}"></span>건
+                    </div>
+                    <div class="flex gap-2">
+                        <a th:if="${page > 1}" th:href="@{/admin/audit-logs(page=${page - 1}, size=${size}, action=${request?.action}, targetType=${request?.targetType}, userId=${request?.userId}, startDate=${request?.startDate}, endDate=${request?.endDate})}"
+                           class="px-3 py-1 border rounded hover:bg-gray-50">이전</a>
+                        <span class="px-3 py-1" th:text="${page + ' / ' + totalPages}"></span>
+                        <a th:if="${page < totalPages}" th:href="@{/admin/audit-logs(page=${page + 1}, size=${size}, action=${request?.action}, targetType=${request?.targetType}, userId=${request?.userId}, startDate=${request?.startDate}, endDate=${request?.endDate})}"
+                           class="px-3 py-1 border rounded hover:bg-gray-50">다음</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

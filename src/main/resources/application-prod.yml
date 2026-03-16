@@ -1,0 +1,53 @@
+# ==============================================
+# CMS Core Platform - 운영 환경 설정
+# ==============================================
+
+spring:
+  # MariaDB 데이터베이스 (운영용)
+  # 실제 값은 cms-config.yml 또는 환경 변수로 설정
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${CMS_DB_HOST:localhost}:${CMS_DB_PORT:3306}/${CMS_DB_NAME:cms}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${CMS_DB_USERNAME:cms}
+    password: ${CMS_DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 30000
+      max-lifetime: 1800000
+  
+  # H2 콘솔 비활성화 (운영)
+  h2:
+    console:
+      enabled: false
+  
+  # Redis 캐싱 (운영 환경)
+  data:
+    redis:
+      host: ${CMS_REDIS_HOST:localhost}
+      port: ${CMS_REDIS_PORT:6379}
+      password: ${CMS_REDIS_PASSWORD:}
+  cache:
+    type: redis
+
+# 운영 환경 로깅
+logging:
+  level:
+    root: WARN
+    com.nt.cms: INFO
+    org.springframework.security: WARN
+  file:
+    name: ${CMS_LOG_PATH:logs}/cms-core.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: ${CMS_LOG_RETENTION_DAYS:30}
+      total-size-cap: 3GB
+
+# Swagger 비활성화 (운영 환경)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

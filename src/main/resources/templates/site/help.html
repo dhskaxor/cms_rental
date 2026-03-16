@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title>사용 가이드</title>
+</head>
+<body>
+    <article layout:fragment="content" class="site-page site-page-help">
+        <div class="site-page-help-header">
+            <h1 class="site-page-title">사용자 사이트 사용 가이드</h1>
+            <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" class="site-btn site-btn-primary site-btn-swagger">
+                <i class="bi bi-box-arrow-up-right"></i> API 문서 (Swagger)
+            </a>
+        </div>
+        <nav class="site-page-toc" aria-label="도움말 목차">
+            <ol>
+                <li><a href="#help-overview">1. 사용자 사이트 개요</a></li>
+                <li><a href="#help-menu">2. 메뉴 사용 방법</a></li>
+                <li><a href="#help-page">3. 페이지 타입 메뉴 사용</a></li>
+                <li><a href="#help-board">4. 게시판 템플릿 사용</a></li>
+                <li><a href="#help-customize">5. 디자인·템플릿 커스터마이징</a></li>
+            </ol>
+        </nav>
+        <div class="site-page-content">
+            <section id="help-overview">
+                <h2>1. 사용자 사이트 개요</h2>
+                <p>사용자 사이트는 <code>/site/</code> 경로에서 동작합니다.</p>
+                <ul>
+                    <li><code>/site/</code> : 메인(대문) 페이지</li>
+                    <li><code>/site/page/{pageCode}</code> : 정적 페이지 뷰</li>
+                    <li><code>/site/board/{boardCode}</code> : 게시판 목록 (boardCode 또는 boardId)</li>
+                    <li><code>/site/board/{boardCode}/post/{postId}</code> : 게시글 상세</li>
+                </ul>
+            </section>
+            <section id="help-menu">
+                <h2>2. 메뉴 사용 방법</h2>
+                <p>상단 메뉴는 관리자에서 설정한 메뉴 구조를 기반으로 렌더링됩니다.</p>
+                <ul>
+                    <li>PC: 상단 바에서 1Depth ~ 하위 메뉴를 호버하면 드롭다운으로 펼쳐집니다.</li>
+                    <li>모바일: 우측 상단 햄버거 버튼을 눌러 전체 메뉴를 아코디언 형태로 볼 수 있습니다.</li>
+                    <li>로그인이 필요한 메뉴는 클릭 시 로그인 페이지로 이동한 뒤, 다시 원래 메뉴로 리다이렉트됩니다.</li>
+                </ul>
+            </section>
+            <section id="help-page">
+                <h2>3. 페이지 타입 메뉴 사용</h2>
+                <p>메뉴 타입이 <strong>PAGE</strong>인 경우, 연결된 페이지의 <code>pageCode</code>로 이동합니다.</p>
+                <ul>
+                    <li>메뉴 클릭 → <code>/site/page/{pageCode}</code>로 이동</li>
+                    <li>관리자 &gt; 페이지 관리에서 <code>pageCode</code>, 제목, 내용을 설정하면 자동으로 메뉴와 연동됩니다.</li>
+                </ul>
+            </section>
+            <section id="help-board">
+                <h2>4. 게시판 템플릿 사용</h2>
+                <p>메뉴 타입이 <strong>BOARD</strong>인 경우, 선택한 게시판의 목록 화면으로 이동합니다.</p>
+                <ul>
+                    <li>목록 URL: <code>/site/board/{boardCode}</code> (boardCode 또는 boardId)</li>
+                    <li>기본 템플릿: 테이블 목록</li>
+                    <li>카드 템플릿: 카드형 목록</li>
+                </ul>
+                <p>게시글 제목을 클릭하면 상세 화면으로 이동하며, 본문과 첨부파일이 함께 표시됩니다.</p>
+            </section>
+            <section id="help-customize">
+                <h2>5. 디자인·템플릿 커스터마이징</h2>
+                <p>사용자 사이트의 스타일과 템플릿은 프로젝트별로 커스터마이징할 수 있습니다.</p>
+                <ul>
+                    <li>스타일: <code>src/main/resources/static/site/css/site.css</code></li>
+                    <li>게시판 템플릿: <code>src/main/resources/templates/site/board/</code></li>
+                </ul>
+                <p><code>:root</code>의 CSS 변수를 오버라이드하여 테마 색상과 폰트를 변경할 수 있습니다.</p>
+            </section>
+        </div>
+    </article>
+</body>
+</html>

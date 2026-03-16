@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title th:text="${user != null} ? '사용자 수정' : '사용자 등록'">사용자 등록</title>
+</head>
+<body>
+    <div layout:fragment="content">
+            <!-- 페이지 헤더 -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-800" th:text="${user != null} ? '사용자 수정' : '사용자 등록'">사용자 등록</h1>
+            </div>
+
+            <!-- 등록/수정 폼 -->
+            <div class="bg-white rounded-lg shadow">
+                <form id="userForm" class="p-6 space-y-6">
+                    <input type="hidden" id="userId" th:value="${user?.id}">
+
+                    <!-- 기본 정보 -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">기본 정보</h2>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <!-- 아이디 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    아이디 <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="username" name="username" 
+                                           th:value="${user?.username}"
+                                           th:readonly="${user != null}"
+                                           th:class="${user != null} ? 'flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed' : 'flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500'"
+                                           placeholder="4~50자">
+                                    <button th:if="${user == null}" type="button" onclick="checkUsername()"
+                                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                                        중복확인
+                                    </button>
+                                </div>
+                                <p id="usernameError" class="mt-1 text-sm text-red-500 hidden"></p>
+                            </div>
+
+                            <!-- 이름 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    이름 <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="name" name="name" 
+                                       th:value="${user?.name}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="이름">
+                            </div>
+
+                            <!-- 이메일 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    이메일
+                                </label>
+                                <input type="email" id="email" name="email" 
+                                       th:value="${user?.email}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="email@example.com">
+                            </div>
+
+                            <!-- 역할 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    역할 <span class="text-red-500">*</span>
+                                </label>
+                                <select id="roleId" name="roleId" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">역할 선택</option>
+                                    <option th:each="role : ${roles}"
+                                            th:value="${role.id}"
+                                            th:text="${role.roleName}"
+                                            th:selected="${user != null and user.roleId == role.id}"></option>
+                                </select>
+                            </div>
+
+                            <!-- 상태 (수정 시에만) -->
+                            <div th:if="${user != null}">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    상태
+                                </label>
+                                <select id="status" name="status" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="ACTIVE" th:selected="${user?.status == 'ACTIVE'}">활성</option>
+                                    <option value="LOCKED" th:selected="${user?.status == 'LOCKED'}">잠금</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 비밀번호 (등록 시에만) -->
+                    <div th:if="${user == null}" class="border-b border-gray-200 pb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">비밀번호</h2>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    비밀번호 <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="password" name="password" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="영문/숫자/특수문자 포함 6~12자">
+                                <p class="mt-1 text-sm text-gray-500">영문/숫자/특수문자를 포함하여 6~12자로 입력하세요.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    비밀번호 확인 <span class="text-red-500">*</span>
+                                </label>
+                                <input type="password" id="passwordConfirm" name="passwordConfirm" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="비밀번호 확인">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 버튼 -->
+                    <div class="flex justify-end space-x-2">
+                        <a href="/admin/users" 
+                           class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            취소
+                        </a>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <span th:text="${user != null} ? '수정' : '등록'">등록</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+    <script th:inline="javascript">
+        let usernameChecked = [[${user != null}]];
+        const isEditMode = [[${user != null}]];
+
+        function checkUsername() {
+            const username = document.getElementById('username').value;
+            const errorElement = document.getElementById('usernameError');
+
+            if (!username || username.length < 4) {
+                errorElement.textContent = '아이디는 4자 이상 입력해주세요.';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            fetch('/api/v1/users/check/username?username=' + encodeURIComponent(username), { credentials: 'same-origin' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.data) {
+                            errorElement.textContent = '이미 사용 중인 아이디입니다.';
+                            errorElement.classList.remove('hidden');
+                            usernameChecked = false;
+                        } else {
+                            errorElement.textContent = '사용 가능한 아이디입니다.';
+                            errorElement.classList.remove('hidden');
+                            errorElement.classList.remove('text-red-500');
+                            errorElement.classList.add('text-green-500');
+                            usernameChecked = true;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        document.getElementById('username').addEventListener('input', function() {
+            if (!isEditMode) {
+                usernameChecked = false;
+                const errorElement = document.getElementById('usernameError');
+                errorElement.classList.add('hidden');
+                errorElement.classList.remove('text-green-500');
+                errorElement.classList.add('text-red-500');
+            }
+        });
+
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!isEditMode && !usernameChecked) {
+                alert('아이디 중복확인을 해주세요.');
+                return;
+            }
+
+            const userId = document.getElementById('userId')?.value;
+            const username = document.getElementById('username').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const roleId = document.getElementById('roleId').value;
+
+            if (!name) {
+                alert('이름을 입력해주세요.');
+                return;
+            }
+
+            if (!roleId) {
+                alert('역할을 선택해주세요.');
+                return;
+            }
+
+            let requestData;
+            let url;
+            let method;
+
+            if (isEditMode) {
+                // 수정
+                const status = document.getElementById('status').value;
+                requestData = {
+                    name: name,
+                    email: email,
+                    roleId: parseInt(roleId),
+                    status: status
+                };
+                url = '/api/v1/users/' + userId;
+                method = 'PUT';
+            } else {
+                // 등록
+                const password = document.getElementById('password').value;
+                const passwordConfirm = document.getElementById('passwordConfirm').value;
+
+                if (!password) {
+                    alert('비밀번호를 입력해주세요.');
+                    return;
+                }
+
+                if (password !== passwordConfirm) {
+                    alert('비밀번호가 일치하지 않습니다.');
+                    return;
+                }
+
+                requestData = {
+                    username: username,
+                    password: password,
+                    passwordConfirm: passwordConfirm,
+                    name: name,
+                    email: email,
+                    roleId: parseInt(roleId)
+                };
+                url = '/api/v1/users';
+                method = 'POST';
+            }
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData),
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(isEditMode ? '수정되었습니다.' : '등록되었습니다.');
+                    location.href = '/admin/users/' + (isEditMode ? userId : data.data.id);
+                } else {
+                    alert(data.error?.message || (isEditMode ? '수정에 실패했습니다.' : '등록에 실패했습니다.'));
+                }
+            })
+            .catch(error => {
+                alert('오류가 발생했습니다.');
+                console.error('Error:', error);
+            });
+        });
+    </script>
+    </div>
+</body>
+</html>

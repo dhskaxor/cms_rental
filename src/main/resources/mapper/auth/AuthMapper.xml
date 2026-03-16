@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.auth.mapper.AuthMapper">
+
+    <!-- 사용자 인증 정보 ResultMap -->
+    <resultMap id="UserAuthResultMap" type="com.nt.cms.auth.vo.UserAuthVO">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="roleId" column="role_id"/>
+        <result property="roleCode" column="role_code"/>
+        <result property="status" column="status"/>
+        <result property="lastLoginAt" column="last_login_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <!-- Refresh Token ResultMap -->
+    <resultMap id="RefreshTokenResultMap" type="com.nt.cms.auth.vo.RefreshTokenVO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="refreshToken" column="refresh_token"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="revoked" column="revoked"/>
+        <result property="userAgent" column="user_agent"/>
+        <result property="ipAddress" column="ip_address"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <!-- 사용자명으로 인증 정보 조회 (MariaDB/MySQL: user는 예약어이므로 `user` 사용) -->
+    <select id="findByUsername" resultMap="UserAuthResultMap" databaseId="mariadb">
+        SELECT
+            u.id,
+            u.username,
+            u.password,
+            u.name,
+            u.email,
+            u.role_id,
+            r.role_code,
+            u.status,
+            u.last_login_at,
+            u.deleted
+        FROM `user` u
+        INNER JOIN role r ON u.role_id = r.id AND r.deleted = 0
+        WHERE u.username = #{username}
+          AND u.deleted = 0
+    </select>
+    <select id="findByUsername" resultMap="UserAuthResultMap">
+        SELECT
+            u.id,
+            u.username,
+            u.password,
+            u.name,
+            u.email,
+            u.role_id,
+            r.role_code,
+            u.status,
+            u.last_login_at,
+            u.deleted
+        FROM user u
+        INNER JOIN role r ON u.role_id = r.id AND r.deleted = 0
+        WHERE u.username = #{username}
+          AND u.deleted = 0
+    </select>
+    <!-- H2: user는 예약어이므로 "user" 사용 -->
+    <select id="findByUsername" resultMap="UserAuthResultMap" databaseId="h2">
+        SELECT
+            u.id,
+            u.username,
+            u.password,
+            u.name,
+            u.email,
+            u.role_id,
+            r.role_code,
+            u.status,
+            u.last_login_at,
+            u.deleted
+        FROM "user" u
+        INNER JOIN role r ON u.role_id = r.id AND r.deleted = 0
+        WHERE u.username = #{username}
+          AND u.deleted = 0
+    </select>
+
+    <!-- 사용자 ID로 인증 정보 조회 (MariaDB: `user` 사용) -->
+    <select id="findById" resultMap="UserAuthResultMap" databaseId="mariadb">
+        SELECT
+            u.id,
+            u.username,
+            u.password,
+            u.name,
+            u.email,
+            u.role_id,
+            r.role_code,
+            u.status,
+            u.last_login_at,
+            u.deleted
+        FROM `user` u
+        INNER JOIN role r ON u.role_id = r.id AND r.deleted = 0
+        WHERE u.id = #{userId}
+          AND u.deleted = 0
+    </select>
+    <select id="findById" resultMap="UserAuthResultMap">
+        SELECT
+            u.id,
+            u.username,
+            u.password,
+            u.name,
+            u.email,
+            u.role_id,
+            r.role_code,
+            u.status,
+            u.last_login_at,
+            u.deleted
+        FROM user u
+        INNER JOIN role r ON u.role_id = r.id AND r.deleted = 0
+        WHERE u.id = #{userId}
+          AND u.deleted = 0
+    </select>
+    <select id="findById" resultMap="UserAuthResultMap" databaseId="h2">
+        SELECT
+            u.id,
+            u.username,
+            u.password,
+            u.name,
+            u.email,
+            u.role_id,
+            r.role_code,
+            u.status,
+            u.last_login_at,
+            u.deleted
+        FROM "user" u
+        INNER JOIN role r ON u.role_id = r.id AND r.deleted = 0
+        WHERE u.id = #{userId}
+          AND u.deleted = 0
+    </select>
+
+    <!-- 역할별 권한 코드 목록 조회 -->
+    <select id="findPermissionsByRoleId" resultType="string">
+        SELECT p.permission_code
+        FROM permission p
+        INNER JOIN role_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+          AND p.deleted = 0
+        ORDER BY p.permission_code
+    </select>
+
+    <!-- 마지막 로그인 시간 업데이트 (MariaDB: `user` 사용) -->
+    <update id="updateLastLoginAt" databaseId="mariadb">
+        UPDATE `user`
+        SET last_login_at = NOW()
+        WHERE id = #{userId}
+          AND deleted = 0
+    </update>
+    <update id="updateLastLoginAt">
+        UPDATE user
+        SET last_login_at = NOW()
+        WHERE id = #{userId}
+          AND deleted = 0
+    </update>
+    <update id="updateLastLoginAt" databaseId="h2">
+        UPDATE "user"
+        SET last_login_at = CURRENT_TIMESTAMP
+        WHERE id = #{userId}
+          AND deleted = 0
+    </update>
+
+    <!-- 사용자 상태 업데이트 (MariaDB: `user` 사용) -->
+    <update id="updateStatus" databaseId="mariadb">
+        UPDATE `user`
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE id = #{userId}
+          AND deleted = 0
+    </update>
+    <update id="updateStatus">
+        UPDATE user
+        SET status = #{status},
+            updated_at = NOW()
+        WHERE id = #{userId}
+          AND deleted = 0
+    </update>
+    <update id="updateStatus" databaseId="h2">
+        UPDATE "user"
+        SET status = #{status},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = #{userId}
+          AND deleted = 0
+    </update>
+
+    <!-- Refresh Token 저장 -->
+    <insert id="insertRefreshToken" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO jwt_refresh_token (
+            user_id,
+            refresh_token,
+            expires_at,
+            revoked,
+            user_agent,
+            ip_address,
+            created_at,
+            deleted
+        ) VALUES (
+            #{userId},
+            #{refreshToken},
+            #{expiresAt},
+            0,
+            #{userAgent},
+            #{ipAddress},
+            NOW(),
+            0
+        )
+    </insert>
+
+    <!-- Refresh Token 조회 -->
+    <select id="findRefreshToken" resultMap="RefreshTokenResultMap">
+        SELECT
+            id,
+            user_id,
+            refresh_token,
+            expires_at,
+            revoked,
+            user_agent,
+            ip_address,
+            created_at,
+            deleted
+        FROM jwt_refresh_token
+        WHERE refresh_token = #{refreshToken}
+          AND deleted = 0
+    </select>
+
+    <!-- 사용자의 모든 Refresh Token 폐기 -->
+    <update id="revokeAllRefreshTokensByUserId">
+        UPDATE jwt_refresh_token
+        SET revoked = 1
+        WHERE user_id = #{userId}
+          AND revoked = 0
+          AND deleted = 0
+    </update>
+
+    <!-- 특정 Refresh Token 폐기 -->
+    <update id="revokeRefreshToken">
+        UPDATE jwt_refresh_token
+        SET revoked = 1
+        WHERE refresh_token = #{refreshToken}
+          AND deleted = 0
+    </update>
+
+    <!-- 만료된 Refresh Token 삭제 (배치 작업용) -->
+    <delete id="deleteExpiredRefreshTokens">
+        DELETE FROM jwt_refresh_token
+        WHERE expires_at &lt; NOW()
+           OR revoked = 1
+    </delete>
+
+</mapper>

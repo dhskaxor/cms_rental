@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>팝업 상세</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-5xl mx-auto">
+            <div class="mb-6 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800" th:text="${popup.popupName}">팝업 상세</h1>
+                <div class="space-x-2">
+                    <a th:href="@{/admin/popups/{id}/edit(id=${popup.id})}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">수정</a>
+                    <button type="button" th:data-id="${popup.id}" onclick="deletePopup(this)" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">삭제</button>
+                    <a th:href="@{/admin/popups}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">목록</a>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <dl class="grid grid-cols-2 gap-4">
+                    <div><dt class="text-sm text-gray-500">ID</dt><dd th:text="${popup.id}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">팝업 코드</dt><dd class="font-mono" th:text="${popup.popupCode}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">팝업명</dt><dd th:text="${popup.popupName}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">유형</dt><dd th:text="${popup.popupType}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">노출위치</dt><dd th:text="${popup.positionType}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">디바이스</dt><dd th:text="${popup.deviceType}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">크기</dt><dd><span th:text="${popup.width}"></span> x <span th:text="${popup.height}"></span></dd></div>
+                    <div><dt class="text-sm text-gray-500">좌표</dt><dd><span th:text="${popup.posX}"></span>, <span th:text="${popup.posY}"></span></dd></div>
+                    <div><dt class="text-sm text-gray-500">링크</dt><dd th:text="${popup.linkUrl ?: '-'}"></dd></div>
+                    <div><dt class="text-sm text-gray-500">노출기간</dt><dd><span th:if="${popup.startAt != null}" th:text="${#temporals.format(popup.startAt, 'yyyy-MM-dd')}"></span><span th:if="${popup.startAt != null and popup.endAt != null}"> ~ </span><span th:if="${popup.endAt != null}" th:text="${#temporals.format(popup.endAt, 'yyyy-MM-dd')}"></span><span th:if="${popup.startAt == null and popup.endAt == null}">전체</span></dd></div>
+                    <div><dt class="text-sm text-gray-500">활성</dt><dd th:text="${popup.isActive} ? 'Y' : 'N'"></dd></div>
+                    <div><dt class="text-sm text-gray-500">게시</dt><dd th:text="${popup.isPublished} ? 'Y' : 'N'"></dd></div>
+                </dl>
+                <div th:if="${popup.content}" class="mt-4">
+                    <dt class="text-sm text-gray-500">콘텐츠</dt>
+                    <dd class="mt-2 p-4 bg-gray-50 rounded border" th:utext="${popup.content}"></dd>
+                </div>
+            </div>
+        </div>
+
+    <script th:inline="javascript">
+        function deletePopup(btn) {
+            const id = btn.dataset.id;
+            if (!confirm('선택한 팝업을 삭제하시겠습니까?')) return;
+            fetch('/api/v1/popups/' + id, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    alert('삭제되었습니다.');
+                    location.href = '/admin/popups';
+                } else {
+                    alert(d.error?.message || '삭제에 실패했습니다.');
+                }
+            })
+            .catch(() => alert('오류가 발생했습니다.'));
+        }
+    </script>
+    </div>
+</body>
+</html>

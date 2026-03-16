@@ -1,0 +1,3 @@
+# EnvironmentPostProcessor: cms-config.yml 직접 로드 (config.import 대체)
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.nt.cms.common.config.CmsConfigEnvironmentPostProcessor

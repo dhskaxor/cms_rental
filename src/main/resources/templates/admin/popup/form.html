@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title th:text="${popup != null} ? '팝업 수정' : '팝업 등록'">팝업</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-6">
+                <a th:href="@{/admin/popups}" class="text-indigo-600 hover:text-indigo-900">&larr; 목록으로</a>
+            </div>
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" th:text="${popup != null} ? '팝업 수정' : '팝업 등록'"></h3>
+                </div>
+                <form id="popupForm" class="border-t border-gray-200">
+                    <input type="hidden" id="popupId" th:value="${popup?.id}">
+                    <div class="px-4 py-5 sm:p-6 space-y-6">
+                        <div>
+                            <label for="popupCode" class="block text-sm font-medium text-gray-700">팝업 코드 <span class="text-red-500" th:if="${popup == null}">*</span></label>
+                            <input type="text" id="popupCode" th:value="${popup?.popupCode}" th:readonly="${popup != null}"
+                                   th:class="${popup != null} ? 'bg-gray-100' : ''"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono"
+                                   placeholder="팝업 고유 코드">
+                        </div>
+                        <div>
+                            <label for="popupName" class="block text-sm font-medium text-gray-700">팝업명 <span class="text-red-500">*</span></label>
+                            <input type="text" id="popupName" th:value="${popup?.popupName}"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   placeholder="팝업명">
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="popupType" class="block text-sm font-medium text-gray-700">유형</label>
+                                <select id="popupType" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="LAYER" th:selected="${popup?.popupType == 'LAYER' || popup == null}">LAYER</option>
+                                    <option value="WINDOW" th:selected="${popup?.popupType == 'WINDOW'}">WINDOW</option>
+                                    <option value="MODAL" th:selected="${popup?.popupType == 'MODAL'}">MODAL</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="positionType" class="block text-sm font-medium text-gray-700">노출위치</label>
+                                <select id="positionType" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="MAIN" th:selected="${popup?.positionType == 'MAIN' || popup == null}">MAIN</option>
+                                    <option value="SUB" th:selected="${popup?.positionType == 'SUB'}">SUB</option>
+                                    <option value="ALL" th:selected="${popup?.positionType == 'ALL'}">ALL</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="deviceType" class="block text-sm font-medium text-gray-700">디바이스</label>
+                                <select id="deviceType" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="PC" th:selected="${popup?.deviceType == 'PC'}">PC</option>
+                                    <option value="MOBILE" th:selected="${popup?.deviceType == 'MOBILE'}">MOBILE</option>
+                                    <option value="ALL" th:selected="${popup?.deviceType == 'ALL' || popup == null}">ALL</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div>
+                                <label for="width" class="block text-sm font-medium text-gray-700">너비(px)</label>
+                                <input type="number" id="width" th:value="${popup?.width}"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                                       placeholder="500">
+                            </div>
+                            <div>
+                                <label for="height" class="block text-sm font-medium text-gray-700">높이(px)</label>
+                                <input type="number" id="height" th:value="${popup?.height}"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                                       placeholder="400">
+                            </div>
+                            <div>
+                                <label for="posX" class="block text-sm font-medium text-gray-700">X 좌표</label>
+                                <input type="number" id="posX" th:value="${popup?.posX ?: 0}"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="posY" class="block text-sm font-medium text-gray-700">Y 좌표</label>
+                                <input type="number" id="posY" th:value="${popup?.posY ?: 0}"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="content" class="block text-sm font-medium text-gray-700">콘텐츠 (HTML)</label>
+                            <textarea id="content" rows="6" th:text="${popup?.content}"
+                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                      placeholder="팝업 HTML 내용"></textarea>
+                        </div>
+                        <div>
+                            <label for="linkUrl" class="block text-sm font-medium text-gray-700">링크 URL</label>
+                            <input type="text" id="linkUrl" th:value="${popup?.linkUrl}"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm"
+                                   placeholder="클릭 시 이동 URL">
+                        </div>
+                        <div>
+                            <label for="linkTarget" class="block text-sm font-medium text-gray-700">링크 타겟</label>
+                            <select id="linkTarget" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                <option value="_self" th:selected="${popup?.linkTarget == '_self' || popup == null}">_self</option>
+                                <option value="_blank" th:selected="${popup?.linkTarget == '_blank'}">_blank</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">노출 기간</label>
+                            <div class="flex items-center gap-4" th:with="startVal=${popup?.startAt != null ? #temporals.format(popup.startAt, 'yyyy-MM-dd') + 'T' + #temporals.format(popup.startAt, 'HH:mm') : ''}, endVal=${popup?.endAt != null ? #temporals.format(popup.endAt, 'yyyy-MM-dd') + 'T' + #temporals.format(popup.endAt, 'HH:mm') : ''}">
+                                <div class="flex-1">
+                                    <input type="datetime-local" id="startAt" th:value="${startVal}"
+                                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                </div>
+                                <span>~</span>
+                                <div class="flex-1">
+                                    <input type="datetime-local" id="endAt" th:value="${endVal}"
+                                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">비어 있으면 전체 기간 노출</p>
+                        </div>
+                        <div>
+                            <label for="sortOrder" class="block text-sm font-medium text-gray-700">정렬 순서</label>
+                            <input type="number" id="sortOrder" th:value="${popup?.sortOrder ?: 0}"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm sm:text-sm">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="isActive" th:checked="${popup?.isActive != false || popup == null}"
+                                       class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">활성</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="isPublished" th:checked="${popup?.isPublished != false || popup == null}"
+                                       class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">게시</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="isLoginRequired" th:checked="${popup?.isLoginRequired == true}"
+                                       class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">로그인 사용자 전용</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="isTodayCloseEnabled" th:checked="${popup?.isTodayCloseEnabled != false || popup == null}"
+                                       class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">오늘 하루 보지 않기 사용</span>
+                            </label>
+                        </div>
+                        <div class="flex space-x-2 pt-4 border-t">
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">저장</button>
+                            <a th:href="@{/admin/popups}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">취소</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    <script th:inline="javascript">
+        document.getElementById('popupForm').onsubmit = function(e) {
+            e.preventDefault();
+            var id = document.getElementById('popupId').value;
+            var startAtVal = document.getElementById('startAt').value;
+            var endAtVal = document.getElementById('endAt').value;
+            var payload = {
+                popupCode: document.getElementById('popupCode').value,
+                popupName: document.getElementById('popupName').value,
+                popupType: document.getElementById('popupType').value,
+                positionType: document.getElementById('positionType').value,
+                deviceType: document.getElementById('deviceType').value,
+                width: document.getElementById('width').value ? parseInt(document.getElementById('width').value) : null,
+                height: document.getElementById('height').value ? parseInt(document.getElementById('height').value) : null,
+                posX: document.getElementById('posX').value ? parseInt(document.getElementById('posX').value) : 0,
+                posY: document.getElementById('posY').value ? parseInt(document.getElementById('posY').value) : 0,
+                content: document.getElementById('content').value || null,
+                linkUrl: document.getElementById('linkUrl').value || null,
+                linkTarget: document.getElementById('linkTarget').value || '_self',
+                isLoginRequired: document.getElementById('isLoginRequired').checked,
+                isTodayCloseEnabled: document.getElementById('isTodayCloseEnabled').checked,
+                startAt: startAtVal || null,
+                endAt: endAtVal || null,
+                sortOrder: parseInt(document.getElementById('sortOrder').value) || 0,
+                isActive: document.getElementById('isActive').checked,
+                isPublished: document.getElementById('isPublished').checked
+            };
+            if (id) {
+                payload = {
+                    popupName: payload.popupName,
+                    popupType: payload.popupType,
+                    positionType: payload.positionType,
+                    deviceType: payload.deviceType,
+                    width: payload.width,
+                    height: payload.height,
+                    posX: payload.posX,
+                    posY: payload.posY,
+                    content: payload.content,
+                    linkUrl: payload.linkUrl,
+                    linkTarget: payload.linkTarget,
+                    isLoginRequired: payload.isLoginRequired,
+                    isTodayCloseEnabled: payload.isTodayCloseEnabled,
+                    startAt: payload.startAt,
+                    endAt: payload.endAt,
+                    sortOrder: payload.sortOrder,
+                    isActive: payload.isActive,
+                    isPublished: payload.isPublished
+                };
+            }
+            var url = id ? '/api/v1/popups/' + id : '/api/v1/popups';
+            var method = id ? 'PUT' : 'POST';
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                credentials: 'same-origin'
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) {
+                    alert('저장되었습니다.');
+                    location.href = '/admin/popups';
+                } else {
+                    alert(d.error?.message || '저장에 실패했습니다.');
+                }
+            })
+            .catch(function(err) {
+                alert('오류가 발생했습니다.');
+                console.error(err);
+            });
+        };
+    </script>
+    </div>
+</body>
+</html>

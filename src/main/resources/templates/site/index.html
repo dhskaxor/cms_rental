@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title>CMS Core Platform</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-glow"></div>
+            <div class="hero-badge">
+                <i class="bi bi-stars"></i>
+                <span>Enterprise-Grade CMS Platform</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="text-gradient">CMS Core</span>
+                <br>
+                <span class="hero-subtitle">Content Management System</span>
+            </h1>
+            <p class="hero-desc">
+                Spring Boot + MyBatis 기반의 확장 가능한 CMS 플랫폼.
+                <br>
+                강력한 권한 관리와 유연한 콘텐츠 관리 기능을 제공합니다.
+            </p>
+            <div class="hero-actions">
+                <a th:href="@{/site/help}" class="site-btn site-btn-primary">
+                    시작하기
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+                <a href="#features" class="site-btn site-btn-secondary">
+                    기능 살펴보기
+                </a>
+            </div>
+        </section>
+
+        <!-- Tech Stack -->
+        <section class="tech-stack">
+            <div class="tech-stack-item">
+                <i class="bi bi-lightning-charge"></i>
+                <span>Spring Boot 3.2</span>
+            </div>
+            <div class="tech-stack-item">
+                <i class="bi bi-database"></i>
+                <span>MyBatis</span>
+            </div>
+            <div class="tech-stack-item">
+                <i class="bi bi-database"></i>
+                <span>MariaDB</span>
+            </div>
+            <div class="tech-stack-item">
+                <i class="bi bi-lock"></i>
+                <span>JWT Auth</span>
+            </div>
+            <div class="tech-stack-item">
+                <i class="bi bi-globe"></i>
+                <span>REST API</span>
+            </div>
+            <div class="tech-stack-item">
+                <i class="bi bi-code-slash"></i>
+                <span>React</span>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section id="features" class="features-section">
+            <div class="section-header">
+                <h2 class="text-gradient">핵심 기능</h2>
+                <p>엔터프라이즈급 CMS에 필요한 모든 기능을 제공합니다</p>
+            </div>
+            <div class="features-grid">
+                <article class="feature-card">
+                    <div class="feature-icon feature-icon-cyan">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3>사용자 관리</h3>
+                    <p>RBAC 기반 권한 시스템으로 세밀한 사용자 권한 제어</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon feature-icon-green">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3>보안 인증</h3>
+                    <p>JWT 토큰 기반 인증, 로그인 시도 제한, 비밀번호 정책</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon feature-icon-violet">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </div>
+                    <h3>게시판 시스템</h3>
+                    <p>다양한 템플릿, 역할별 권한, 파일 첨부 지원</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon feature-icon-orange">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <h3>콘텐츠 관리</h3>
+                    <p>정적 페이지, 사이트 메뉴, 팝업 관리 기능</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon feature-icon-pink">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <h3>MyBatis 기반</h3>
+                    <p>XML Mapper 기반 SQL, 확장 가능한 아키텍처</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon feature-icon-yellow">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <h3>설치 마법사</h3>
+                    <p>Thymeleaf 기반 설치 UI, 간편한 초기 설정</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Capabilities -->
+        <section class="capabilities-section">
+            <div class="capabilities-card">
+                <div class="capabilities-header">
+                    <div class="capabilities-icon">
+                        <i class="bi bi-terminal"></i>
+                    </div>
+                    <div>
+                        <h2>시스템 기능</h2>
+                        <p>CMS Core가 제공하는 기능 목록</p>
+                    </div>
+                </div>
+                <div class="capabilities-grid">
+                    <div class="capability-item">
+                        <i class="bi bi-people"></i>
+                        <span>사용자/역할 관리</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-shield-check"></i>
+                        <span>RBAC 권한 시스템</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                        <span>다중 게시판</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-chat-dots"></i>
+                        <span>댓글/대댓글</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-upload"></i>
+                        <span>파일 업로드</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-search"></i>
+                        <span>검색 기능</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-bell"></i>
+                        <span>팝업 관리</span>
+                    </div>
+                    <div class="capability-item">
+                        <i class="bi bi-layers"></i>
+                        <span>메뉴/페이지 관리</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Latest Posts + Board Links (서버 렌더링) -->
+        <section class="content-grid-section">
+            <div class="content-grid">
+                <div class="content-card">
+                    <div class="content-card-header">
+                        <i class="bi bi-file-text text-cyan"></i>
+                        <h2>최신글</h2>
+                    </div>
+                    <div class="content-card-body">
+                        <ul class="latest-posts-list" th:if="${latestPosts != null and !latestPosts.isEmpty()}">
+                            <li th:each="post : ${latestPosts}" class="latest-posts-item">
+                                <a th:href="@{/site/board/{path}/post/{id}(path=${post.boardCode != null and !post.boardCode.isEmpty()} ? ${post.boardCode} : ${post.boardId}, id=${post.id})}" class="latest-posts-link">
+                                    <span class="latest-posts-title" th:text="${post.title}">제목</span>
+                                    <span class="latest-posts-date" th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">날짜</span>
+                                </a>
+                            </li>
+                        </ul>
+                        <p class="latest-posts-empty" th:if="${latestPosts == null or latestPosts.isEmpty()}">게시글이 없습니다.</p>
+                    </div>
+                </div>
+                <div class="content-card" th:if="${boardLinks != null and !boardLinks.isEmpty()}">
+                    <div class="content-card-header">
+                        <i class="bi bi-grid-3x3-gap text-violet"></i>
+                        <h2>게시판</h2>
+                    </div>
+                    <div class="content-card-body">
+                        <div class="board-links-grid">
+                            <a th:each="link : ${boardLinks}" th:href="${link.href}" class="board-link-item">
+                                <div class="board-link-icon"><i class="bi bi-grid-3x3-gap"></i></div>
+                                <div class="board-link-info">
+                                    <span class="board-link-name" th:text="${link.name}">게시판</span>
+                                    <span class="board-link-desc">게시판 바로가기</span>
+                                </div>
+                                <i class="bi bi-arrow-right board-link-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Info -->
+        <section class="api-info-section">
+            <div class="api-info-card">
+                <div class="api-info-icon">
+                    <i class="bi bi-code-slash"></i>
+                </div>
+                <h2>REST API 제공</h2>
+                <p>
+                    모든 기능은 REST API로 제공됩니다.
+                    Swagger/OpenAPI 문서를 통해 API를 탐색하고 테스트할 수 있습니다.
+                </p>
+                <code class="api-endpoint">GET /api/v1/public/*</code>
+            </div>
+        </section>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>사이트 관리</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">사이트 관리</h1>
+                <p class="text-sm text-gray-500 mt-1">사이트명, favicon, SEO, 회사정보를 설정합니다. 사용자 사이트 헤더·푸터·연락처에 적용됩니다.</p>
+            </div>
+
+            <div th:if="${message}" class="mb-4 p-4 bg-green-50 text-green-800 rounded-lg" th:text="${message}"></div>
+
+            <form method="post" action="/admin/site" class="bg-white rounded-lg shadow p-6 space-y-6">
+                <!-- CSRF: 프로젝트에서 비활성화되어 있음 -->
+                <!-- 기본 정보 -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">기본 정보</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">사이트명 *</label>
+                            <input type="text" name="siteName" th:value="${siteConfig?.siteName}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="CMS Core" required>
+                            <p class="mt-1 text-sm text-gray-500">헤더, 탭 제목 등에 표시됩니다.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Favicon</label>
+                            <input type="hidden" name="faviconFileId" id="faviconFileId" th:value="${siteConfig?.faviconFileId}">
+                            <div class="flex items-center gap-4">
+                                <div id="faviconPreview" class="w-16 h-16 border border-gray-200 rounded flex items-center justify-center bg-gray-50">
+                                    <img id="faviconImg" th:src="${siteConfig?.faviconUrl}" th:alt="${siteConfig?.siteName}" class="max-w-full max-h-full" style="display:none;">
+                                    <span id="faviconPlaceholder" class="text-gray-400 text-xs">미설정</span>
+                                </div>
+                                <div class="flex-1">
+                                    <input type="file" id="faviconFile" accept=".ico,.png,.gif,.webp,.jpg,.jpeg"
+                                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                                    <p class="mt-1 text-sm text-gray-500">ico, png, gif, webp, jpg (최대 3MB)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEO -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">SEO</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SEO 제목</label>
+                            <input type="text" name="seoTitle" th:value="${siteConfig?.seoTitle}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="브라우저 탭·검색 결과에 표시">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SEO 설명</label>
+                            <textarea name="seoDescription" rows="2" th:text="${siteConfig?.seoDescription}"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                      placeholder="meta description"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">SEO 키워드</label>
+                            <input type="text" name="seoKeywords" th:value="${siteConfig?.seoKeywords}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="키워드1, 키워드2">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 회사 정보 -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">회사 정보</h2>
+                    <p class="text-sm text-gray-500 mb-4">푸터 및 연락처 페이지에 표시됩니다.</p>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">회사 주소</label>
+                            <input type="text" name="companyAddress" th:value="${siteConfig?.companyAddress}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="서울시 강남구 ...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">전화번호</label>
+                            <input type="text" name="companyPhone" th:value="${siteConfig?.companyPhone}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="02-1234-5678">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">관리자 이메일</label>
+                            <input type="email" name="adminEmail" th:value="${siteConfig?.adminEmail}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="admin@example.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t">
+                    <a href="/admin" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">취소</a>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">저장</button>
+                </div>
+            </form>
+        </div>
+
+        <script th:inline="javascript">
+        (function() {
+            var faviconFileIdInput = document.getElementById('faviconFileId');
+            var faviconFileInput = document.getElementById('faviconFile');
+            var faviconImg = document.getElementById('faviconImg');
+            var faviconPlaceholder = document.getElementById('faviconPlaceholder');
+
+            /* 기존 favicon 있으면 표시 - 서버에서 faviconUrl 전달 시 */
+            var initialFaviconUrl = /*[[${siteConfig?.faviconUrl}]]*/ null;
+            if (initialFaviconUrl) {
+                faviconImg.src = initialFaviconUrl;
+                faviconImg.style.display = 'block';
+                faviconPlaceholder.style.display = 'none';
+            }
+
+            faviconFileInput.addEventListener('change', function() {
+                var file = this.files[0];
+                if (!file) {
+                    faviconFileIdInput.value = '';
+                    faviconImg.style.display = 'none';
+                    faviconPlaceholder.style.display = 'inline';
+                    return;
+                }
+                var formData = new FormData();
+                formData.append('file', file);
+                formData.append('refType', 'SITE_CONFIG');
+                formData.append('refId', '1');
+                fetch('/api/v1/files/upload', {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(res) {
+                    if (res.success && res.data && res.data.id) {
+                        faviconFileIdInput.value = res.data.id;
+                        faviconImg.src = URL.createObjectURL(file);
+                        faviconImg.style.display = 'block';
+                        faviconPlaceholder.style.display = 'none';
+                    } else {
+                        alert(res.error?.message || '업로드에 실패했습니다.');
+                    }
+                })
+                .catch(function() {
+                    alert('업로드 중 오류가 발생했습니다.');
+                });
+            });
+        })();
+        </script>
+    </div>
+</body>
+</html>

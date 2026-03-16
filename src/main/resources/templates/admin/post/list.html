@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>게시글 목록</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6">
+                <a th:href="@{/admin/posts}" class="text-indigo-600 hover:text-indigo-900">&larr; 게시판 선택</a>
+            </div>
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">
+                    <span th:text="${board.boardName}">게시판</span> 게시글
+                </h1>
+                <a th:href="@{'/admin/boards/' + ${board.id} + '/posts/new'}"
+                   class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    + 게시글 등록
+                </a>
+            </div>
+
+            <!-- 검색 -->
+            <form th:action="@{'/admin/boards/' + ${board.id} + '/posts'}" method="get" class="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+                <input type="hidden" name="page" value="1">
+                <div class="flex flex-wrap gap-3 items-end">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">검색</label>
+                        <select name="searchType" class="rounded-md border-gray-300">
+                            <option value="">전체</option>
+                            <option value="title" th:selected="${searchRequest?.searchType == 'title'}">제목</option>
+                            <option value="content" th:selected="${searchRequest?.searchType == 'content'}">내용</option>
+                            <option value="writer" th:selected="${searchRequest?.searchType == 'writer'}">작성자</option>
+                            <option value="all" th:selected="${searchRequest?.searchType == 'all'}">제목+내용</option>
+                        </select>
+                        <input type="text" name="keyword" th:value="${searchRequest?.keyword}"
+                               placeholder="검색어" class="ml-2 rounded-md border-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">기간</label>
+                        <input type="date" name="startDate" th:value="${searchRequest?.startDate}" class="rounded-md border-gray-300">
+                        <span class="mx-1">~</span>
+                        <input type="date" name="endDate" th:value="${searchRequest?.endDate}" class="rounded-md border-gray-300">
+                    </div>
+                    <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">검색</button>
+                </div>
+            </form>
+
+            <!-- 게시글 목록 -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">번호</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">제목</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">작성자</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">조회</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">등록일</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr th:each="post, iterStat : ${posts}" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${pageResponse.totalElements - (pageResponse.page - 1) * pageResponse.size - iterStat.index}"></td>
+                            <td class="px-6 py-4">
+                                <a th:href="@{'/admin/boards/' + ${board.id} + '/posts/' + ${post.id}}" class="text-indigo-600 hover:text-indigo-900 font-medium" th:text="${post.title}"></a>
+                                <span th:if="${post.isNotice}" class="ml-1 px-2 py-0.5 text-xs bg-red-100 text-red-800 rounded">공지</span>
+                                <span th:if="${post.isSecret}" class="ml-1 text-gray-400">🔒</span>
+                                <span th:if="${post.commentCount > 0}" class="ml-1 text-gray-500 text-sm" th:text="'[' + ${post.commentCount} + ']'"></span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${post.writerName ?: post.writerUsername}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${post.viewCount ?: 0}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd') : '-'}"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <a th:href="@{'/admin/boards/' + ${board.id} + '/posts/' + ${post.id} + '/edit'}" class="text-indigo-600 hover:text-indigo-900 mr-3">수정</a>
+                                <button type="button" th:data-id="${post.id}" th:data-board-id="${board.id}" onclick="deletePost(this)" class="text-red-600 hover:text-red-900">삭제</button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(posts)}">
+                            <td colspan="6" class="px-6 py-8 text-center text-gray-500">등록된 게시글이 없습니다.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이징 -->
+            <div th:if="${pageResponse.totalPages > 1}" class="mt-6 flex justify-center gap-2">
+                <a th:if="${pageResponse.hasPrevious()}"
+                   th:href="@{/admin/boards/{bid}/posts(bid=${board.id}, page=${pageResponse.page - 1}, size=${pageResponse.size}, searchType=${searchRequest?.searchType}, keyword=${searchRequest?.keyword}, startDate=${searchRequest?.startDate}, endDate=${searchRequest?.endDate})}"
+                   class="px-3 py-1 border rounded hover:bg-gray-100">이전</a>
+                <span class="px-3 py-1 text-gray-600" th:text="${pageResponse.page + ' / ' + pageResponse.totalPages}"></span>
+                <a th:if="${pageResponse.hasNext()}"
+                   th:href="@{/admin/boards/{bid}/posts(bid=${board.id}, page=${pageResponse.page + 1}, size=${pageResponse.size}, searchType=${searchRequest?.searchType}, keyword=${searchRequest?.keyword}, startDate=${searchRequest?.startDate}, endDate=${searchRequest?.endDate})}"
+                   class="px-3 py-1 border rounded hover:bg-gray-100">다음</a>
+            </div>
+        </div>
+
+    <script th:inline="javascript">
+        function deletePost(btn) {
+            const postId = btn.dataset.id;
+            const boardId = btn.dataset.boardId;
+            if (!confirm('선택한 게시글을 삭제하시겠습니까?')) return;
+            fetch(`/api/v1/boards/${boardId}/posts/${postId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alert('삭제되었습니다.');
+                    location.reload();
+                } else {
+                    alert(data.error?.message || '삭제에 실패했습니다.');
+                }
+            })
+            .catch(() => alert('오류가 발생했습니다.'));
+        }
+    </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,4 @@
+/*
+ * CMS Core Platform - Gradle 설정
+ */
+rootProject.name = 'cms-core'

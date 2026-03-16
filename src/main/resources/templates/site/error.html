@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${statusCode} + ' - CMS'">에러 - CMS</title>
+    <link rel="stylesheet" href="/site/css/site.css">
+</head>
+<body>
+    <div id="app">
+        <header class="site-header">
+            <div class="site-header-inner">
+                <a href="/site/" class="site-logo">CMS</a>
+            </div>
+        </header>
+
+        <main class="site-main">
+            <section class="site-error">
+                <h1 class="site-error-code" th:text="${statusCode} ?: 404">404</h1>
+                <p class="site-error-message" th:text="${message} ?: '요청한 페이지를 찾을 수 없습니다.'">요청한 페이지를 찾을 수 없습니다.</p>
+                <p class="site-error-path" th:if="${path}" th:text="'경로: ' + ${path}">경로: /site/unknown</p>
+                <a href="/site/" class="site-error-link">메인으로 돌아가기</a>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <p>&copy; 2026 CMS Core Platform. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>

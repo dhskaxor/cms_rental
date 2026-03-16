@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title th:text="${board.boardName} + ' - CMS'">게시판 - CMS</title>
+</head>
+<body>
+    <article layout:fragment="content" class="site-board site-board-card">
+        <div class="site-board-head">
+            <div class="site-board-title-wrap">
+                <div class="site-board-icon">
+                    <i class="bi bi-grid-3x3-gap"></i>
+                </div>
+                <h1 class="site-board-title" th:text="${board.boardName}">게시판</h1>
+            </div>
+            <div class="site-board-actions" th:if="${canCreate}">
+                <a th:href="@{/site/board/{path}/write(path=${boardPath})}" class="site-btn site-btn-primary">
+                    <i class="bi bi-pencil-square"></i> 글쓰기
+                </a>
+            </div>
+        </div>
+
+        <form th:action="@{/site/board/{path}(path=${boardPath})}" method="get" class="site-board-search">
+            <input type="hidden" name="page" value="1">
+            <select name="searchType" class="site-search-select">
+                <option value="" th:selected="${searchType == null or searchType == ''}">전체</option>
+                <option value="title" th:selected="${searchType == 'title'}">제목</option>
+                <option value="content" th:selected="${searchType == 'content'}">내용</option>
+                <option value="writer" th:selected="${searchType == 'writer'}">작성자</option>
+                <option value="all" th:selected="${searchType == 'all'}">제목+내용</option>
+            </select>
+            <div class="site-search-input-wrap">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요" class="site-search-input">
+                <button type="submit" class="site-search-btn"><i class="bi bi-search"></i></button>
+            </div>
+        </form>
+
+        <div class="site-board-card site-board-list-wrap">
+            <div class="site-board-card-list">
+                <div th:if="${#lists.isEmpty(posts)}" class="site-board-empty">등록된 글이 없습니다.</div>
+                <div th:each="post, stat : ${posts}" class="site-board-card-item">
+                    <a th:href="@{/site/board/{path}/post/{id}(path=${boardPath}, id=${post.id})}" class="site-board-card-link">
+                        <span class="site-board-card-title">
+                            <span class="site-badge-notice" th:if="${post.isNotice}"><i class="bi bi-pin-angle"></i> 공지</span>
+                            <span class="site-badge-secret" th:if="${post.isSecret}"><i class="bi bi-lock"></i></span>
+                            <span th:text="${post.title} ?: '-'">제목</span>
+                        </span>
+                        <span class="site-board-card-meta">
+                            <i class="bi bi-person"></i> <span th:text="${post.writerName != null and !post.writerName.isEmpty() ? post.writerName : (post.writerUsername != null and !post.writerUsername.isEmpty() ? post.writerUsername : '-')}">-</span>
+                            · <i class="bi bi-calendar3"></i> <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd') : '-'}">-</span>
+                            · <i class="bi bi-eye"></i> <span th:text="${post.viewCount} ?: 0">0</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <nav class="site-pager" th:if="${totalPages > 1}">
+            <a th:href="@{/site/board/{path}(path=${boardPath}, page=1, keyword=${keyword}, searchType=${searchType})}"
+               th:classappend="${currentPage == 1} ? 'disabled'"
+               class="site-pager-btn">처음</a>
+            <a th:href="@{/site/board/{path}(path=${boardPath}, page=${currentPage - 1}, keyword=${keyword}, searchType=${searchType})}"
+               th:if="${currentPage > 1}"
+               class="site-pager-btn">이전</a>
+            <span th:each="i : ${#numbers.sequence(1, totalPages)}">
+                <a th:if="${i != currentPage}" th:href="@{/site/board/{path}(path=${boardPath}, page=${i}, keyword=${keyword}, searchType=${searchType})}"
+                   class="site-pager-btn" th:text="${i}">1</a>
+                <span th:if="${i == currentPage}" class="site-pager-current" th:text="${i}">1</span>
+            </span>
+            <a th:href="@{/site/board/{path}(path=${boardPath}, page=${currentPage + 1}, keyword=${keyword}, searchType=${searchType})}"
+               th:if="${currentPage < totalPages}"
+               class="site-pager-btn">다음</a>
+            <a th:href="@{/site/board/{path}(path=${boardPath}, page=${totalPages}, keyword=${keyword}, searchType=${searchType})}"
+               th:classappend="${currentPage == totalPages} ? 'disabled'"
+               class="site-pager-btn">끝</a>
+        </nav>
+    </article>
+</body>
+</html>

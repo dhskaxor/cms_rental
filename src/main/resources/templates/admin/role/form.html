@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title th:text="${role != null} ? '역할 수정' : '역할 등록'">역할 등록</title>
+</head>
+<body>
+    <div layout:fragment="content">
+            <!-- 페이지 헤더 -->
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-800" th:text="${role != null} ? '역할 수정' : '역할 등록'">역할 등록</h1>
+            </div>
+
+            <!-- 등록/수정 폼 -->
+            <div class="bg-white rounded-lg shadow">
+                <form id="roleForm" class="p-6 space-y-6">
+                    <input type="hidden" id="roleId" th:value="${role?.id}">
+
+                    <!-- 기본 정보 -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">기본 정보</h2>
+                        
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <!-- 역할 코드 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    역할 코드 <span class="text-red-500">*</span>
+                                </label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="roleCode" name="roleCode" 
+                                           th:value="${role?.roleCode}"
+                                           th:readonly="${role != null}"
+                                           th:class="${role != null} ? 'flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed font-mono uppercase' : 'flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono uppercase'"
+                                           placeholder="ROLE_CODE">
+                                    <button th:if="${role == null}" type="button" onclick="checkRoleCode()"
+                                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
+                                        중복확인
+                                    </button>
+                                </div>
+                                <p id="roleCodeError" class="mt-1 text-sm text-red-500 hidden"></p>
+                                <p class="mt-1 text-sm text-gray-500">영문 대문자, 숫자, 언더스코어만 허용</p>
+                            </div>
+
+                            <!-- 역할명 -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    역할명 <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="roleName" name="roleName" 
+                                       th:value="${role?.roleName}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="역할명">
+                            </div>
+
+                            <!-- 설명 -->
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    설명
+                                </label>
+                                <textarea id="description" name="description" rows="3"
+                                          th:text="${role?.description}"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder="역할에 대한 설명"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 권한 선택 -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-4">권한 설정</h2>
+                        
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            <th:block th:each="perm : ${permissions}">
+                                <label class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                                    <input type="checkbox" 
+                                           th:id="'perm_' + ${perm.id}"
+                                           th:value="${perm.id}"
+                                           name="permissionIds"
+                                           th:checked="${role != null and role.permissions != null and #lists.contains(role.permissions.![id], perm.id)}"
+                                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="ml-2 text-sm text-gray-700 font-mono" th:text="${perm.permissionCode}"></span>
+                                </label>
+                            </th:block>
+                        </div>
+                        <p th:if="${permissions == null or permissions.size() == 0}" class="text-gray-500 text-sm">
+                            등록된 권한이 없습니다.
+                        </p>
+                    </div>
+
+                    <!-- 버튼 -->
+                    <div class="flex justify-end space-x-2">
+                        <a href="/admin/roles" 
+                           class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                            취소
+                        </a>
+                        <button type="submit" 
+                                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <span th:text="${role != null} ? '수정' : '등록'">등록</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+    <script th:inline="javascript">
+        let roleCodeChecked = [[${role != null}]];
+        const isEditMode = [[${role != null}]];
+
+        // 입력 시 대문자 변환
+        document.getElementById('roleCode').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9_]/g, '');
+            if (!isEditMode) {
+                roleCodeChecked = false;
+                const errorElement = document.getElementById('roleCodeError');
+                errorElement.classList.add('hidden');
+                errorElement.classList.remove('text-green-500');
+                errorElement.classList.add('text-red-500');
+            }
+        });
+
+        function checkRoleCode() {
+            const roleCode = document.getElementById('roleCode').value;
+            const errorElement = document.getElementById('roleCodeError');
+
+            if (!roleCode || roleCode.length < 2) {
+                errorElement.textContent = '역할 코드는 2자 이상 입력해주세요.';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            fetch('/api/v1/roles/check/code?roleCode=' + encodeURIComponent(roleCode), { credentials: 'same-origin' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.data) {
+                            errorElement.textContent = '이미 사용 중인 역할 코드입니다.';
+                            errorElement.classList.remove('hidden');
+                            roleCodeChecked = false;
+                        } else {
+                            errorElement.textContent = '사용 가능한 역할 코드입니다.';
+                            errorElement.classList.remove('hidden');
+                            errorElement.classList.remove('text-red-500');
+                            errorElement.classList.add('text-green-500');
+                            roleCodeChecked = true;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        document.getElementById('roleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!isEditMode && !roleCodeChecked) {
+                alert('역할 코드 중복확인을 해주세요.');
+                return;
+            }
+
+            const roleId = document.getElementById('roleId')?.value;
+            const roleCode = document.getElementById('roleCode').value;
+            const roleName = document.getElementById('roleName').value;
+            const description = document.getElementById('description').value;
+
+            if (!roleCode) {
+                alert('역할 코드를 입력해주세요.');
+                return;
+            }
+
+            if (!roleName) {
+                alert('역할명을 입력해주세요.');
+                return;
+            }
+
+            // 선택된 권한 ID 수집
+            const permissionIds = [];
+            document.querySelectorAll('input[name="permissionIds"]:checked').forEach(checkbox => {
+                permissionIds.push(parseInt(checkbox.value));
+            });
+
+            let requestData;
+            let url;
+            let method;
+
+            if (isEditMode) {
+                requestData = {
+                    roleName: roleName,
+                    description: description,
+                    permissionIds: permissionIds
+                };
+                url = '/api/v1/roles/' + roleId;
+                method = 'PUT';
+            } else {
+                requestData = {
+                    roleCode: roleCode,
+                    roleName: roleName,
+                    description: description,
+                    permissionIds: permissionIds
+                };
+                url = '/api/v1/roles';
+                method = 'POST';
+            }
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData),
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(isEditMode ? '수정되었습니다.' : '등록되었습니다.');
+                    location.href = isEditMode ? '/admin/roles/' + roleId : '/admin/roles';
+                } else {
+                    alert(data.error?.message || (isEditMode ? '수정에 실패했습니다.' : '등록에 실패했습니다.'));
+                }
+            })
+            .catch(error => {
+                alert('오류가 발생했습니다.');
+                console.error('Error:', error);
+            });
+        });
+    </script>
+    </div>
+</body>
+</html>

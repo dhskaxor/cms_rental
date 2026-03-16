@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title th:text="${board != null} ? '게시판 수정' : '게시판 생성'">게시판</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-3xl mx-auto">
+        <div class="mb-6">
+            <a href="/admin/boards" class="text-indigo-600 hover:text-indigo-900">&larr; 목록으로</a>
+        </div>
+
+        <div class="bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" th:text="${board != null} ? '게시판 수정' : '새 게시판 생성'"></h3>
+            </div>
+
+            <form id="boardForm" class="border-t border-gray-200">
+                <input type="hidden" id="boardId" th:value="${board?.id}">
+                
+                <div class="px-4 py-5 sm:p-6 space-y-6">
+                    <!-- 게시판 코드 -->
+                    <div>
+                        <label for="boardCode" class="block text-sm font-medium text-gray-700">게시판 코드 <span class="text-red-500">*</span></label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <input type="text" id="boardCode" name="boardCode" th:value="${board?.boardCode}" 
+                                   th:readonly="${board != null}"
+                                   th:class="${board != null} ? 'bg-gray-100' : ''"
+                                   class="flex-1 min-w-0 block w-full px-3 py-2 rounded-l-md border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   placeholder="영문 소문자, 숫자, 언더스코어만 사용">
+                            <button type="button" onclick="checkBoardCode()" th:if="${board == null}"
+                                    class="inline-flex items-center px-3 py-2 border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm rounded-r-md hover:bg-gray-100">
+                                중복확인
+                            </button>
+                        </div>
+                        <p id="boardCodeMessage" class="mt-1 text-sm hidden"></p>
+                    </div>
+
+                    <!-- 게시판명 -->
+                    <div>
+                        <label for="boardName" class="block text-sm font-medium text-gray-700">게시판명 <span class="text-red-500">*</span></label>
+                        <input type="text" id="boardName" name="boardName" th:value="${board?.boardName}"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                               placeholder="게시판명을 입력하세요">
+                    </div>
+
+                    <!-- 그룹 선택 -->
+                    <div>
+                        <label for="groupId" class="block text-sm font-medium text-gray-700">그룹</label>
+                        <select id="groupId" name="groupId"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">없음</option>
+                            <option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.groupName}" th:selected="${board?.groupId == group.id}"></option>
+                        </select>
+                    </div>
+
+                    <!-- 설정 -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">기능 설정</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="useComment" name="useComment" th:checked="${board?.useComment != false}"
+                                           class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="useComment" class="ml-2 block text-sm text-gray-700">댓글 사용</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="useFile" name="useFile" th:checked="${board?.useFile != false}"
+                                           class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="useFile" class="ml-2 block text-sm text-gray-700">파일 첨부 사용</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="useSecret" name="useSecret" th:checked="${board?.useSecret == true}"
+                                           class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="useSecret" class="ml-2 block text-sm text-gray-700">비밀글 사용</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="useEditor" name="useEditor" th:checked="${board?.useEditor == true}"
+                                           class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                    <label for="useEditor" class="ml-2 block text-sm text-gray-700">리치 에디터(WYSIWYG) 사용</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="mb-4">
+                                <label for="maxFileCount" class="block text-sm font-medium text-gray-700">최대 파일 수</label>
+                                <input type="number" id="maxFileCount" name="maxFileCount" min="1" max="20" 
+                                       th:value="${board?.maxFileCount} ?: 5"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="pageSize" class="block text-sm font-medium text-gray-700">페이지 크기</label>
+                                <input type="number" id="pageSize" name="pageSize" min="5" max="100" 
+                                       th:value="${board?.pageSize} ?: 10"
+                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                            <div>
+                                <label for="templateCode" class="block text-sm font-medium text-gray-700">사용자 사이트 템플릿</label>
+                                <select id="templateCode" name="templateCode"
+                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                    <option value="">불러오는 중…</option>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500">templates/site/board/ 하위 폴더를 추가하면 목록에 자동 반영됩니다</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 역할별 권한 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">역할별 권한</label>
+                        <div class="border border-gray-200 rounded-md overflow-hidden">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">역할</th>
+                                        <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">조회</th>
+                                        <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">생성</th>
+                                        <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">수정</th>
+                                        <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">삭제</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="permissionsTable">
+                                    <tr th:each="role : ${roles}">
+                                        <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${role.roleName}"></td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-center">
+                                            <input type="checkbox" th:name="'perm_' + ${role.id} + '_read'" th:data-role="${role.id}"
+                                                   class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 perm-read">
+                                        </td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-center">
+                                            <input type="checkbox" th:name="'perm_' + ${role.id} + '_create'" th:data-role="${role.id}"
+                                                   class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 perm-create">
+                                        </td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-center">
+                                            <input type="checkbox" th:name="'perm_' + ${role.id} + '_update'" th:data-role="${role.id}"
+                                                   class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 perm-update">
+                                        </td>
+                                        <td class="px-4 py-2 whitespace-nowrap text-center">
+                                            <input type="checkbox" th:name="'perm_' + ${role.id} + '_delete'" th:data-role="${role.id}"
+                                                   class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 perm-delete">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                    <a href="/admin/boards" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 mr-2">
+                        취소
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <span th:text="${board != null} ? '수정' : '생성'">저장</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    <span id="boardTemplateCodeValue" th:text="${board?.templateCode ?: 'default'}" style="display:none">default</span>
+    <script th:inline="javascript">
+        let boardCodeChecked = [[${board != null}]];
+        const existingPermissions = [[${board?.permissions}]] || [];
+        const selectedTemplateCode = (document.getElementById('boardTemplateCodeValue')?.textContent || 'default').trim();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 게시판 템플릿 select 동적 로딩 (templates/site/board/ 하위 폴더 기준, 폴더 추가 시 자동 반영)
+            fetch('/api/v1/boards/templates', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    const select = document.getElementById('templateCode');
+                    select.innerHTML = '';
+                    const codes = (result.success && result.data && Array.isArray(result.data) && result.data.length > 0) ? result.data : ['default'];
+                    codes.forEach(code => {
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = code;
+                        select.appendChild(opt);
+                    });
+                    select.value = codes.includes(selectedTemplateCode) ? selectedTemplateCode : (codes[0] || 'default');
+                })
+                .catch(() => {
+                    document.getElementById('templateCode').innerHTML = '<option value="default">default</option>';
+                    document.getElementById('templateCode').value = selectedTemplateCode || 'default';
+                });
+
+            if (existingPermissions.length > 0) {
+                existingPermissions.forEach(perm => {
+                    const readCheckbox = document.querySelector(`.perm-read[data-role="${perm.roleId}"]`);
+                    const createCheckbox = document.querySelector(`.perm-create[data-role="${perm.roleId}"]`);
+                    const updateCheckbox = document.querySelector(`.perm-update[data-role="${perm.roleId}"]`);
+                    const deleteCheckbox = document.querySelector(`.perm-delete[data-role="${perm.roleId}"]`);
+                    
+                    if (readCheckbox) readCheckbox.checked = perm.canRead;
+                    if (createCheckbox) createCheckbox.checked = perm.canCreate;
+                    if (updateCheckbox) updateCheckbox.checked = perm.canUpdate;
+                    if (deleteCheckbox) deleteCheckbox.checked = perm.canDelete;
+                });
+            }
+        });
+
+        function checkBoardCode() {
+            const boardCode = document.getElementById('boardCode').value;
+            const messageEl = document.getElementById('boardCodeMessage');
+            
+            if (!boardCode) {
+                messageEl.textContent = '게시판 코드를 입력해주세요.';
+                messageEl.className = 'mt-1 text-sm text-red-600';
+                return;
+            }
+
+            fetch(`/api/v1/boards/check/code?boardCode=${encodeURIComponent(boardCode)}`, { credentials: 'same-origin' })
+                .then(response => response.json())
+                .then(data => {
+                    messageEl.classList.remove('hidden');
+                    const isAvailable = data.data === false;
+                    if (isAvailable) {
+                        messageEl.textContent = '사용 가능한 코드입니다.';
+                        messageEl.className = 'mt-1 text-sm text-green-600';
+                        boardCodeChecked = true;
+                    } else {
+                        messageEl.textContent = '이미 사용 중인 코드입니다.';
+                        messageEl.className = 'mt-1 text-sm text-red-600';
+                        boardCodeChecked = false;
+                    }
+                });
+        }
+
+        document.getElementById('boardForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const boardId = document.getElementById('boardId').value;
+            const isEdit = !!boardId;
+
+            if (!isEdit && !boardCodeChecked) {
+                alert('게시판 코드 중복확인을 해주세요.');
+                return;
+            }
+
+            const boardCode = document.getElementById('boardCode').value;
+            const boardName = document.getElementById('boardName').value;
+
+            if (!boardCode || !boardName) {
+                alert('게시판 코드와 게시판명은 필수입니다.');
+                return;
+            }
+
+            const permissions = [];
+            const roles = document.querySelectorAll('#permissionsTable tr');
+            roles.forEach(row => {
+                const roleId = row.querySelector('.perm-read')?.dataset.role;
+                if (roleId) {
+                    const canRead = row.querySelector('.perm-read').checked;
+                    const canCreate = row.querySelector('.perm-create').checked;
+                    const canUpdate = row.querySelector('.perm-update').checked;
+                    const canDelete = row.querySelector('.perm-delete').checked;
+                    
+                    if (canRead || canCreate || canUpdate || canDelete) {
+                        permissions.push({
+                            roleId: parseInt(roleId),
+                            canRead: canRead,
+                            canCreate: canCreate,
+                            canUpdate: canUpdate,
+                            canDelete: canDelete
+                        });
+                    }
+                }
+            });
+
+            const data = {
+                boardCode: boardCode,
+                boardName: boardName,
+                groupId: document.getElementById('groupId').value || null,
+                useComment: document.getElementById('useComment').checked,
+                useFile: document.getElementById('useFile').checked,
+                maxFileCount: parseInt(document.getElementById('maxFileCount').value),
+                useSecret: document.getElementById('useSecret').checked,
+                useEditor: document.getElementById('useEditor').checked,
+                pageSize: parseInt(document.getElementById('pageSize').value),
+                templateCode: document.getElementById('templateCode').value || 'default',
+                permissions: permissions
+            };
+
+            const url = isEdit ? `/api/v1/boards/${boardId}` : '/api/v1/boards';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert(isEdit ? '게시판이 수정되었습니다.' : '게시판이 생성되었습니다.');
+                    location.href = '/admin/boards';
+                } else {
+                    alert(result.error?.message || '저장에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                alert('오류가 발생했습니다.');
+            });
+        });
+    </script>
+    </div>
+</body>
+</html>

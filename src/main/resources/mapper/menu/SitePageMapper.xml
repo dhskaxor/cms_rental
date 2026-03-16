@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.menu.mapper.SitePageMapper">
+
+    <!-- 결과 매핑 -->
+    <resultMap id="sitePageResultMap" type="com.nt.cms.menu.vo.SitePageVO">
+        <id property="id" column="id"/>
+        <result property="pageCode" column="page_code"/>
+        <result property="pageTitle" column="page_title"/>
+        <result property="content" column="content"/>
+        <result property="isPublished" column="is_published"/>
+        <result property="templateCode" column="template_code"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createdByName" column="created_by_name"/>
+        <result property="updatedByName" column="updated_by_name"/>
+    </resultMap>
+
+    <!-- 공통 컬럼 -->
+    <sql id="baseColumns">
+        sp.id,
+        sp.page_code,
+        sp.page_title,
+        sp.content,
+        sp.is_published,
+        sp.template_code,
+        sp.created_at,
+        sp.created_by,
+        sp.updated_at,
+        sp.updated_by,
+        sp.deleted
+    </sql>
+
+    <!-- 전체 페이지 목록 조회 -->
+    <select id="findAll" resultMap="sitePageResultMap">
+        SELECT
+            <include refid="baseColumns"/>,
+            cu.name AS created_by_name,
+            uu.name AS updated_by_name
+        FROM site_page sp
+        LEFT JOIN `user` cu ON sp.created_by = cu.id AND cu.deleted = false
+        LEFT JOIN `user` uu ON sp.updated_by = uu.id AND uu.deleted = false
+        WHERE sp.deleted = false
+        ORDER BY sp.id DESC
+    </select>
+
+    <!-- 게시된 페이지 목록 조회 -->
+    <select id="findPublished" resultMap="sitePageResultMap">
+        SELECT
+            <include refid="baseColumns"/>,
+            cu.name AS created_by_name,
+            uu.name AS updated_by_name
+        FROM site_page sp
+        LEFT JOIN `user` cu ON sp.created_by = cu.id AND cu.deleted = false
+        LEFT JOIN `user` uu ON sp.updated_by = uu.id AND uu.deleted = false
+        WHERE sp.deleted = false
+          AND sp.is_published = true
+        ORDER BY sp.id DESC
+    </select>
+
+    <!-- ID로 페이지 조회 -->
+    <select id="findById" resultMap="sitePageResultMap">
+        SELECT
+            <include refid="baseColumns"/>,
+            cu.name AS created_by_name,
+            uu.name AS updated_by_name
+        FROM site_page sp
+        LEFT JOIN `user` cu ON sp.created_by = cu.id AND cu.deleted = false
+        LEFT JOIN `user` uu ON sp.updated_by = uu.id AND uu.deleted = false
+        WHERE sp.deleted = false
+          AND sp.id = #{id}
+    </select>
+
+    <!-- 페이지 코드로 조회 (공개 API용: is_published=true 페이지만 반환) -->
+    <select id="findByPageCode" resultMap="sitePageResultMap">
+        SELECT
+            <include refid="baseColumns"/>,
+            cu.name AS created_by_name,
+            uu.name AS updated_by_name
+        FROM site_page sp
+        LEFT JOIN `user` cu ON sp.created_by = cu.id AND cu.deleted = false
+        LEFT JOIN `user` uu ON sp.updated_by = uu.id AND uu.deleted = false
+        WHERE sp.deleted = false
+          AND sp.page_code = #{pageCode}
+          AND sp.is_published = true
+    </select>
+
+    <!-- 페이지 코드 중복 체크 -->
+    <select id="countByPageCode" resultType="int">
+        SELECT COUNT(*)
+        FROM site_page
+        WHERE deleted = false
+          AND page_code = #{pageCode}
+        <if test="excludeId != null">
+          AND id != #{excludeId}
+        </if>
+    </select>
+
+    <!-- 페이지 생성 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO site_page (
+            page_code,
+            page_title,
+            content,
+            is_published,
+            template_code,
+            created_at,
+            created_by,
+            deleted
+        ) VALUES (
+            #{pageCode},
+            #{pageTitle},
+            #{content},
+            #{isPublished},
+            #{createdAt},
+            #{createdBy},
+            false
+        )
+    </insert>
+
+    <!-- 페이지 수정 -->
+    <update id="update">
+        UPDATE site_page
+        SET
+            page_title = #{pageTitle},
+            content = #{content},
+            is_published = #{isPublished},
+            template_code = #{templateCode},
+            updated_at = #{updatedAt},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND deleted = false
+    </update>
+
+    <!-- 페이지 삭제 (Soft Delete) -->
+    <update id="delete">
+        UPDATE site_page
+        SET
+            deleted = true,
+            updated_at = NOW(),
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 메뉴에서 참조 중인 페이지인지 확인 -->
+    <select id="countMenuReferences" resultType="int">
+        SELECT COUNT(*)
+        FROM site_menu
+        WHERE deleted = false
+          AND page_id = #{pageId}
+    </select>
+
+</mapper>

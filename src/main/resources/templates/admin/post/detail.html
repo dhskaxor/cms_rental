@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>게시글 상세</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+                <a th:href="@{'/admin/boards/' + ${board.id} + '/posts'}" class="text-indigo-600 hover:text-indigo-900">← 목록</a>
+            </div>
+
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-start">
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-900" th:text="${post.title}">제목</h2>
+                        <div class="mt-2 flex gap-4 text-sm text-gray-500">
+                            <span th:text="${post.writerName ?: post.writerUsername}">작성자</span>
+                            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">등록일</span>
+                            <span>조회 <span th:text="${post.viewCount ?: 0}">0</span></span>
+                            <span th:if="${post.isNotice}" class="px-2 py-0.5 bg-red-100 text-red-800 rounded">공지</span>
+                            <span th:if="${post.isSecret}" class="text-gray-500">비밀글</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a th:href="@{'/admin/boards/' + ${board.id} + '/posts/' + ${post.id} + '/edit'}"
+                           class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">수정</a>
+                        <button type="button" th:data-id="${post.id}" th:data-board-id="${board.id}" onclick="deletePost(this)"
+                                class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700">삭제</button>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                    <div class="prose max-w-none" th:utext="${post.content}">내용</div>
+                    <div th:if="${post.fileCount != null and post.fileCount > 0}" class="mt-4 pt-4 border-t text-sm text-gray-500">
+                        첨부파일 <span th:text="${post.fileCount}">0</span>개
+                    </div>
+                    <div th:if="${post.commentCount != null and post.commentCount > 0}" class="mt-2 text-sm text-gray-500">
+                        댓글 <span th:text="${post.commentCount}">0</span>개
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <script th:inline="javascript">
+        function deletePost(btn) {
+            const postId = btn.dataset.id;
+            const boardId = btn.dataset.boardId;
+            if (!confirm('선택한 게시글을 삭제하시겠습니까?')) return;
+            fetch('/api/v1/boards/' + boardId + '/posts/' + postId, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin'
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    alert('삭제되었습니다.');
+                    location.href = '/admin/boards/' + boardId + '/posts';
+                } else {
+                    alert(data.error && data.error.message ? data.error.message : '삭제에 실패했습니다.');
+                }
+            })
+            .catch(function() { alert('오류가 발생했습니다.'); });
+        }
+    </script>
+    </div>
+</body>
+</html>

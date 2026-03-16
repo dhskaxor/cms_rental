@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>감사 로그 상세</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-4xl mx-auto">
+            <div class="mb-6">
+                <a href="/admin/audit-logs" class="text-blue-600 hover:text-blue-800 text-sm">← 목록으로</a>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h1 class="text-xl font-bold text-gray-800 mb-6">감사 로그 상세</h1>
+                <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">ID</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${auditLog.id}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">일시</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${#temporals.format(auditLog.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">사용자</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${auditLog.username + ' (ID: ' + auditLog.userId + ')'}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">액션</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${auditLog.action}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">대상</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${auditLog.targetType + ' #' + auditLog.targetId}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">IP</dt>
+                        <dd class="mt-1 text-sm text-gray-900" th:text="${auditLog.ipAddress != null and auditLog.ipAddress != '' ? auditLog.ipAddress : '-'}"></dd>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">변경 전 데이터</dt>
+                        <dd class="mt-1 p-4 bg-gray-50 rounded text-sm text-gray-900 font-mono whitespace-pre-wrap break-all"
+                            th:text="${auditLog.beforeData != null and auditLog.beforeData != '' ? auditLog.beforeData : '-'}"></dd>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">변경 후 데이터</dt>
+                        <dd class="mt-1 p-4 bg-gray-50 rounded text-sm text-gray-900 font-mono whitespace-pre-wrap break-all"
+                            th:text="${auditLog.afterData != null and auditLog.afterData != '' ? auditLog.afterData : '-'}"></dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

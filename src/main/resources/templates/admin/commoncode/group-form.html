@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>코드 그룹</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="max-w-3xl mx-auto">
+            <div class="mb-6">
+                <a th:href="@{/admin/common-codes}" class="text-indigo-600 hover:text-indigo-900">&larr; 목록으로</a>
+            </div>
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900" th:text="${group != null} ? '코드 그룹 수정' : '코드 그룹 등록'"></h3>
+                </div>
+                <form id="groupForm" class="border-t border-gray-200">
+                    <input type="hidden" id="groupId" th:value="${group?.id}">
+                    <div class="px-4 py-5 sm:p-6 space-y-6">
+                        <div>
+                            <label for="groupCode" class="block text-sm font-medium text-gray-700">그룹 코드 <span class="text-red-500" th:if="${group == null}">*</span></label>
+                            <input type="text" id="groupCode" th:value="${group?.groupCode}" th:readonly="${group != null}"
+                                   th:class="${group != null} ? 'bg-gray-100' : ''"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   placeholder="GROUP_CODE">
+                        </div>
+                        <div>
+                            <label for="groupName" class="block text-sm font-medium text-gray-700">그룹명 <span class="text-red-500">*</span></label>
+                            <input type="text" id="groupName" th:value="${group?.groupName}"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                   placeholder="그룹명">
+                        </div>
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700">설명</label>
+                            <textarea id="description" rows="3" th:text="${group?.description}"
+                                      class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                      placeholder="설명 (선택)"></textarea>
+                        </div>
+                        <div th:if="${group != null}">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="isActive" th:checked="${group?.isActive != false}"
+                                       class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                <span class="ml-2 text-sm text-gray-700">활성</span>
+                            </label>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                저장
+                            </button>
+                            <a th:href="@{/admin/common-codes}" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                취소
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <script th:inline="javascript">
+        document.getElementById('groupForm').onsubmit = function(e) {
+            e.preventDefault();
+            var id = document.getElementById('groupId').value;
+            var payload;
+            if (id) {
+                payload = {
+                    groupName: document.getElementById('groupName').value,
+                    description: document.getElementById('description').value || null,
+                    isActive: document.getElementById('isActive') ? document.getElementById('isActive').checked : true
+                };
+            } else {
+                payload = {
+                    groupCode: document.getElementById('groupCode').value,
+                    groupName: document.getElementById('groupName').value,
+                    description: document.getElementById('description').value || null
+                };
+            }
+            var url = id ? '/api/v1/common-code-groups/' + id : '/api/v1/common-code-groups';
+            var method = id ? 'PUT' : 'POST';
+            fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.success) { alert('저장되었습니다.'); location.href = '/admin/common-codes'; }
+                else { alert(d.error ? d.error.message : '저장 실패'); }
+            })
+            .catch(function(err) { alert('오류 발생'); console.error(err); });
+        };
+    </script>
+    </div>
+</body>
+</html>

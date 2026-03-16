@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.siteconfig.mapper.SiteConfigMapper">
+
+    <resultMap id="siteConfigResultMap" type="com.nt.cms.siteconfig.vo.SiteConfigVO">
+        <id property="id" column="id"/>
+        <result property="siteName" column="site_name"/>
+        <result property="faviconFileId" column="favicon_file_id"/>
+        <result property="seoTitle" column="seo_title"/>
+        <result property="seoDescription" column="seo_description"/>
+        <result property="seoKeywords" column="seo_keywords"/>
+        <result property="companyAddress" column="company_address"/>
+        <result property="companyPhone" column="company_phone"/>
+        <result property="adminEmail" column="admin_email"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <!-- ID로 사이트 설정 조회 -->
+    <select id="findById" resultMap="siteConfigResultMap">
+        SELECT
+            id,
+            site_name,
+            favicon_file_id,
+            seo_title,
+            seo_description,
+            seo_keywords,
+            company_address,
+            company_phone,
+            admin_email,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        FROM site_config
+        WHERE id = #{id}
+          AND deleted = 0
+    </select>
+
+    <!-- 사이트 설정 수정 -->
+    <update id="update">
+        UPDATE site_config
+        SET site_name = #{siteName},
+            favicon_file_id = #{faviconFileId},
+            seo_title = #{seoTitle},
+            seo_description = #{seoDescription},
+            seo_keywords = #{seoKeywords},
+            company_address = #{companyAddress},
+            company_phone = #{companyPhone},
+            admin_email = #{adminEmail},
+            updated_at = #{updatedAt},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 사이트 설정 초기 행 삽입 -->
+    <insert id="insert">
+        INSERT INTO site_config (
+            id,
+            site_name,
+            favicon_file_id,
+            seo_title,
+            seo_description,
+            seo_keywords,
+            company_address,
+            company_phone,
+            admin_email,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{id},
+            #{siteName},
+            #{faviconFileId},
+            #{seoTitle},
+            #{seoDescription},
+            #{seoKeywords},
+            #{companyAddress},
+            #{companyPhone},
+            #{adminEmail},
+            #{createdAt},
+            #{createdBy},
+            #{updatedAt},
+            #{updatedBy},
+            #{deleted}
+        )
+    </insert>
+</mapper>

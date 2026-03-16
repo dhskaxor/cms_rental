@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title th:text="${code != null} ? '코드 수정' : '코드 등록'">코드</title>
+</head>
+<body>
+    <div layout:fragment="content">
+            <div class="mb-6"><h1 class="text-2xl font-bold text-gray-800" th:text="${code != null} ? '코드 수정' : '코드 등록'">코드</h1></div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <form id="codeForm" class="space-y-6">
+                    <input type="hidden" id="codeId" th:value="${code?.id}">
+                    <input type="hidden" id="groupId" th:value="${group.id}">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">상위 코드</label>
+                        <select id="parentId" class="w-full px-3 py-2 border rounded-lg">
+                            <option value="">없음 (최상위)</option>
+                            <option th:each="p : ${parentCodes}" th:value="${p.id}" th:text="${p.code + ' - ' + p.codeName}"
+                                    th:selected="${code != null and code.parentId == p.id}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">코드 *</label>
+                        <input type="text" id="code" th:value="${code?.code}" th:readonly="${code != null}"
+                               class="w-full px-3 py-2 border rounded-lg" placeholder="CODE">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">코드명 *</label>
+                        <input type="text" id="codeName" th:value="${code?.codeName}" class="w-full px-3 py-2 border rounded-lg" placeholder="코드명">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">코드 값</label>
+                        <input type="text" id="codeValue" th:value="${code?.codeValue}" class="w-full px-3 py-2 border rounded-lg" placeholder="code_value">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">정렬 순서</label>
+                        <input type="number" id="sortOrder" th:value="${code?.sortOrder ?: 0}" class="w-full px-3 py-2 border rounded-lg">
+                    </div>
+                    <div th:if="${code != null}">
+                        <label class="flex items-center"><input type="checkbox" id="isActive" th:checked="${code?.isActive}"> 활성</label>
+                    </div>
+                    <div class="flex space-x-2">
+                        <a th:href="@{/admin/common-codes/group/{id}(id=${group.id})}" class="px-6 py-2 bg-gray-200 rounded-lg">취소</a>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg">저장</button>
+                    </div>
+                </form>
+            </div>
+
+    <script th:inline="javascript">
+        document.getElementById('codeForm').onsubmit = function(e) {
+            e.preventDefault();
+            var id = document.getElementById('codeId').value;
+            var groupId = document.getElementById('groupId').value;
+            var parentId = document.getElementById('parentId').value;
+            var payload = {
+                groupId: parseInt(groupId),
+                parentId: parentId ? parseInt(parentId) : null,
+                code: document.getElementById('code').value,
+                codeName: document.getElementById('codeName').value,
+                codeValue: document.getElementById('codeValue').value || null,
+                sortOrder: parseInt(document.getElementById('sortOrder').value) || 0
+            };
+            if (id) {
+                payload.codeName = document.getElementById('codeName').value;
+                payload.codeValue = document.getElementById('codeValue').value || null;
+                payload.sortOrder = parseInt(document.getElementById('sortOrder').value) || 0;
+                payload.isActive = document.getElementById('isActive').checked;
+            }
+            var url = id ? '/api/v1/common-codes/' + id : '/api/v1/common-codes';
+            var method = id ? 'PUT' : 'POST';
+            var body = id ? JSON.stringify(payload) : JSON.stringify({ groupId: payload.groupId, parentId: payload.parentId, code: payload.code, codeName: payload.codeName, codeValue: payload.codeValue, sortOrder: payload.sortOrder });
+            fetch(url, { method: method, headers: { 'Content-Type': 'application/json' }, body: body, credentials: 'same-origin' })
+            .then(r => r.json()).then(d => {
+                if (d.success) { alert('저장되었습니다.'); location.href = '/admin/common-codes/group/' + groupId; }
+                else alert(d.error?.message || '저장 실패');
+            }).catch(function(err) { alert('오류'); console.error(err); });
+        };
+    </script>
+    </div>
+</body>
+</html>

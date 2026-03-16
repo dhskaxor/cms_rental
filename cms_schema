@@ -1,0 +1,391 @@
+============================== CMS CORE STANDARD DB SCHEMA (JWT ENABLED)==============================
+
+[COMMON COLUMN STANDARD] 
+id BIGINT PK created_at DATETIME NOT NULL
+created_by BIGINT
+updated_at DATETIME 
+updated_by BIGINT 
+deleted TINYINT(1) DEFAULT 0
+
+
+/* =========================================================
+   CMS CORE PRODUCTION DATABASE SCHEMA (FULL COMMENT VERSION)
+   - All Tables and Columns Commented
+   - FK + INDEX Optimized
+   - InnoDB Engine
+   ========================================================= */
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+/* =========================
+   ROLE TABLE
+   ========================= */
+CREATE TABLE role (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    role_code VARCHAR(50) NOT NULL UNIQUE COMMENT 'Role Unique Code (ADMIN, MANAGER, USER)',
+    role_name VARCHAR(100) NOT NULL COMMENT 'Role Display Name',
+    description VARCHAR(255) COMMENT 'Role Description',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag (0:Active,1:Deleted)',
+    INDEX idx_role_deleted (deleted)
+) ENGINE=InnoDB COMMENT='Role Master Table';
+
+
+/* =========================
+   PERMISSION TABLE
+   ========================= */
+CREATE TABLE permission (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    permission_code VARCHAR(100) NOT NULL UNIQUE COMMENT 'Permission Unique Code',
+    permission_name VARCHAR(100) NOT NULL COMMENT 'Permission Name',
+    description VARCHAR(255) COMMENT 'Permission Description',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_permission_deleted (deleted)
+) ENGINE=InnoDB COMMENT='Global Permission Table';
+
+
+/* =========================
+   ROLE_PERMISSION TABLE
+   ========================= */
+CREATE TABLE role_permission (
+    role_id BIGINT NOT NULL COMMENT 'Role ID',
+    permission_id BIGINT NOT NULL COMMENT 'Permission ID',
+    PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role(id),
+    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permission(id)
+) ENGINE=InnoDB COMMENT='Role and Permission Mapping Table';
+
+
+/* =========================
+   USER TABLE
+   ========================= */
+CREATE TABLE user (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    username VARCHAR(100) NOT NULL UNIQUE COMMENT 'Login Username',
+    password VARCHAR(255) NOT NULL COMMENT 'Encrypted Password',
+    name VARCHAR(100) COMMENT 'User Real Name',
+    email VARCHAR(150) COMMENT 'User Email',
+    role_id BIGINT NOT NULL COMMENT 'Role ID',
+    status VARCHAR(20) DEFAULT 'ACTIVE' COMMENT 'User Status (ACTIVE/LOCKED)',
+    last_login_at DATETIME COMMENT 'Last Login Timestamp',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_user_role (role_id),
+    INDEX idx_user_status (status),
+    INDEX idx_user_deleted (deleted),
+    CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES role(id)
+) ENGINE=InnoDB COMMENT='User Master Table';
+
+
+/* =========================
+   JWT_REFRESH_TOKEN TABLE
+   ========================= */
+CREATE TABLE jwt_refresh_token (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    user_id BIGINT NOT NULL COMMENT 'User ID',
+    refresh_token VARCHAR(500) NOT NULL COMMENT 'Refresh Token String',
+    expires_at DATETIME NOT NULL COMMENT 'Expiration Timestamp',
+    revoked TINYINT(1) DEFAULT 0 COMMENT 'Revoked Flag',
+    user_agent VARCHAR(255) COMMENT 'Client User Agent',
+    ip_address VARCHAR(100) COMMENT 'Client IP Address',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_jwt_user (user_id),
+    INDEX idx_jwt_expires (expires_at),
+    CONSTRAINT fk_jwt_user FOREIGN KEY (user_id) REFERENCES user(id)
+) ENGINE=InnoDB COMMENT='JWT Refresh Token Management Table';
+
+
+/* =========================
+   BOARD_GROUP TABLE
+   ========================= */
+CREATE TABLE board_group (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    group_code VARCHAR(50) NOT NULL UNIQUE COMMENT 'Board Group Code',
+    group_name VARCHAR(100) NOT NULL COMMENT 'Board Group Name',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_board_group_deleted (deleted)
+) ENGINE=InnoDB COMMENT='Board Group Master Table';
+
+
+/* =========================
+   BOARD TABLE
+   ========================= */
+CREATE TABLE board (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    board_code VARCHAR(50) NOT NULL UNIQUE COMMENT 'Board Unique Code',
+    board_name VARCHAR(100) NOT NULL COMMENT 'Board Display Name',
+    group_id BIGINT COMMENT 'Board Group ID',
+    use_comment TINYINT(1) DEFAULT 1 COMMENT 'Comment Usage Flag',
+    use_file TINYINT(1) DEFAULT 1 COMMENT 'File Upload Usage Flag',
+    max_file_count INT DEFAULT 5 COMMENT 'Maximum File Upload Count Per Post',
+    use_secret TINYINT(1) DEFAULT 0 COMMENT 'Secret Post Usage Flag',
+    page_size INT DEFAULT 10 COMMENT 'Default Pagination Size',
+    template_code VARCHAR(50) DEFAULT 'default' COMMENT '사용자 사이트 게시판 템플릿 코드 (default, card 등)',
+    use_editor TINYINT(1) DEFAULT 0 COMMENT '리치 에디터(WYSIWYG) 사용 여부',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_board_group (group_id),
+    INDEX idx_board_deleted (deleted),
+    CONSTRAINT fk_board_group FOREIGN KEY (group_id) REFERENCES board_group(id)
+) ENGINE=InnoDB COMMENT='Board Setting Table';
+
+
+/* =========================
+   BOARD_PERMISSION TABLE
+   ========================= */
+CREATE TABLE board_permission (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    board_id BIGINT NOT NULL COMMENT 'Board ID',
+    role_id BIGINT NOT NULL COMMENT 'Role ID',
+    can_create TINYINT(1) DEFAULT 0 COMMENT 'Create Permission Flag',
+    can_read TINYINT(1) DEFAULT 1 COMMENT 'Read Permission Flag',
+    can_update TINYINT(1) DEFAULT 0 COMMENT 'Update Permission Flag',
+    can_delete TINYINT(1) DEFAULT 0 COMMENT 'Delete Permission Flag',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    UNIQUE KEY uk_board_role (board_id, role_id),
+    INDEX idx_board_perm_role (role_id),
+    CONSTRAINT fk_bp_board FOREIGN KEY (board_id) REFERENCES board(id),
+    CONSTRAINT fk_bp_role FOREIGN KEY (role_id) REFERENCES role(id)
+) ENGINE=InnoDB COMMENT='Board CRUD Permission Management Table';
+
+
+/* =========================
+   BOARD_POST TABLE
+   ========================= */
+CREATE TABLE board_post (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    board_id BIGINT NOT NULL COMMENT 'Board ID',
+    title VARCHAR(255) NOT NULL COMMENT 'Post Title',
+    content TEXT COMMENT 'Post Content Body',
+    writer_id BIGINT NOT NULL COMMENT 'Writer User ID',
+    view_count INT DEFAULT 0 COMMENT 'View Count',
+    is_notice TINYINT(1) DEFAULT 0 COMMENT 'Notice Flag',
+    is_secret TINYINT(1) DEFAULT 0 COMMENT 'Secret Flag',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_post_board_created (board_id, created_at),
+    INDEX idx_post_writer (writer_id),
+    INDEX idx_post_deleted (deleted),
+    CONSTRAINT fk_post_board FOREIGN KEY (board_id) REFERENCES board(id),
+    CONSTRAINT fk_post_writer FOREIGN KEY (writer_id) REFERENCES user(id)
+) ENGINE=InnoDB COMMENT='Board Post Data Table';
+
+
+/* =========================
+   BOARD_COMMENT TABLE
+   ========================= */
+CREATE TABLE board_comment (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    post_id BIGINT NOT NULL COMMENT 'Board Post ID',
+    parent_id BIGINT COMMENT 'Parent Comment ID (for nested comments)',
+    content TEXT NOT NULL COMMENT 'Comment Content',
+    writer_id BIGINT NOT NULL COMMENT 'Writer User ID',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_comment_post (post_id),
+    INDEX idx_comment_parent (parent_id),
+    CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES board_post(id),
+    CONSTRAINT fk_comment_writer FOREIGN KEY (writer_id) REFERENCES user(id)
+) ENGINE=InnoDB COMMENT='Board Comment Table';
+
+
+/* =========================
+   FILE TABLE
+   ========================= */
+CREATE TABLE file (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    ref_type VARCHAR(50) COMMENT 'Reference Entity Type',
+    ref_id BIGINT COMMENT 'Reference Entity ID',
+    original_name VARCHAR(255) COMMENT 'Original File Name',
+    stored_name VARCHAR(255) COMMENT 'Stored File Name',
+    file_path VARCHAR(255) COMMENT 'Physical Storage Path',
+    file_size BIGINT COMMENT 'File Size (Bytes)',
+    mime_type VARCHAR(100) COMMENT 'MIME Type',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_file_ref (ref_type, ref_id)
+) ENGINE=InnoDB COMMENT='File Management Table';
+
+
+/* =========================
+   AUDIT_LOG TABLE
+   ========================= */
+CREATE TABLE audit_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    user_id BIGINT COMMENT 'User ID',
+    action VARCHAR(100) COMMENT 'Action Type',
+    target_type VARCHAR(50) COMMENT 'Target Entity Type',
+    target_id BIGINT COMMENT 'Target Entity ID',
+    before_data TEXT COMMENT 'Before Change Data (JSON)',
+    after_data TEXT COMMENT 'After Change Data (JSON)',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    INDEX idx_audit_user (user_id),
+    INDEX idx_audit_target (target_type, target_id),
+    INDEX idx_audit_created (created_at)
+) ENGINE=InnoDB COMMENT='System Audit Log Table';
+
+/* =========================
+   SITE_MENU TABLE (사이트 메뉴)
+   ========================= */
+CREATE TABLE site_menu (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    parent_id BIGINT NULL COMMENT '상위 메뉴 ID (NULL이면 최상위)',
+    depth INT NOT NULL DEFAULT 1 COMMENT '메뉴 깊이',
+    menu_name VARCHAR(200) NOT NULL COMMENT '메뉴명',
+    menu_code VARCHAR(100) NOT NULL UNIQUE COMMENT '메뉴 고유 코드',
+    menu_type VARCHAR(30) NOT NULL DEFAULT 'PAGE' COMMENT '메뉴 유형 (PAGE, BOARD, LINK)',
+    url_path VARCHAR(255) COMMENT '프론트 URL 경로',
+    link_url VARCHAR(500) COMMENT '외부 링크 URL',
+    board_id BIGINT COMMENT '게시판 연결 시 board_id',
+    page_id BIGINT COMMENT '페이지 연결 시 page_id',
+    icon VARCHAR(100) COMMENT '아이콘 클래스명',
+    target VARCHAR(20) DEFAULT '_self' COMMENT '링크 타겟 (_self, _blank)',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    is_visible TINYINT(1) DEFAULT 1 COMMENT '노출 여부',
+    is_login_required TINYINT(1) DEFAULT 0 COMMENT '로그인 필요 여부',
+    start_at DATETIME COMMENT '노출 시작일',
+    end_at DATETIME COMMENT '노출 종료일',
+    seo_title VARCHAR(255) COMMENT 'SEO 제목',
+    seo_description VARCHAR(500) COMMENT 'SEO 설명',
+    created_at DATETIME NOT NULL COMMENT '생성일시',
+    created_by BIGINT COMMENT '생성자',
+    updated_at DATETIME COMMENT '수정일시',
+    updated_by BIGINT COMMENT '수정자',
+    deleted TINYINT(1) DEFAULT 0 COMMENT '삭제 여부',
+    INDEX idx_site_menu_parent (parent_id),
+    INDEX idx_site_menu_depth (depth),
+    INDEX idx_site_menu_sort (sort_order),
+    INDEX idx_site_menu_visible (is_visible),
+    INDEX idx_site_menu_deleted (deleted),
+    CONSTRAINT fk_site_menu_parent FOREIGN KEY (parent_id) REFERENCES site_menu(id),
+    CONSTRAINT fk_site_menu_board FOREIGN KEY (board_id) REFERENCES board(id)
+) ENGINE=InnoDB COMMENT='사이트 메뉴 관리 테이블';
+
+/* =========================
+   SITE_PAGE TABLE (정적 페이지)
+   ========================= */
+CREATE TABLE site_page (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    page_code VARCHAR(100) NOT NULL UNIQUE COMMENT '페이지 고유 코드',
+    page_title VARCHAR(200) NOT NULL COMMENT '페이지 제목',
+    content LONGTEXT COMMENT '페이지 HTML 내용',
+    is_published TINYINT(1) DEFAULT 1 COMMENT '게시 여부',
+    created_at DATETIME NOT NULL COMMENT '생성일시',
+    created_by BIGINT COMMENT '생성자',
+    updated_at DATETIME COMMENT '수정일시',
+    updated_by BIGINT COMMENT '수정자',
+    deleted TINYINT(1) DEFAULT 0 COMMENT '삭제 여부',
+    INDEX idx_site_page_deleted (deleted)
+) ENGINE=InnoDB COMMENT='사용자 정적 페이지 테이블';
+
+/* =========================
+   COMMON_CODE_GROUP TABLE (공통 코드 그룹)
+   ========================= */
+CREATE TABLE common_code_group (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    group_code VARCHAR(100) NOT NULL UNIQUE COMMENT '코드 그룹 고유 코드',
+    group_name VARCHAR(200) NOT NULL COMMENT '코드 그룹명',
+    description VARCHAR(500) COMMENT '설명',
+    is_system TINYINT(1) DEFAULT 0 COMMENT '시스템 코드 여부 (수정 제한)',
+    is_active TINYINT(1) DEFAULT 1 COMMENT '활성 여부',
+    created_at DATETIME NOT NULL COMMENT '생성일시',
+    created_by BIGINT COMMENT '생성자',
+    updated_at DATETIME COMMENT '수정일시',
+    updated_by BIGINT COMMENT '수정자',
+    deleted TINYINT(1) DEFAULT 0 COMMENT '삭제 여부',
+    INDEX idx_ccg_active (is_active),
+    INDEX idx_ccg_deleted (deleted)
+) ENGINE=InnoDB COMMENT='공통 코드 그룹 관리 테이블';
+
+/* =========================
+   COMMON_CODE TABLE (공통 코드 상세)
+   ========================= */
+CREATE TABLE common_code (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    group_id BIGINT NOT NULL COMMENT '코드 그룹 ID',
+    parent_id BIGINT NULL COMMENT '상위 코드 ID (계층 구조 지원)',
+    depth INT NOT NULL DEFAULT 1 COMMENT '코드 깊이',
+    code VARCHAR(100) NOT NULL COMMENT '코드 값',
+    code_name VARCHAR(200) NOT NULL COMMENT '코드명',
+    code_value VARCHAR(500) COMMENT '실제 저장 값 (선택)',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    is_active TINYINT(1) DEFAULT 1 COMMENT '사용 여부',
+    is_system TINYINT(1) DEFAULT 0 COMMENT '시스템 코드 여부',
+    start_at DATETIME COMMENT '사용 시작일',
+    end_at DATETIME COMMENT '사용 종료일',
+    created_at DATETIME NOT NULL COMMENT '생성일시',
+    created_by BIGINT COMMENT '생성자',
+    updated_at DATETIME COMMENT '수정일시',
+    updated_by BIGINT COMMENT '수정자',
+    deleted TINYINT(1) DEFAULT 0 COMMENT '삭제 여부',
+    UNIQUE KEY uk_group_code (group_id, code),
+    INDEX idx_cc_group (group_id),
+    INDEX idx_cc_parent (parent_id),
+    INDEX idx_cc_sort (sort_order),
+    INDEX idx_cc_active (is_active),
+    INDEX idx_cc_deleted (deleted),
+    CONSTRAINT fk_cc_group FOREIGN KEY (group_id) REFERENCES common_code_group(id),
+    CONSTRAINT fk_cc_parent FOREIGN KEY (parent_id) REFERENCES common_code(id)
+) ENGINE=InnoDB COMMENT='공통 코드 상세 테이블';
+
+/* =========================
+   사용자 사이트 팝업 테이블
+   ========================= */
+CREATE TABLE site_popup (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    popup_code VARCHAR(100) NOT NULL UNIQUE COMMENT '팝업 고유 코드',
+    popup_name VARCHAR(200) NOT NULL COMMENT '팝업명',
+    popup_type VARCHAR(30) NOT NULL DEFAULT 'LAYER'
+        COMMENT '팝업 유형 (LAYER, WINDOW, MODAL)',
+    position_type VARCHAR(30) NOT NULL DEFAULT 'MAIN'
+        COMMENT '노출 위치 (MAIN, SUB, ALL)',
+    device_type VARCHAR(30) NOT NULL DEFAULT 'ALL'
+        COMMENT '디바이스 유형 (PC, MOBILE, ALL)',
+    width INT COMMENT '팝업 너비(px)',
+    height INT COMMENT '팝업 높이(px)',
+    pos_x INT DEFAULT 0 COMMENT 'X 좌표',
+    pos_y INT DEFAULT 0 COMMENT 'Y 좌표',
+    content LONGTEXT COMMENT '팝업 HTML 내용',
+    link_url VARCHAR(500) COMMENT '클릭 시 이동 URL',
+    link_target VARCHAR(20) DEFAULT '_self'
+        COMMENT '링크 타겟 (_self, _blank)',
+    is_login_required TINYINT(1) DEFAULT 0 COMMENT '로그인 사용자 전용 여부',
+    is_today_close_enabled TINYINT(1) DEFAULT 1 COMMENT '오늘 하루 보지 않기 사용 여부',
+    start_at DATETIME COMMENT '노출 시작일',
+    end_at DATETIME COMMENT '노출 종료일',
+    sort_order INT NOT NULL DEFAULT 0 COMMENT '정렬 순서',
+    is_active TINYINT(1) DEFAULT 1 COMMENT '활성 여부',
+    is_published TINYINT(1) DEFAULT 1 COMMENT '게시 여부',
+    created_at DATETIME NOT NULL COMMENT '생성일시',
+    created_by BIGINT COMMENT '생성자',
+    updated_at DATETIME COMMENT '수정일시',
+    updated_by BIGINT COMMENT '수정자',
+    deleted TINYINT(1) DEFAULT 0 COMMENT '삭제 여부',
+    INDEX idx_popup_active (is_active),
+    INDEX idx_popup_period (start_at, end_at),
+    INDEX idx_popup_device (device_type),
+    INDEX idx_popup_deleted (deleted)
+) ENGINE=InnoDB COMMENT='사용자 사이트 팝업 관리 테이블';
+
+SET FOREIGN_KEY_CHECKS = 1;

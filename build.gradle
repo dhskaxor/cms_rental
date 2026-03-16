@@ -1,0 +1,98 @@
+/*
+ * CMS Core Platform - 빌드 설정
+ * 
+ * Java 17 + Spring Boot 3.2.x + MyBatis 기반
+ * JPA 사용 금지
+ */
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.nt'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+// UTF-8 인코딩 명시 (YAML 한글 주석 MalformedInputException 방지)
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot 핵심
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    
+    // 보안 (Spring Security + JWT)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+    
+    // MyBatis (JPA 대신 사용)
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+    
+    // 데이터베이스
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3'
+    runtimeOnly 'com.h2database:h2'
+    
+    // 캐싱 (Redis 선택적)
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    
+    // 설치 마법사 UI (Thymeleaf)
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    // Layout Dialect (layout:decorate, layout:fragment)
+    implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.4.0'
+    
+    // 이메일 발송 (비밀번호 재설정)
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    
+    // API 문서화 (Swagger/OpenAPI)
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+    
+    // 유틸리티
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // YAML 설정 파일 처리
+    implementation 'org.yaml:snakeyaml:2.2'
+    
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.3'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// bootRun 시 작업 디렉토리를 프로젝트 루트로 고정 (cms-config.yml 로드 보장)
+tasks.named('bootRun') {
+    workingDir = project.projectDir
+}
+
+// Lombok 어노테이션 처리 설정
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-parameters']
+}

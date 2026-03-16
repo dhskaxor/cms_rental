@@ -1,0 +1,94 @@
+# ==============================================
+# CMS Core Platform - 기본 설정
+# ==============================================
+
+# dev/prod 프로파일: cms-config.yml 로드 (테스트 시 미로드)
+# Gradle bootRun 시 working dir 기준으로 ./cms-config.yml 로드
+spring:
+  config:
+    import: optional:file:${user.dir}/cms-config.yml
+    activate:
+      on-profile: dev,prod
+
+---
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  error:
+    path: /error
+
+spring:
+  profiles:
+    active: dev
+  # 애플리케이션 정보
+  application:
+    name: cms-core
+  
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 3MB
+      max-request-size: 10MB
+
+# ==============================================
+# MyBatis 설정
+# ==============================================
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.nt.cms
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: NULL
+    default-fetch-size: 100
+    default-statement-timeout: 30
+
+# ==============================================
+# CMS 설정 (cms-config.yml에서 오버라이드 가능)
+# ==============================================
+cms:
+  # 설치 상태 (설치 완료 후 true로 변경)
+  installed: false
+  
+  # JWT 설정
+  jwt:
+    secret: cms-default-secret-key-please-change-in-production-environment
+    access-token-validity: 3600        # 1시간 (초)
+    refresh-token-validity: 1209600    # 14일 (초)
+  
+  # 파일 업로드 설정
+  file:
+    upload-path: C:/cms/files
+    max-size: 3145728                  # 3MB (바이트)
+    allowed-extensions:
+      image: jpg,jpeg,png,gif,webp
+      document: pdf,doc,docx,xls,xlsx,hwp
+  
+  # 보안 설정
+  security:
+    max-login-attempts: 5              # 로그인 실패 허용 횟수
+    password-min-length: 6
+    password-max-length: 12
+
+# ==============================================
+# API 문서화 (Swagger/OpenAPI)
+# ==============================================
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  default-produces-media-type: application/json
+
+# ==============================================
+# 로깅 설정
+# ==============================================
+logging:
+  level:
+    root: INFO
+    com.nt.cms: DEBUG
+    org.springframework.security: DEBUG
+    org.mybatis: DEBUG

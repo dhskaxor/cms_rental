@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.commoncode.mapper.CommonCodeMapper">
+
+    <resultMap id="CodeResultMap" type="com.nt.cms.commoncode.vo.CommonCodeVO">
+        <id property="id" column="id"/>
+        <result property="groupId" column="group_id"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="depth" column="depth"/>
+        <result property="code" column="code"/>
+        <result property="codeName" column="code_name"/>
+        <result property="codeValue" column="code_value"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="isActive" column="is_active"/>
+        <result property="isSystem" column="is_system"/>
+        <result property="startAt" column="start_at"/>
+        <result property="endAt" column="end_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="deleted" column="deleted"/>
+        <result property="groupCode" column="group_code"/>
+        <result property="childCount" column="child_count"/>
+    </resultMap>
+
+    <!-- 공통 컬럼 조회 조각 -->
+    <sql id="codeColumns">
+        c.id,
+        c.group_id,
+        c.parent_id,
+        c.depth,
+        c.code,
+        c.code_name,
+        c.code_value,
+        c.sort_order,
+        c.is_active,
+        c.is_system,
+        c.start_at,
+        c.end_at,
+        c.created_at,
+        c.created_by,
+        c.updated_at,
+        c.updated_by,
+        c.deleted
+    </sql>
+
+    <!-- 그룹별 코드 목록 (평면) -->
+    <select id="findByGroupId" resultMap="CodeResultMap">
+        SELECT
+            <include refid="codeColumns"/>,
+            g.group_code,
+            (SELECT COUNT(*) FROM common_code ch WHERE ch.parent_id = c.id AND ch.deleted = 0) AS child_count
+        FROM common_code c
+        JOIN common_code_group g ON c.group_id = g.id AND g.deleted = 0
+        WHERE c.group_id = #{groupId}
+          AND c.deleted = 0
+        ORDER BY c.sort_order ASC, c.code ASC
+    </select>
+
+    <!-- 그룹별 최상위 코드 목록 (계층용) -->
+    <select id="findRootByGroupId" resultMap="CodeResultMap">
+        SELECT
+            <include refid="codeColumns"/>,
+            g.group_code,
+            (SELECT COUNT(*) FROM common_code ch WHERE ch.parent_id = c.id AND ch.deleted = 0) AS child_count
+        FROM common_code c
+        JOIN common_code_group g ON c.group_id = g.id AND g.deleted = 0
+        WHERE c.group_id = #{groupId}
+          AND (c.parent_id IS NULL OR c.parent_id = 0)
+          AND c.deleted = 0
+        ORDER BY c.sort_order ASC, c.code ASC
+    </select>
+
+    <!-- 하위 코드 목록 -->
+    <select id="findChildrenByParentId" resultMap="CodeResultMap">
+        SELECT
+            <include refid="codeColumns"/>,
+            g.group_code,
+            (SELECT COUNT(*) FROM common_code ch WHERE ch.parent_id = c.id AND ch.deleted = 0) AS child_count
+        FROM common_code c
+        JOIN common_code_group g ON c.group_id = g.id AND g.deleted = 0
+        WHERE c.parent_id = #{parentId}
+          AND c.deleted = 0
+        ORDER BY c.sort_order ASC, c.code ASC
+    </select>
+
+    <!-- ID로 코드 조회 -->
+    <select id="findById" resultMap="CodeResultMap">
+        SELECT
+            <include refid="codeColumns"/>,
+            g.group_code,
+            (SELECT COUNT(*) FROM common_code ch WHERE ch.parent_id = c.id AND ch.deleted = 0) AS child_count
+        FROM common_code c
+        JOIN common_code_group g ON c.group_id = g.id AND g.deleted = 0
+        WHERE c.id = #{id}
+          AND c.deleted = 0
+    </select>
+
+    <!-- 그룹 내 코드 중복 확인 -->
+    <select id="existsByGroupIdAndCode" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM common_code
+            WHERE group_id = #{groupId}
+              AND code = #{code}
+              AND deleted = 0
+              <if test="excludeId != null">
+              AND id != #{excludeId}
+              </if>
+        )
+    </select>
+
+    <!-- 하위 코드 수 -->
+    <select id="countChildrenByParentId" resultType="int">
+        SELECT COUNT(*)
+        FROM common_code
+        WHERE parent_id = #{parentId}
+          AND deleted = 0
+    </select>
+
+    <!-- 코드 등록 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO common_code (
+            group_id,
+            parent_id,
+            depth,
+            code,
+            code_name,
+            code_value,
+            sort_order,
+            is_active,
+            is_system,
+            start_at,
+            end_at,
+            created_at,
+            created_by,
+            deleted
+        ) VALUES (
+            #{groupId},
+            #{parentId},
+            IFNULL(#{depth}, 1),
+            #{code},
+            #{codeName},
+            #{codeValue},
+            IFNULL(#{sortOrder}, 0),
+            IFNULL(#{isActive}, 1),
+            IFNULL(#{isSystem}, 0),
+            #{startAt},
+            #{endAt},
+            NOW(),
+            #{createdBy},
+            0
+        )
+    </insert>
+
+    <!-- 코드 수정 -->
+    <update id="update">
+        UPDATE common_code
+        <set>
+            <if test="codeName != null">code_name = #{codeName},</if>
+            <if test="codeValue != null">code_value = #{codeValue},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="isActive != null">is_active = #{isActive},</if>
+            <if test="startAt != null">start_at = #{startAt},</if>
+            <if test="endAt != null">end_at = #{endAt},</if>
+            updated_at = NOW(),
+            updated_by = #{updatedBy}
+        </set>
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+    <!-- 코드 삭제 (Soft Delete) -->
+    <update id="delete">
+        UPDATE common_code
+        SET
+            deleted = 1,
+            updated_at = NOW(),
+            updated_by = #{deletedBy}
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+    <!-- 그룹 코드로 활성 코드 조회 (API용, 기간 조건) -->
+    <select id="findActiveByGroupCode" resultMap="CodeResultMap">
+        SELECT
+            <include refid="codeColumns"/>,
+            g.group_code,
+            (SELECT COUNT(*) FROM common_code ch WHERE ch.parent_id = c.id AND ch.deleted = 0) AS child_count
+        FROM common_code c
+        JOIN common_code_group g ON c.group_id = g.id AND g.deleted = 0
+        WHERE g.group_code = #{groupCode}
+          AND g.deleted = 0
+          AND g.is_active = 1
+          AND c.deleted = 0
+          AND c.is_active = 1
+          AND (c.start_at IS NULL OR c.start_at &lt;= NOW())
+          AND (c.end_at IS NULL OR c.end_at &gt;= NOW())
+        ORDER BY c.sort_order ASC, c.code ASC
+    </select>
+
+</mapper>

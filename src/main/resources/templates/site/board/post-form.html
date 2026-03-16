@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title th:text="${formTitle} + ' - CMS'">글쓰기 - CMS</title>
+    <link th:if="${board.useEditor}" rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+</head>
+<body>
+    <article layout:fragment="content" class="site-post-form-page">
+        <div class="site-post-form-header">
+            <div class="site-post-form-icon">
+                <i class="bi bi-pencil-square"></i>
+            </div>
+            <h1 class="site-post-form-title" th:text="${formTitle}">글쓰기</h1>
+        </div>
+
+        <form id="site-post-form" class="site-form-card"
+              th:action="${post != null} ? @{/site/board/{path}/post/{id}/update(path=${boardPath}, id=${post.id})} : @{/site/board/{path}/post(path=${boardPath})}"
+              th:enctype="${board.useFile} ? 'multipart/form-data' : 'application/x-www-form-urlencoded'"
+              method="post">
+            <input type="hidden" name="boardId" th:value="${board.id}">
+            <input type="hidden" name="attachedFileIds" id="site-attached-file-ids" value="">
+
+            <div class="site-form-card-section">
+                <label for="site-post-title" class="site-form-label">제목 <span class="text-danger">*</span></label>
+                <input type="text" id="site-post-title" name="title" th:value="${post != null ? post.title : ''}" required maxlength="255" placeholder="제목을 입력하세요">
+            </div>
+
+            <div class="site-form-card-section">
+                <label for="site-post-content" class="site-form-label">내용</label>
+                <div th:if="${board.useEditor}" id="site-editor-wrap" class="border border-gray-300 rounded-lg overflow-hidden"></div>
+                <div th:if="${board.useEditor}" id="site-editor-initial" th:utext="${post != null and post.content != null ? post.content : ''}" style="display:none;"></div>
+                <textarea th:unless="${board.useEditor}" id="site-post-content" name="content" rows="15" th:text="${post != null ? post.content : ''}">내용</textarea>
+                <input th:if="${board.useEditor}" type="hidden" name="content" id="site-post-content-hidden">
+            </div>
+
+            <div th:if="${board.useFile}" class="site-form-card-section">
+                <label class="site-form-label">첨부파일</label>
+                <input type="hidden" id="site-max-file-count" th:value="${board.maxFileCount != null ? board.maxFileCount : 5}">
+                <input type="file" id="site-post-files" name="files" multiple
+                       accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.hwp"
+                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0">
+                <ul id="site-selected-files-list" class="mt-2 space-y-1 text-sm"></ul>
+                <p class="mt-1 text-xs text-gray-500">파일 선택 시 Ctrl/Shift로 여러 개 동시 선택 가능 · 최대 <span id="site-max-file-count-text" th:text="${board.maxFileCount != null ? board.maxFileCount : 5}"></span>개 (이미지, 문서 3MB 이하)</p>
+            </div>
+
+            <div class="site-form-card-section site-form-options" th:if="${board.useSecret}">
+                <label><input type="checkbox" name="isSecret" th:checked="${post != null and post.isSecret}"> 비밀글</label>
+            </div>
+
+            <div class="site-form-card-actions">
+                <button type="submit" class="site-btn site-btn-primary">
+                    <i class="bi bi-check-lg"></i>
+                    <span th:text="${submitLabel}">등록</span>
+                </button>
+                <a th:href="${listUrl}" class="site-btn site-btn-secondary">취소</a>
+            </div>
+        </form>
+    </article>
+
+    <th:block layout:fragment="scripts">
+        <script th:if="${board.useEditor}" src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+        <script th:inline="javascript">
+            (function() {
+                var useEditor = /*[[${board.useEditor}]]*/ false;
+                var boardId = /*[[${board.id}]]*/ 0;
+                var postId = /*[[${post != null ? post.id : 0}]]*/ 0;
+                var editorAttachedFileIds = [];
+
+                if (useEditor && typeof toastui !== 'undefined' && toastui.Editor) {
+                    var editorDiv = document.getElementById('site-editor-wrap');
+                    var hiddenContent = document.getElementById('site-post-content-hidden');
+                    if (editorDiv && hiddenContent) {
+                        var initialEl = document.getElementById('site-editor-initial');
+                        var initialVal = initialEl ? initialEl.innerHTML : '';
+                        var editor = new toastui.Editor({
+                            el: editorDiv,
+                            initialValue: initialVal,
+                            height: '300px',
+                            initialEditType: 'wysiwyg',
+                            hooks: {
+                                addImageBlobHook: function(blob, callback) {
+                                    var fd = new FormData();
+                                    fd.append('file', blob);
+                                    var url = '/api/v1/public/boards/' + boardId + '/files/upload/editor?postId=' + (postId || '');
+                                    fetch(url, { method: 'POST', body: fd, credentials: 'same-origin' })
+                                        .then(function(r) { return r.json(); })
+                                        .then(function(body) {
+                                            if (body && body.success && body.data) {
+                                                editorAttachedFileIds.push(body.data.id);
+                                                callback(body.data.downloadUrl || ('/api/v1/public/files/' + body.data.id + '/image'), '이미지');
+                                            }
+                                        });
+                                }
+                            }
+                        });
+                        document.getElementById('site-post-form').addEventListener('submit', function() {
+                            hiddenContent.value = editor.getHTML();
+                            document.getElementById('site-attached-file-ids').value = editorAttachedFileIds.join(',');
+                        });
+                    }
+                }
+
+                /* 첨부파일 선택: 최대 개수 검증 및 선택 목록 표시 */
+                var siteSelectedFiles = [];
+                var fileInput = document.getElementById('site-post-files');
+                var fileListEl = document.getElementById('site-selected-files-list');
+                var maxCountEl = document.getElementById('site-max-file-count');
+                function getSiteMaxFileCount() {
+                    return maxCountEl ? parseInt(maxCountEl.value, 10) || 5 : 5;
+                }
+                function renderSiteSelectedFiles() {
+                    if (!fileListEl) return;
+                    fileListEl.innerHTML = '';
+                    siteSelectedFiles.forEach(function(f, i) {
+                        var li = document.createElement('li');
+                        li.className = 'flex justify-between py-1 border-b border-gray-100';
+                        li.innerHTML = '<span class="text-gray-700">' + (f.name || '파일') + '</span>' +
+                            '<button type="button" class="text-red-600 hover:text-red-800" data-idx="' + i + '">제거</button>';
+                        li.querySelector('button').onclick = function() {
+                            siteSelectedFiles.splice(parseInt(this.dataset.idx, 10), 1);
+                            syncFileInput();
+                            renderSiteSelectedFiles();
+                        };
+                        fileListEl.appendChild(li);
+                    });
+                }
+                function syncFileInput() {
+                    if (!fileInput) return;
+                    var dt = new DataTransfer();
+                    siteSelectedFiles.forEach(function(f) { dt.items.add(f); });
+                    fileInput.files = dt.files;
+                }
+                if (fileInput) {
+                    fileInput.addEventListener('change', function() {
+                        var maxCount = getSiteMaxFileCount();
+                        var files = Array.prototype.slice.call(this.files || []);
+                        var available = maxCount - siteSelectedFiles.length;
+                        if (available <= 0) {
+                            alert('첨부파일은 최대 ' + maxCount + '개까지 가능합니다.');
+                            this.value = '';
+                            return;
+                        }
+                        var toAdd = files.slice(0, available);
+                        if (files.length > available) {
+                            alert('최대 ' + maxCount + '개까지 가능합니다. ' + available + '개만 추가됩니다.');
+                        }
+                        siteSelectedFiles = siteSelectedFiles.concat(toAdd);
+                        syncFileInput();
+                        renderSiteSelectedFiles();
+                    });
+                }
+
+                document.getElementById('site-post-form').addEventListener('submit', function(e) {
+                    var title = document.getElementById('site-post-title').value.trim();
+                    if (!title) {
+                        e.preventDefault();
+                        alert('제목을 입력해주세요.');
+                        return false;
+                    }
+                });
+            })();
+        </script>
+    </th:block>
+</body>
+</html>
