@@ -381,3 +381,167 @@ CREATE INDEX IF NOT EXISTS idx_popup_active ON site_popup(is_active);
 CREATE INDEX IF NOT EXISTS idx_popup_period ON site_popup(start_at, end_at);
 CREATE INDEX IF NOT EXISTS idx_popup_device ON site_popup(device_type);
 CREATE INDEX IF NOT EXISTS idx_popup_deleted ON site_popup(deleted);
+
+-- =========================
+-- 렌탈 장소 테이블
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_place (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(200) NOT NULL,
+    address VARCHAR(500),
+    description CLOB,
+    time_zone VARCHAR(100) DEFAULT 'Asia/Seoul',
+    opening_time TIME,
+    closing_time TIME,
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_rental_place_deleted ON rental_place(deleted);
+
+-- =========================
+-- 렌탈 룸 테이블
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    place_id BIGINT NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    description CLOB,
+    capacity INT,
+    default_duration_minutes INT NOT NULL DEFAULT 60,
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rental_room_place FOREIGN KEY (place_id) REFERENCES rental_place(id)
+);
+CREATE INDEX IF NOT EXISTS idx_rental_room_place ON rental_room(place_id);
+CREATE INDEX IF NOT EXISTS idx_rental_room_deleted ON rental_room(deleted);
+
+-- =========================
+-- 장소 휴관/공휴일 규칙
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_place_closed_rule (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    place_id BIGINT NOT NULL,
+    rule_type VARCHAR(20) NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    week_day TINYINT,
+    holiday_name VARCHAR(200),
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rpc_place FOREIGN KEY (place_id) REFERENCES rental_place(id)
+);
+CREATE INDEX IF NOT EXISTS idx_rpc_place ON rental_place_closed_rule(place_id);
+CREATE INDEX IF NOT EXISTS idx_rpc_deleted ON rental_place_closed_rule(deleted);
+
+-- =========================
+-- 룸 대여불가 구간
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_unavailable_slot (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    room_id BIGINT NOT NULL,
+    scope_type VARCHAR(20) NOT NULL,
+    start_datetime DATETIME,
+    end_datetime DATETIME,
+    week_day TINYINT,
+    start_time TIME,
+    end_time TIME,
+    reason VARCHAR(255),
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rru_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+);
+CREATE INDEX IF NOT EXISTS idx_rru_room ON rental_room_unavailable_slot(room_id);
+CREATE INDEX IF NOT EXISTS idx_rru_deleted ON rental_room_unavailable_slot(deleted);
+
+-- =========================
+-- 기본 시간 단위 요금
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_pricing_base (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    room_id BIGINT NOT NULL,
+    unit_minutes INT NOT NULL DEFAULT 60,
+    price BIGINT NOT NULL,
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rrpb_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uk_rrpb_room ON rental_room_pricing_base(room_id);
+
+-- =========================
+-- 주말/공휴일 요금
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_pricing_weekend_holiday (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    room_id BIGINT NOT NULL,
+    apply_to VARCHAR(20) NOT NULL,
+    unit_minutes INT NOT NULL DEFAULT 60,
+    price BIGINT NOT NULL,
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rrpwh_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+);
+CREATE INDEX IF NOT EXISTS idx_rrpwh_room ON rental_room_pricing_weekend_holiday(room_id);
+
+-- =========================
+-- 특정 일자/시간 특수 요금 (최우선)
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_pricing_special (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    room_id BIGINT NOT NULL,
+    date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    unit_minutes INT NOT NULL DEFAULT 60,
+    price BIGINT NOT NULL,
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rrps_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+);
+CREATE INDEX IF NOT EXISTS idx_rrps_room_date ON rental_room_pricing_special(room_id, date);
+
+-- =========================
+-- 렌탈 예약 테이블
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_reservation (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    room_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    start_datetime DATETIME NOT NULL,
+    end_datetime DATETIME NOT NULL,
+    status VARCHAR(30) NOT NULL,
+    total_price BIGINT NOT NULL,
+    memo VARCHAR(500),
+    payment_status VARCHAR(30),
+    payment_id VARCHAR(100),
+    created_at DATETIME NOT NULL,
+    created_by BIGINT,
+    updated_at DATETIME,
+    updated_by BIGINT,
+    deleted TINYINT DEFAULT 0,
+    CONSTRAINT fk_rr_room FOREIGN KEY (room_id) REFERENCES rental_room(id),
+    CONSTRAINT fk_rr_user FOREIGN KEY (user_id) REFERENCES "user"(id)
+);
+CREATE INDEX IF NOT EXISTS idx_rr_room_time ON rental_reservation(room_id, start_datetime, end_datetime);
+CREATE INDEX IF NOT EXISTS idx_rr_user ON rental_reservation(user_id);
+CREATE INDEX IF NOT EXISTS idx_rr_status ON rental_reservation(status);

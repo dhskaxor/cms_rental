@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.rental.room.mapper.RentalUnavailableSlotMapper">
+
+    <select id="findByRoomIdAndRange"
+            resultType="com.nt.cms.rental.room.dto.RentalRoomUnavailableSlotResponse">
+        SELECT
+            id,
+            room_id      AS roomId,
+            scope_type   AS scopeType,
+            start_datetime AS startDateTime,
+            end_datetime   AS endDateTime,
+            week_day     AS weekDay,
+            start_time   AS startTime,
+            end_time     AS endTime,
+            reason
+        FROM rental_room_unavailable_slot
+        WHERE room_id = #{roomId}
+          AND deleted = 0
+          AND (
+                (scope_type = 'DATE_RANGE' AND start_datetime &lt;= #{toDateTime} AND end_datetime &gt;= #{fromDateTime})
+             OR (scope_type = 'ONE_TIME' AND start_datetime &lt;= #{toDateTime} AND end_datetime &gt;= #{fromDateTime})
+             OR (scope_type = 'WEEKLY_TIME')
+          )
+        ORDER BY COALESCE(start_datetime, '1970-01-01') ASC, scope_type ASC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO rental_room_unavailable_slot (
+            room_id,
+            scope_type,
+            start_datetime,
+            end_datetime,
+            week_day,
+            start_time,
+            end_time,
+            reason,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{roomId},
+            #{scopeType},
+            #{startDateTime},
+            #{endDateTime},
+            #{weekDay},
+            #{startTime},
+            #{endTime},
+            #{reason},
+            NOW(),
+            #{actorId},
+            NOW(),
+            #{actorId},
+            0
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE rental_room_unavailable_slot
+        SET
+            scope_type     = #{scopeType},
+            start_datetime = #{startDateTime},
+            end_datetime   = #{endDateTime},
+            week_day       = #{weekDay},
+            start_time     = #{startTime},
+            end_time       = #{endTime},
+            reason         = #{reason},
+            updated_at     = NOW(),
+            updated_by     = #{actorId}
+        WHERE id = #{id}
+          AND room_id = #{roomId}
+          AND deleted = 0
+    </update>
+
+    <update id="softDelete">
+        UPDATE rental_room_unavailable_slot
+        SET
+            deleted    = 1,
+            updated_at = NOW(),
+            updated_by = #{actorId}
+        WHERE id = #{id}
+          AND room_id = #{roomId}
+          AND deleted = 0
+    </update>
+
+</mapper>
+

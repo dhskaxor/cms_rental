@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.rental.pricing.mapper.RentalPricingMapper">
+
+    <select id="findBasePricingByRoomId"
+            parameterType="long"
+            resultType="com.nt.cms.rental.pricing.dto.RoomBasePricingResponse">
+        SELECT
+            unit_minutes    AS unitMinutes,
+            price
+        FROM rental_room_pricing_base
+        WHERE room_id = #{roomId}
+          AND deleted = 0
+    </select>
+
+    <select id="findWeekendHolidayPricingByRoomId"
+            parameterType="long"
+            resultType="com.nt.cms.rental.pricing.dto.RoomWeekendHolidayPricingResponse">
+        SELECT
+            apply_to    AS applyTo,
+            unit_minutes AS unitMinutes,
+            price
+        FROM rental_room_pricing_weekend_holiday
+        WHERE room_id = #{roomId}
+          AND deleted = 0
+        LIMIT 1
+    </select>
+
+    <select id="findSpecialPricingByRoomId"
+            parameterType="long"
+            resultType="com.nt.cms.rental.pricing.dto.RoomSpecialPricingResponse">
+        SELECT
+            id,
+            date,
+            start_time  AS startTime,
+            end_time    AS endTime,
+            unit_minutes AS unitMinutes,
+            price
+        FROM rental_room_pricing_special
+        WHERE room_id = #{roomId}
+          AND deleted = 0
+        ORDER BY date ASC, start_time ASC
+    </select>
+
+    <insert id="upsertBasePricing">
+        INSERT INTO rental_room_pricing_base (
+            room_id,
+            unit_minutes,
+            price,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{roomId},
+            #{unitMinutes},
+            #{price},
+            NOW(),
+            NULL,
+            NOW(),
+            NULL,
+            0
+        )
+        ON DUPLICATE KEY UPDATE
+            unit_minutes = VALUES(unit_minutes),
+            price = VALUES(price),
+            updated_at = NOW()
+    </insert>
+
+    <insert id="upsertWeekendHolidayPricing">
+        INSERT INTO rental_room_pricing_weekend_holiday (
+            room_id,
+            apply_to,
+            unit_minutes,
+            price,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{roomId},
+            #{applyTo},
+            #{unitMinutes},
+            #{price},
+            NOW(),
+            NULL,
+            NOW(),
+            NULL,
+            0
+        )
+        ON DUPLICATE KEY UPDATE
+            unit_minutes = VALUES(unit_minutes),
+            price = VALUES(price),
+            updated_at = NOW()
+    </insert>
+
+    <insert id="insertSpecialPricing" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rental_room_pricing_special (
+            room_id,
+            date,
+            start_time,
+            end_time,
+            unit_minutes,
+            price,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{roomId},
+            #{date},
+            #{startTime},
+            #{endTime},
+            #{unitMinutes},
+            #{price},
+            NOW(),
+            NULL,
+            NOW(),
+            NULL,
+            0
+        )
+    </insert>
+
+    <update id="updateSpecialPricing">
+        UPDATE rental_room_pricing_special
+        SET
+            date = #{date},
+            start_time = #{startTime},
+            end_time = #{endTime},
+            unit_minutes = #{unitMinutes},
+            price = #{price},
+            updated_at = NOW()
+        WHERE id = #{id}
+          AND room_id = #{roomId}
+          AND deleted = 0
+    </update>
+
+    <update id="deleteSpecialPricing">
+        UPDATE rental_room_pricing_special
+        SET
+            deleted = 1,
+            updated_at = NOW()
+        WHERE id = #{id}
+          AND room_id = #{roomId}
+          AND deleted = 0
+    </update>
+
+</mapper>
+

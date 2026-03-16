@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>렌탈 대여불가 시간 관리</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">렌탈 대여불가 시간 관리</h1>
+                <p class="text-sm text-gray-500 mt-1">
+                    룸별로 특정 기간, 일시, 요일/시간대에 대여불가 구간을 설정할 수 있습니다.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-6">
+            <!-- 장소/룸 선택 -->
+            <div class="col-span-1 space-y-4">
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">장소</h2>
+                    </div>
+                    <ul id="unavailPlaceList" class="divide-y divide-gray-200 max-h-64 overflow-y-auto">
+                        <li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>
+                    </ul>
+                </div>
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">룸</h2>
+                    </div>
+                    <ul id="unavailRoomList" class="divide-y divide-gray-200 max-h-64 overflow-y-auto">
+                        <li class="px-4 py-4 text-center text-gray-500 text-sm">먼저 장소를 선택하세요.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 대여불가 목록/필터 -->
+            <div class="col-span-3 bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-sm font-medium text-gray-700">
+                        <span id="unavailTitle">룸을 먼저 선택하세요.</span>
+                    </h2>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2">
+                            <label class="text-xs text-gray-600">기간</label>
+                            <input id="unavailFrom" type="date"
+                                   class="px-2 py-1 border border-gray-300 rounded-md text-xs">
+                            <span class="text-xs text-gray-400">~</span>
+                            <input id="unavailTo" type="date"
+                                   class="px-2 py-1 border border-gray-300 rounded-md text-xs">
+                        </div>
+                        <button type="button" onclick="loadUnavailableSlots()"
+                                class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                            조회
+                        </button>
+                        <button type="button" onclick="openUnavailModal()"
+                                class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                            + 대여불가 추가
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <table class="min-w-full divide-y divide-gray-200 text-xs">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">ID</th>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">유형</th>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">기간/요일</th>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">사유</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider text-[11px]">관리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="unavailTableBody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">룸을 선택해주세요.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 대여불가 생성/수정 모달 -->
+    <div id="unavailModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h2 id="unavailModalTitle" class="text-lg font-medium text-gray-900">대여불가 등록</h2>
+                <button type="button" onclick="closeUnavailModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form id="unavailForm" class="px-4 py-5 space-y-4">
+                <input type="hidden" id="unavailId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">유형</label>
+                    <select id="unavailScopeType"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            onchange="onUnavailScopeChange()">
+                        <option value="">선택</option>
+                        <option value="DATE_RANGE">기간(DATE_RANGE)</option>
+                        <option value="ONE_TIME">단일 일시(ONE_TIME)</option>
+                        <option value="WEEKLY_TIME">요일/시간대(WEEKLY_TIME)</option>
+                    </select>
+                </div>
+                <div id="unavailDateTimeSection" class="hidden space-y-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">시작/종료 일시</label>
+                    <div class="space-y-2">
+                        <input id="unavailStartDateTime" type="datetime-local"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input id="unavailEndDateTime" type="datetime-local"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+                <div id="unavailWeeklySection" class="hidden space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">요일</label>
+                        <select id="unavailWeekDay"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">선택</option>
+                            <option value="1">월요일</option>
+                            <option value="2">화요일</option>
+                            <option value="3">수요일</option>
+                            <option value="4">목요일</option>
+                            <option value="5">금요일</option>
+                            <option value="6">토요일</option>
+                            <option value="7">일요일</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">시작 시간</label>
+                            <input id="unavailStartTime" type="time"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">종료 시간</label>
+                            <input id="unavailEndTime" type="time"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">사유</label>
+                    <input id="unavailReason" type="text"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+            </form>
+            <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button type="button" onclick="closeUnavailModal()"
+                        class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    취소
+                </button>
+                <button type="button" onclick="submitUnavailForm()"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    저장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUnavailPlaceId = null;
+        let currentUnavailRoomId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initUnavailDates();
+            loadUnavailPlaces();
+        });
+
+        function initUnavailDates() {
+            const today = new Date();
+            const to = today.toISOString().substring(0, 10);
+            const fromDate = new Date(today);
+            fromDate.setDate(today.getDate() - 7);
+            const from = fromDate.toISOString().substring(0, 10);
+            document.getElementById('unavailFrom').value = from;
+            document.getElementById('unavailTo').value = to;
+        }
+
+        function loadUnavailPlaces() {
+            const ul = document.getElementById('unavailPlaceList');
+            ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>';
+            fetch('/admin/rental/places', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소 목록을 불러오지 못했습니다.</li>';
+                        return;
+                    }
+                    const places = result.data || [];
+                    if (!places.length) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">등록된 장소가 없습니다.</li>';
+                        return;
+                    }
+                    ul.innerHTML = '';
+                    places.forEach(p => {
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm flex justify-between items-center';
+                        li.innerHTML = `
+                            <span>${p.name}</span>
+                            <span class="text-xs text-gray-400">ID: ${p.id}</span>
+                        `;
+                        li.onclick = () => selectUnavailPlace(p);
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(() => {
+                    ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소 목록을 불러오지 못했습니다.</li>';
+                });
+        }
+
+        function selectUnavailPlace(place) {
+            currentUnavailPlaceId = place.id;
+            currentUnavailRoomId = null;
+            document.getElementById('unavailTitle').textContent = '룸을 선택하면 대여불가 구간을 관리할 수 있습니다.';
+            const ul = document.getElementById('unavailRoomList');
+            ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>';
+            fetch(`/admin/rental/rooms?placeId=${currentUnavailPlaceId}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">룸 목록을 불러오지 못했습니다.</li>';
+                        return;
+                    }
+                    const rooms = result.data || [];
+                    if (!rooms.length) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">등록된 룸이 없습니다.</li>';
+                        return;
+                    }
+                    ul.innerHTML = '';
+                    rooms.forEach(rm => {
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm flex justify-between items-center';
+                        li.innerHTML = `
+                            <span>${rm.name}</span>
+                            <span class="text-xs text-gray-400">ID: ${rm.id}</span>
+                        `;
+                        li.onclick = () => selectUnavailRoom(rm);
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(() => {
+                    ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">룸 목록을 불러오지 못했습니다.</li>';
+                });
+        }
+
+        function selectUnavailRoom(room) {
+            currentUnavailRoomId = room.id;
+            document.getElementById('unavailTitle').textContent = `[${room.id}] ${room.name} 의 대여불가 구간`;
+            loadUnavailableSlots();
+        }
+
+        function ensureUnavailRoomSelected() {
+            if (!currentUnavailRoomId) {
+                alert('먼저 룸을 선택하세요.');
+                return false;
+            }
+            return true;
+        }
+
+        function loadUnavailableSlots() {
+            if (!ensureUnavailRoomSelected()) return;
+            const fromDate = document.getElementById('unavailFrom').value;
+            const toDate = document.getElementById('unavailTo').value;
+            if (!fromDate || !toDate) {
+                alert('조회 기간을 입력해주세요.');
+                return;
+            }
+            const fromDateTime = fromDate + 'T00:00:00';
+            const toDateTime = toDate + 'T23:59:59';
+            const tbody = document.getElementById('unavailTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">로딩 중...</td></tr>';
+
+            const params = new URLSearchParams({
+                fromDateTime,
+                toDateTime
+            });
+
+            fetch(`/admin/rental/rooms/${currentUnavailRoomId}/unavailable-slots?${params.toString()}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-red-500 text-xs">대여불가 목록을 불러오지 못했습니다.</td></tr>';
+                        return;
+                    }
+                    const list = result.data || [];
+                    if (!list.length) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">등록된 대여불가 구간이 없습니다.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = '';
+                    list.forEach(item => {
+                        const tr = document.createElement('tr');
+                        const periodLabel = buildUnavailPeriodLabel(item);
+                        tr.innerHTML = `
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${item.id}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${item.scopeType}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${periodLabel}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${item.reason || ''}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-right text-xs">
+                                <button type="button" class="text-indigo-600 hover:text-indigo-900 mr-2" onclick='editUnavail(${JSON.stringify(item)})'>수정</button>
+                                <button type="button" class="text-red-600 hover:text-red-900" onclick="deleteUnavail(${item.id})">삭제</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(() => {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-red-500 text-xs">대여불가 목록을 불러오지 못했습니다.</td></tr>';
+                });
+        }
+
+        function buildUnavailPeriodLabel(item) {
+            if (item.scopeType === 'DATE_RANGE' || item.scopeType === 'ONE_TIME') {
+                const s = item.startDateTime || '';
+                const e = item.endDateTime || '';
+                const sLabel = s.replace('T', ' ').substring(0, 16);
+                const eLabel = e.replace('T', ' ').substring(0, 16);
+                return `${sLabel} ~ ${eLabel}`;
+            }
+            if (item.scopeType === 'WEEKLY_TIME') {
+                const map = {
+                    1: '월요일', 2: '화요일', 3: '수요일',
+                    4: '목요일', 5: '금요일', 6: '토요일', 7: '일요일'
+                };
+                const day = map[item.weekDay] || `요일(${item.weekDay})`;
+                const s = (item.startTime || '').substring(0, 5);
+                const e = (item.endTime || '').substring(0, 5);
+                return `${day} ${s} ~ ${e}`;
+            }
+            return '';
+        }
+
+        function openUnavailModal() {
+            if (!ensureUnavailRoomSelected()) return;
+            document.getElementById('unavailId').value = '';
+            document.getElementById('unavailScopeType').value = '';
+            document.getElementById('unavailStartDateTime').value = '';
+            document.getElementById('unavailEndDateTime').value = '';
+            document.getElementById('unavailWeekDay').value = '';
+            document.getElementById('unavailStartTime').value = '';
+            document.getElementById('unavailEndTime').value = '';
+            document.getElementById('unavailReason').value = '';
+            document.getElementById('unavailDateTimeSection').classList.add('hidden');
+            document.getElementById('unavailWeeklySection').classList.add('hidden');
+            document.getElementById('unavailModalTitle').textContent = '대여불가 등록';
+            document.getElementById('unavailModal').classList.remove('hidden');
+            document.getElementById('unavailModal').classList.add('flex');
+        }
+
+        function closeUnavailModal() {
+            document.getElementById('unavailModal').classList.add('hidden');
+            document.getElementById('unavailModal').classList.remove('flex');
+        }
+
+        function onUnavailScopeChange() {
+            const type = document.getElementById('unavailScopeType').value;
+            document.getElementById('unavailDateTimeSection').classList.add('hidden');
+            document.getElementById('unavailWeeklySection').classList.add('hidden');
+            if (type === 'DATE_RANGE' || type === 'ONE_TIME') {
+                document.getElementById('unavailDateTimeSection').classList.remove('hidden');
+            } else if (type === 'WEEKLY_TIME') {
+                document.getElementById('unavailWeeklySection').classList.remove('hidden');
+            }
+        }
+
+        function editUnavail(item) {
+            if (!ensureUnavailRoomSelected()) return;
+            document.getElementById('unavailId').value = item.id;
+            document.getElementById('unavailScopeType').value = item.scopeType || '';
+            document.getElementById('unavailReason').value = item.reason || '';
+            document.getElementById('unavailStartDateTime').value = item.startDateTime ? item.startDateTime.substring(0, 16) : '';
+            document.getElementById('unavailEndDateTime').value = item.endDateTime ? item.endDateTime.substring(0, 16) : '';
+            document.getElementById('unavailWeekDay').value = item.weekDay || '';
+            document.getElementById('unavailStartTime').value = item.startTime ? item.startTime.substring(0, 5) : '';
+            document.getElementById('unavailEndTime').value = item.endTime ? item.endTime.substring(0, 5) : '';
+            onUnavailScopeChange();
+            document.getElementById('unavailModalTitle').textContent = '대여불가 수정';
+            document.getElementById('unavailModal').classList.remove('hidden');
+            document.getElementById('unavailModal').classList.add('flex');
+        }
+
+        function submitUnavailForm() {
+            if (!ensureUnavailRoomSelected()) return;
+            const id = document.getElementById('unavailId').value;
+            const type = document.getElementById('unavailScopeType').value;
+            const payload = {
+                scopeType: type,
+                startDateTime: null,
+                endDateTime: null,
+                weekDay: null,
+                startTime: null,
+                endTime: null,
+                reason: document.getElementById('unavailReason').value || null
+            };
+
+            if (!type) {
+                alert('유형을 선택해주세요.');
+                return;
+            }
+            if (type === 'DATE_RANGE' || type === 'ONE_TIME') {
+                const s = document.getElementById('unavailStartDateTime').value;
+                const e = document.getElementById('unavailEndDateTime').value;
+                if (!s || !e) {
+                    alert('시작/종료 일시를 입력해주세요.');
+                    return;
+                }
+                payload.startDateTime = s + ':00';
+                payload.endDateTime = e + ':00';
+            } else if (type === 'WEEKLY_TIME') {
+                const wd = document.getElementById('unavailWeekDay').value;
+                const st = document.getElementById('unavailStartTime').value;
+                const et = document.getElementById('unavailEndTime').value;
+                if (!wd || !st || !et) {
+                    alert('요일과 시작/종료 시간을 모두 입력해주세요.');
+                    return;
+                }
+                payload.weekDay = parseInt(wd, 10);
+                payload.startTime = st + ':00';
+                payload.endTime = et + ':00';
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id
+                ? `/admin/rental/rooms/${currentUnavailRoomId}/unavailable-slots/${id}`
+                : `/admin/rental/rooms/${currentUnavailRoomId}/unavailable-slots`;
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('저장되었습니다.');
+                        closeUnavailModal();
+                        loadUnavailableSlots();
+                    } else {
+                        alert(result.error?.message || '저장에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('오류가 발생했습니다.'));
+        }
+
+        function deleteUnavail(id) {
+            if (!ensureUnavailRoomSelected()) return;
+            if (!confirm('해당 대여불가 구간을 삭제하시겠습니까?')) {
+                return;
+            }
+            fetch(`/admin/rental/rooms/${currentUnavailRoomId}/unavailable-slots/${id}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('삭제되었습니다.');
+                        loadUnavailableSlots();
+                    } else {
+                        alert(result.error?.message || '삭제에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('삭제 중 오류가 발생했습니다.'));
+        }
+    </script>
+</div>
+</body>
+</html>
+

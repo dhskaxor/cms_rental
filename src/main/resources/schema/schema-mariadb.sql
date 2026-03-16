@@ -497,3 +497,167 @@ CREATE TABLE IF NOT EXISTS site_popup (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='사용자 사이트 팝업 관리 테이블';
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- =========================
+-- 렌탈 장소 테이블
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_place (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    name VARCHAR(200) NOT NULL COMMENT '장소명',
+    address VARCHAR(500) COMMENT '주소',
+    description TEXT COMMENT '설명',
+    time_zone VARCHAR(100) DEFAULT 'Asia/Seoul' COMMENT '타임존',
+    opening_time TIME COMMENT '기본 오픈 시간',
+    closing_time TIME COMMENT '기본 마감 시간',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rental_place_deleted (deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='렌탈 장소';
+
+-- =========================
+-- 렌탈 룸 테이블
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    place_id BIGINT NOT NULL COMMENT '장소 ID',
+    name VARCHAR(200) NOT NULL COMMENT '룸명',
+    description TEXT COMMENT '설명',
+    capacity INT COMMENT '수용 인원',
+    default_duration_minutes INT NOT NULL DEFAULT 60 COMMENT '기본 예약 단위(분)',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rental_room_place (place_id),
+    INDEX idx_rental_room_deleted (deleted),
+    CONSTRAINT fk_rental_room_place FOREIGN KEY (place_id) REFERENCES rental_place(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='렌탈 룸';
+
+-- =========================
+-- 장소 휴관/공휴일 규칙
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_place_closed_rule (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    place_id BIGINT NOT NULL COMMENT '장소 ID',
+    rule_type VARCHAR(20) NOT NULL COMMENT 'WEEKDAY, DATE, HOLIDAY',
+    start_date DATE COMMENT '시작 일자',
+    end_date DATE COMMENT '종료 일자',
+    week_day TINYINT COMMENT '요일(1~7)',
+    holiday_name VARCHAR(200) COMMENT '공휴일 이름',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rpc_place (place_id),
+    INDEX idx_rpc_deleted (deleted),
+    CONSTRAINT fk_rpc_place FOREIGN KEY (place_id) REFERENCES rental_place(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='장소 휴관/공휴일 규칙';
+
+-- =========================
+-- 룸 대여불가 구간
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_unavailable_slot (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT '룸 ID',
+    scope_type VARCHAR(20) NOT NULL COMMENT 'DATE_RANGE, WEEKLY_TIME, ONE_TIME',
+    start_datetime DATETIME COMMENT '시작 일시',
+    end_datetime DATETIME COMMENT '종료 일시',
+    week_day TINYINT COMMENT '요일(반복용)',
+    start_time TIME COMMENT '시작 시각',
+    end_time TIME COMMENT '종료 시각',
+    reason VARCHAR(255) COMMENT '사유',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rru_room (room_id),
+    INDEX idx_rru_deleted (deleted),
+    CONSTRAINT fk_rru_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='룸 대여불가 구간';
+
+-- =========================
+-- 기본 시간 단위 요금
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_pricing_base (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT '룸 ID',
+    unit_minutes INT NOT NULL DEFAULT 60 COMMENT '요금 단위(분)',
+    price BIGINT NOT NULL COMMENT '금액',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    UNIQUE KEY uk_rrpb_room (room_id),
+    CONSTRAINT fk_rrpb_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='룸 기본 요금';
+
+-- =========================
+-- 주말/공휴일 요금
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_pricing_weekend_holiday (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT '룸 ID',
+    apply_to VARCHAR(20) NOT NULL COMMENT 'WEEKEND, HOLIDAY, BOTH',
+    unit_minutes INT NOT NULL DEFAULT 60 COMMENT '요금 단위(분)',
+    price BIGINT NOT NULL COMMENT '금액',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rrpwh_room (room_id),
+    CONSTRAINT fk_rrpwh_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='룸 주말/공휴일 요금';
+
+-- =========================
+-- 특정 일자/시간 특수 요금 (최우선)
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_room_pricing_special (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT '룸 ID',
+    date DATE NOT NULL COMMENT '적용 일자',
+    start_time TIME NOT NULL COMMENT '시작 시각',
+    end_time TIME NOT NULL COMMENT '종료 시각',
+    unit_minutes INT NOT NULL DEFAULT 60 COMMENT '요금 단위(분)',
+    price BIGINT NOT NULL COMMENT '금액',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rrps_room_date (room_id, date),
+    CONSTRAINT fk_rrps_room FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='룸 특수 요금';
+
+-- =========================
+-- 렌탈 예약 테이블
+-- =========================
+CREATE TABLE IF NOT EXISTS rental_reservation (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT '룸 ID',
+    user_id BIGINT NOT NULL COMMENT '사용자 ID',
+    start_datetime DATETIME NOT NULL COMMENT '시작 일시',
+    end_datetime DATETIME NOT NULL COMMENT '종료 일시',
+    status VARCHAR(30) NOT NULL COMMENT 'REQUESTED, CONFIRMED, CANCELLED_BY_USER, REJECTED_BY_ADMIN, CANCELLED_BY_ADMIN',
+    total_price BIGINT NOT NULL COMMENT '총 금액',
+    memo VARCHAR(500) COMMENT '메모',
+    payment_status VARCHAR(30) COMMENT '결제 상태',
+    payment_id VARCHAR(100) COMMENT '결제/PG 거래 ID',
+    created_at DATETIME NOT NULL COMMENT '생성 일시',
+    created_by BIGINT COMMENT '생성자 ID',
+    updated_at DATETIME COMMENT '수정 일시',
+    updated_by BIGINT COMMENT '수정자 ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete',
+    INDEX idx_rr_room_time (room_id, start_datetime, end_datetime),
+    INDEX idx_rr_user (user_id),
+    INDEX idx_rr_status (status),
+    CONSTRAINT fk_rr_room FOREIGN KEY (room_id) REFERENCES rental_room(id),
+    CONSTRAINT fk_rr_user FOREIGN KEY (user_id) REFERENCES user(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='렌탈 예약';

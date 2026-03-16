@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>렌탈 휴관/공휴일 관리</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">렌탈 휴관/공휴일 관리</h1>
+                <p class="text-sm text-gray-500 mt-1">
+                    장소별로 정기 휴관일, 기간 휴관, 공휴일을 설정할 수 있습니다.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-4 gap-6">
+            <!-- 장소 목록 -->
+            <div class="col-span-1 bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h2 class="text-sm font-medium text-gray-700">장소 목록</h2>
+                </div>
+                <ul id="closedPlaceList" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                    <li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>
+                </ul>
+            </div>
+
+            <!-- 규칙 목록 -->
+            <div class="col-span-3 bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-sm font-medium text-gray-700">
+                        <span id="closedRuleTitle">장소를 먼저 선택하세요.</span>
+                    </h2>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-2">
+                            <label class="text-xs text-gray-600">기간</label>
+                            <input id="closedFrom" type="date"
+                                   class="px-2 py-1 border border-gray-300 rounded-md text-xs">
+                            <span class="text-xs text-gray-400">~</span>
+                            <input id="closedTo" type="date"
+                                   class="px-2 py-1 border border-gray-300 rounded-md text-xs">
+                        </div>
+                        <button type="button" onclick="loadClosedRules()"
+                                class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                            조회
+                        </button>
+                        <button type="button" onclick="openClosedRuleModal()"
+                                class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                            + 규칙 추가
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <table class="min-w-full divide-y divide-gray-200 text-xs">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">ID</th>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">유형</th>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">기간/요일</th>
+                            <th class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider text-[11px]">공휴일 이름</th>
+                            <th class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider text-[11px]">관리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="closedRuleTableBody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">장소를 선택해주세요.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 규칙 생성/수정 모달 -->
+    <div id="closedRuleModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h2 id="closedRuleModalTitle" class="text-lg font-medium text-gray-900">휴관/공휴일 규칙 등록</h2>
+                <button type="button" onclick="closeClosedRuleModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form id="closedRuleForm" class="px-4 py-5 space-y-4">
+                <input type="hidden" id="closedRuleId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">규칙 유형</label>
+                    <select id="closedRuleType"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            onchange="onClosedRuleTypeChange()">
+                        <option value="">선택</option>
+                        <option value="WEEKDAY">요일 휴관(WEEKDAY)</option>
+                        <option value="DATE">기간 휴관(DATE)</option>
+                        <option value="HOLIDAY">공휴일(HOLIDAY)</option>
+                    </select>
+                </div>
+                <div id="weekdaySection" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">요일</label>
+                    <select id="closedWeekDay"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">선택</option>
+                        <option value="1">월요일</option>
+                        <option value="2">화요일</option>
+                        <option value="3">수요일</option>
+                        <option value="4">목요일</option>
+                        <option value="5">금요일</option>
+                        <option value="6">토요일</option>
+                        <option value="7">일요일</option>
+                    </select>
+                </div>
+                <div id="dateSection" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">기간</label>
+                    <div class="grid grid-cols-2 gap-3 items-center">
+                        <input id="closedStartDate" type="date"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <input id="closedEndDate" type="date"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                               placeholder="(선택)">
+                    </div>
+                </div>
+                <div id="holidaySection" class="hidden space-y-2">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">공휴일 날짜</label>
+                        <input id="holidayDate" type="date"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">공휴일 이름</label>
+                        <input id="holidayName" type="text"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+            </form>
+            <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button type="button" onclick="closeClosedRuleModal()"
+                        class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    취소
+                </button>
+                <button type="button" onclick="submitClosedRuleForm()"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    저장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentClosedPlaceId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initClosedRuleDates();
+            loadClosedPlaces();
+        });
+
+        function initClosedRuleDates() {
+            const today = new Date();
+            const to = today.toISOString().substring(0, 10);
+            const fromDate = new Date(today);
+            fromDate.setDate(today.getDate() - 7);
+            const from = fromDate.toISOString().substring(0, 10);
+            document.getElementById('closedFrom').value = from;
+            document.getElementById('closedTo').value = to;
+        }
+
+        function loadClosedPlaces() {
+            const ul = document.getElementById('closedPlaceList');
+            ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>';
+            fetch('/admin/rental/places', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소 목록을 불러오지 못했습니다.</li>';
+                        return;
+                    }
+                    const places = result.data || [];
+                    if (!places.length) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">등록된 장소가 없습니다.</li>';
+                        return;
+                    }
+                    ul.innerHTML = '';
+                    places.forEach(p => {
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm flex justify-between items-center';
+                        li.innerHTML = `
+                            <span>${p.name}</span>
+                            <span class="text-xs text-gray-400">ID: ${p.id}</span>
+                        `;
+                        li.onclick = () => selectClosedPlace(p);
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(() => {
+                    ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소 목록을 불러오지 못했습니다.</li>';
+                });
+        }
+
+        function selectClosedPlace(place) {
+            currentClosedPlaceId = place.id;
+            document.getElementById('closedRuleTitle').textContent = `[${place.id}] ${place.name} 의 휴관/공휴일 규칙`;
+            loadClosedRules();
+        }
+
+        function ensureClosedPlaceSelected() {
+            if (!currentClosedPlaceId) {
+                alert('먼저 장소를 선택하세요.');
+                return false;
+            }
+            return true;
+        }
+
+        function loadClosedRules() {
+            if (!ensureClosedPlaceSelected()) return;
+            const from = document.getElementById('closedFrom').value;
+            const to = document.getElementById('closedTo').value;
+            if (!from || !to) {
+                alert('조회 기간을 입력해주세요.');
+                return;
+            }
+            const tbody = document.getElementById('closedRuleTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">로딩 중...</td></tr>';
+
+            const params = new URLSearchParams({
+                fromDate: from,
+                toDate: to
+            });
+
+            fetch(`/admin/rental/places/${currentClosedPlaceId}/closed-rules?${params.toString()}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-red-500 text-xs">규칙 목록을 불러오지 못했습니다.</td></tr>';
+                        return;
+                    }
+                    const rules = result.data || [];
+                    if (!rules.length) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">등록된 규칙이 없습니다.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = '';
+                    rules.forEach(rule => {
+                        const tr = document.createElement('tr');
+                        const periodLabel = buildClosedRulePeriodLabel(rule);
+                        tr.innerHTML = `
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-500">${rule.id}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${rule.ruleType}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${periodLabel}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${rule.holidayName || ''}</td>
+                            <td class="px-3 py-2 whitespace-nowrap text-right text-xs">
+                                <button type="button" class="text-indigo-600 hover:text-indigo-900 mr-2" onclick='editClosedRule(${JSON.stringify(rule)})'>수정</button>
+                                <button type="button" class="text-red-600 hover:text-red-900" onclick="deleteClosedRule(${rule.id})">삭제</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(() => {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-red-500 text-xs">규칙 목록을 불러오지 못했습니다.</td></tr>';
+                });
+        }
+
+        function buildClosedRulePeriodLabel(rule) {
+            if (rule.ruleType === 'WEEKDAY') {
+                const map = {
+                    1: '월요일', 2: '화요일', 3: '수요일',
+                    4: '목요일', 5: '금요일', 6: '토요일', 7: '일요일'
+                };
+                return map[rule.weekDay] || `요일(${rule.weekDay})`;
+            }
+            if (rule.ruleType === 'DATE' || rule.ruleType === 'HOLIDAY') {
+                if (rule.endDate && rule.endDate !== rule.startDate) {
+                    return `${rule.startDate} ~ ${rule.endDate}`;
+                }
+                return rule.startDate || '';
+            }
+            return '';
+        }
+
+        function openClosedRuleModal() {
+            if (!ensureClosedPlaceSelected()) return;
+            document.getElementById('closedRuleId').value = '';
+            document.getElementById('closedRuleType').value = '';
+            document.getElementById('closedWeekDay').value = '';
+            document.getElementById('closedStartDate').value = '';
+            document.getElementById('closedEndDate').value = '';
+            document.getElementById('holidayDate').value = '';
+            document.getElementById('holidayName').value = '';
+            document.getElementById('weekdaySection').classList.add('hidden');
+            document.getElementById('dateSection').classList.add('hidden');
+            document.getElementById('holidaySection').classList.add('hidden');
+            document.getElementById('closedRuleModalTitle').textContent = '휴관/공휴일 규칙 등록';
+            document.getElementById('closedRuleModal').classList.remove('hidden');
+            document.getElementById('closedRuleModal').classList.add('flex');
+        }
+
+        function closeClosedRuleModal() {
+            document.getElementById('closedRuleModal').classList.add('hidden');
+            document.getElementById('closedRuleModal').classList.remove('flex');
+        }
+
+        function onClosedRuleTypeChange() {
+            const type = document.getElementById('closedRuleType').value;
+            document.getElementById('weekdaySection').classList.add('hidden');
+            document.getElementById('dateSection').classList.add('hidden');
+            document.getElementById('holidaySection').classList.add('hidden');
+            if (type === 'WEEKDAY') {
+                document.getElementById('weekdaySection').classList.remove('hidden');
+            } else if (type === 'DATE') {
+                document.getElementById('dateSection').classList.remove('hidden');
+            } else if (type === 'HOLIDAY') {
+                document.getElementById('holidaySection').classList.remove('hidden');
+            }
+        }
+
+        function editClosedRule(rule) {
+            if (!ensureClosedPlaceSelected()) return;
+            document.getElementById('closedRuleId').value = rule.id;
+            document.getElementById('closedRuleType').value = rule.ruleType || '';
+            document.getElementById('closedWeekDay').value = rule.weekDay || '';
+            document.getElementById('closedStartDate').value = rule.startDate || '';
+            document.getElementById('closedEndDate').value = rule.endDate || '';
+            document.getElementById('holidayDate').value = rule.startDate || '';
+            document.getElementById('holidayName').value = rule.holidayName || '';
+            onClosedRuleTypeChange();
+            document.getElementById('closedRuleModalTitle').textContent = '휴관/공휴일 규칙 수정';
+            document.getElementById('closedRuleModal').classList.remove('hidden');
+            document.getElementById('closedRuleModal').classList.add('flex');
+        }
+
+        function submitClosedRuleForm() {
+            if (!ensureClosedPlaceSelected()) return;
+            const id = document.getElementById('closedRuleId').value;
+            const type = document.getElementById('closedRuleType').value;
+            const payload = {
+                ruleType: type,
+                weekDay: null,
+                startDate: null,
+                endDate: null,
+                holidayName: null
+            };
+
+            if (!type) {
+                alert('규칙 유형을 선택해주세요.');
+                return;
+            }
+            if (type === 'WEEKDAY') {
+                const wd = document.getElementById('closedWeekDay').value;
+                if (!wd) {
+                    alert('요일을 선택해주세요.');
+                    return;
+                }
+                payload.weekDay = parseInt(wd, 10);
+            } else if (type === 'DATE') {
+                const s = document.getElementById('closedStartDate').value;
+                const e = document.getElementById('closedEndDate').value;
+                if (!s) {
+                    alert('시작일을 입력해주세요.');
+                    return;
+                }
+                payload.startDate = s;
+                if (e) payload.endDate = e;
+            } else if (type === 'HOLIDAY') {
+                const d = document.getElementById('holidayDate').value;
+                const n = document.getElementById('holidayName').value;
+                if (!d || !n) {
+                    alert('공휴일 날짜와 이름을 모두 입력해주세요.');
+                    return;
+                }
+                payload.startDate = d;
+                payload.holidayName = n;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id
+                ? `/admin/rental/places/${currentClosedPlaceId}/closed-rules/${id}`
+                : `/admin/rental/places/${currentClosedPlaceId}/closed-rules`;
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('저장되었습니다.');
+                        closeClosedRuleModal();
+                        loadClosedRules();
+                    } else {
+                        alert(result.error?.message || '저장에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('오류가 발생했습니다.'));
+        }
+
+        function deleteClosedRule(id) {
+            if (!ensureClosedPlaceSelected()) return;
+            if (!confirm('해당 규칙을 삭제하시겠습니까?')) {
+                return;
+            }
+            fetch(`/admin/rental/places/${currentClosedPlaceId}/closed-rules/${id}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('삭제되었습니다.');
+                        loadClosedRules();
+                    } else {
+                        alert(result.error?.message || '삭제에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('삭제 중 오류가 발생했습니다.'));
+        }
+    </script>
+</div>
+</body>
+</html>
+

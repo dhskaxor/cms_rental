@@ -389,3 +389,167 @@ CREATE TABLE site_popup (
 ) ENGINE=InnoDB COMMENT='사용자 사이트 팝업 관리 테이블';
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+/* =========================
+   RENTAL_PLACE TABLE (렌탈 장소)
+   ========================= */
+CREATE TABLE rental_place (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    name VARCHAR(200) NOT NULL COMMENT '장소명',
+    address VARCHAR(500) COMMENT '주소',
+    description TEXT COMMENT '설명',
+    time_zone VARCHAR(100) DEFAULT 'Asia/Seoul' COMMENT '타임존',
+    opening_time TIME COMMENT '기본 오픈 시간',
+    closing_time TIME COMMENT '기본 마감 시간',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rental_place_deleted (deleted)
+) ENGINE=InnoDB COMMENT='Rental Place Table';
+
+/* =========================
+   RENTAL_ROOM TABLE (렌탈 룸)
+   ========================= */
+CREATE TABLE rental_room (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    place_id BIGINT NOT NULL COMMENT 'Place ID',
+    name VARCHAR(200) NOT NULL COMMENT '룸명',
+    description TEXT COMMENT '설명',
+    capacity INT COMMENT '수용 인원',
+    default_duration_minutes INT NOT NULL DEFAULT 60 COMMENT '기본 예약 단위(분)',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rental_room_place (place_id),
+    INDEX idx_rental_room_deleted (deleted),
+    CONSTRAINT fk_rental_room_place_schema FOREIGN KEY (place_id) REFERENCES rental_place(id)
+) ENGINE=InnoDB COMMENT='Rental Room Table';
+
+/* =========================
+   RENTAL_PLACE_CLOSED_RULE TABLE (휴관/공휴일)
+   ========================= */
+CREATE TABLE rental_place_closed_rule (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    place_id BIGINT NOT NULL COMMENT 'Place ID',
+    rule_type VARCHAR(20) NOT NULL COMMENT 'WEEKDAY, DATE, HOLIDAY',
+    start_date DATE COMMENT 'Start Date',
+    end_date DATE COMMENT 'End Date',
+    week_day TINYINT COMMENT '요일(1~7)',
+    holiday_name VARCHAR(200) COMMENT 'Holiday Name',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rpc_place (place_id),
+    INDEX idx_rpc_deleted (deleted),
+    CONSTRAINT fk_rpc_place_schema FOREIGN KEY (place_id) REFERENCES rental_place(id)
+) ENGINE=InnoDB COMMENT='Rental Place Closed/Holiday Rules';
+
+/* =========================
+   RENTAL_ROOM_UNAVAILABLE_SLOT TABLE (대여불가)
+   ========================= */
+CREATE TABLE rental_room_unavailable_slot (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT 'Room ID',
+    scope_type VARCHAR(20) NOT NULL COMMENT 'DATE_RANGE, WEEKLY_TIME, ONE_TIME',
+    start_datetime DATETIME COMMENT 'Start DateTime',
+    end_datetime DATETIME COMMENT 'End DateTime',
+    week_day TINYINT COMMENT '요일(반복용)',
+    start_time TIME COMMENT 'Start Time',
+    end_time TIME COMMENT 'End Time',
+    reason VARCHAR(255) COMMENT 'Reason',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rru_room (room_id),
+    INDEX idx_rru_deleted (deleted),
+    CONSTRAINT fk_rru_room_schema FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB COMMENT='Rental Room Unavailable Slot';
+
+/* =========================
+   RENTAL_ROOM_PRICING_BASE TABLE (기본 요금)
+   ========================= */
+CREATE TABLE rental_room_pricing_base (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT 'Room ID',
+    unit_minutes INT NOT NULL DEFAULT 60 COMMENT 'Unit Minutes',
+    price BIGINT NOT NULL COMMENT 'Price',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    UNIQUE KEY uk_rrpb_room_schema (room_id),
+    CONSTRAINT fk_rrpb_room_schema FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB COMMENT='Rental Room Base Pricing';
+
+/* =========================
+   RENTAL_ROOM_PRICING_WEEKEND_HOLIDAY TABLE
+   ========================= */
+CREATE TABLE rental_room_pricing_weekend_holiday (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT 'Room ID',
+    apply_to VARCHAR(20) NOT NULL COMMENT 'WEEKEND, HOLIDAY, BOTH',
+    unit_minutes INT NOT NULL DEFAULT 60 COMMENT 'Unit Minutes',
+    price BIGINT NOT NULL COMMENT 'Price',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rrpwh_room (room_id),
+    CONSTRAINT fk_rrpwh_room_schema FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB COMMENT='Rental Room Weekend/Holiday Pricing';
+
+/* =========================
+   RENTAL_ROOM_PRICING_SPECIAL TABLE (특수 요금)
+   ========================= */
+CREATE TABLE rental_room_pricing_special (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT 'Room ID',
+    date DATE NOT NULL COMMENT 'Target Date',
+    start_time TIME NOT NULL COMMENT 'Start Time',
+    end_time TIME NOT NULL COMMENT 'End Time',
+    unit_minutes INT NOT NULL DEFAULT 60 COMMENT 'Unit Minutes',
+    price BIGINT NOT NULL COMMENT 'Price',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rrps_room_date (room_id, date),
+    CONSTRAINT fk_rrps_room_schema FOREIGN KEY (room_id) REFERENCES rental_room(id)
+) ENGINE=InnoDB COMMENT='Rental Room Special Pricing';
+
+/* =========================
+   RENTAL_RESERVATION TABLE (예약)
+   ========================= */
+CREATE TABLE rental_reservation (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT 'Primary Key',
+    room_id BIGINT NOT NULL COMMENT 'Room ID',
+    user_id BIGINT NOT NULL COMMENT 'User ID',
+    start_datetime DATETIME NOT NULL COMMENT 'Start DateTime',
+    end_datetime DATETIME NOT NULL COMMENT 'End DateTime',
+    status VARCHAR(30) NOT NULL COMMENT 'REQUESTED, CONFIRMED, CANCELLED_BY_USER, REJECTED_BY_ADMIN, CANCELLED_BY_ADMIN',
+    total_price BIGINT NOT NULL COMMENT 'Total Price',
+    memo VARCHAR(500) COMMENT 'Memo',
+    payment_status VARCHAR(30) COMMENT 'Payment Status',
+    payment_id VARCHAR(100) COMMENT 'Payment/PG ID',
+    created_at DATETIME NOT NULL COMMENT 'Creation Timestamp',
+    created_by BIGINT COMMENT 'Creator User ID',
+    updated_at DATETIME COMMENT 'Last Update Timestamp',
+    updated_by BIGINT COMMENT 'Last Updater User ID',
+    deleted TINYINT(1) DEFAULT 0 COMMENT 'Soft Delete Flag',
+    INDEX idx_rr_room_time (room_id, start_datetime, end_datetime),
+    INDEX idx_rr_user (user_id),
+    INDEX idx_rr_status (status),
+    CONSTRAINT fk_rr_room_schema FOREIGN KEY (room_id) REFERENCES rental_room(id),
+    CONSTRAINT fk_rr_user_schema FOREIGN KEY (user_id) REFERENCES user(id)
+) ENGINE=InnoDB COMMENT='Rental Reservation Table';

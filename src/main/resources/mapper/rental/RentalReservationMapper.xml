@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.rental.reservation.mapper.RentalReservationMapper">
+
+    <resultMap id="RentalReservationResultMap" type="com.nt.cms.rental.reservation.vo.RentalReservationVO">
+        <id property="id" column="id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="startDatetime" column="start_datetime"/>
+        <result property="endDatetime" column="end_datetime"/>
+        <result property="status" column="status"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="memo" column="memo"/>
+        <result property="paymentStatus" column="payment_status"/>
+        <result property="paymentId" column="payment_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="updatedBy" column="updated_by"/>
+        <result property="deleted" column="deleted"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO rental_reservation (
+            room_id,
+            user_id,
+            start_datetime,
+            end_datetime,
+            status,
+            total_price,
+            memo,
+            payment_status,
+            payment_id,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{roomId},
+            #{userId},
+            #{startDatetime},
+            #{endDatetime},
+            #{status},
+            #{totalPrice},
+            #{memo},
+            #{paymentStatus},
+            #{paymentId},
+            #{createdAt},
+            #{createdBy},
+            #{updatedAt},
+            #{updatedBy},
+            0
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE rental_reservation
+        SET
+            status = #{status},
+            total_price = #{totalPrice},
+            memo = #{memo},
+            payment_status = #{paymentStatus},
+            payment_id = #{paymentId},
+            updated_at = #{updatedAt},
+            updated_by = #{updatedBy}
+        WHERE id = #{id}
+          AND deleted = 0
+    </update>
+
+    <select id="findById" resultMap="RentalReservationResultMap">
+        SELECT *
+        FROM rental_reservation
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByUserId" resultMap="RentalReservationResultMap">
+        SELECT *
+        FROM rental_reservation
+        WHERE user_id = #{userId}
+        ORDER BY start_datetime DESC
+    </select>
+
+    <select id="search" resultMap="RentalReservationResultMap">
+        SELECT *
+        FROM rental_reservation
+        WHERE deleted = 0
+        <if test="request.roomId != null">
+            AND room_id = #{request.roomId}
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND status = #{request.status}
+        </if>
+        <if test="request.from != null and request.from != ''">
+            AND start_datetime &gt;= #{request.from}
+        </if>
+        <if test="request.to != null and request.to != ''">
+            AND end_datetime &lt;= #{request.to}
+        </if>
+        ORDER BY start_datetime DESC
+    </select>
+
+    <select id="findOverlappingReservations" resultMap="RentalReservationResultMap">
+        SELECT *
+        FROM rental_reservation
+        WHERE room_id = #{roomId}
+          AND deleted = 0
+          AND status IN ('REQUESTED', 'CONFIRMED')
+          AND (
+              (start_datetime &lt; #{end} AND end_datetime &gt; #{start})
+          )
+    </select>
+
+</mapper>
+

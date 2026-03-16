@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>렌탈 룸 관리</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">렌탈 룸 관리</h1>
+                <p class="text-sm text-gray-500 mt-1">좌측에서 장소를 선택하면 해당 장소의 룸이 표시됩니다.</p>
+            </div>
+            <button type="button"
+                    onclick="openRoomForm()"
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                + 새 룸
+            </button>
+        </div>
+
+        <div class="grid grid-cols-4 gap-6">
+            <!-- 장소 목록 -->
+            <div class="col-span-1 bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h2 class="text-sm font-medium text-gray-700">장소 목록</h2>
+                </div>
+                <ul id="placeList" class="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                    <li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>
+                </ul>
+            </div>
+
+            <!-- 룸 목록 -->
+            <div class="col-span-3 bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <h2 class="text-sm font-medium text-gray-700">
+                        <span id="roomPlaceTitle">장소를 먼저 선택하세요.</span>
+                    </h2>
+                </div>
+                <div class="p-4">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">룸명</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">설명</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">수용 인원</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">기본 단위(분)</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="roomTableBody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="6" class="px-4 py-6 text-center text-gray-500 text-sm">장소를 선택해주세요.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 룸 생성/수정 모달 -->
+    <div id="roomModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h2 id="roomModalTitle" class="text-lg font-medium text-gray-900">룸 등록</h2>
+                <button type="button" onclick="closeRoomForm()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form id="roomForm" class="px-4 py-5 space-y-4">
+                <input type="hidden" id="roomId">
+                <input type="hidden" id="roomPlaceId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">룸명</label>
+                    <input id="roomName" type="text"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">설명</label>
+                    <textarea id="roomDescription" rows="3"
+                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">수용 인원</label>
+                        <input id="roomCapacity" type="number" min="1"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">기본 예약 단위(분)</label>
+                        <input id="roomDuration" type="number" min="15" step="15" value="60"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                </div>
+            </form>
+            <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button type="button" onclick="closeRoomForm()"
+                        class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    취소
+                </button>
+                <button type="button" onclick="submitRoomForm()"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    저장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPlaceId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPlacesForRooms();
+        });
+
+        function loadPlacesForRooms() {
+            const ul = document.getElementById('placeList');
+            ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>';
+            fetch('/admin/rental/places', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소 목록을 불러오지 못했습니다.</li>';
+                        return;
+                    }
+                    const places = result.data || [];
+                    if (!places.length) {
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">등록된 장소가 없습니다.</li>';
+                        return;
+                    }
+                    ul.innerHTML = '';
+                    places.forEach(p => {
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm flex justify-between items-center';
+                        li.innerHTML = `
+                            <span>${p.name}</span>
+                            <span class="text-xs text-gray-400">ID: ${p.id}</span>
+                        `;
+                        li.onclick = () => selectPlaceForRooms(p);
+                        ul.appendChild(li);
+                    });
+                })
+                .catch(() => {
+                    ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소 목록을 불러오지 못했습니다.</li>';
+                });
+        }
+
+        function selectPlaceForRooms(place) {
+            currentPlaceId = place.id;
+            document.getElementById('roomPlaceTitle').textContent = `[${place.id}] ${place.name} 의 룸 목록`;
+            loadRooms();
+        }
+
+        function loadRooms() {
+            const tbody = document.getElementById('roomTableBody');
+            if (!currentPlaceId) {
+                tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 text-sm">장소를 선택해주세요.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 text-sm">로딩 중...</td></tr>';
+            fetch(`/admin/rental/rooms?placeId=${currentPlaceId}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-red-500 text-sm">룸 목록을 불러오지 못했습니다.</td></tr>';
+                        return;
+                    }
+                    const rooms = result.data || [];
+                    if (!rooms.length) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-gray-500 text-sm">등록된 룸이 없습니다.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = '';
+                    rooms.forEach(rm => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.id}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${rm.name}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.description || ''}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.capacity || '-'}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.defaultDurationMinutes || '-'}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-right text-sm">
+                                <button type="button" class="text-indigo-600 hover:text-indigo-900 mr-3" onclick='editRoom(${JSON.stringify(rm)})'>수정</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(() => {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-center text-red-500 text-sm">룸 목록을 불러오지 못했습니다.</td></tr>';
+                });
+        }
+
+        function openRoomForm() {
+            if (!currentPlaceId) {
+                alert('먼저 장소를 선택하세요.');
+                return;
+            }
+            document.getElementById('roomId').value = '';
+            document.getElementById('roomPlaceId').value = currentPlaceId;
+            document.getElementById('roomName').value = '';
+            document.getElementById('roomDescription').value = '';
+            document.getElementById('roomCapacity').value = '';
+            document.getElementById('roomDuration').value = '60';
+            document.getElementById('roomModalTitle').textContent = '룸 등록';
+            document.getElementById('roomModal').classList.remove('hidden');
+            document.getElementById('roomModal').classList.add('flex');
+        }
+
+        function closeRoomForm() {
+            document.getElementById('roomModal').classList.add('hidden');
+            document.getElementById('roomModal').classList.remove('flex');
+        }
+
+        function editRoom(room) {
+            document.getElementById('roomId').value = room.id;
+            document.getElementById('roomPlaceId').value = room.placeId;
+            document.getElementById('roomName').value = room.name || '';
+            document.getElementById('roomDescription').value = room.description || '';
+            document.getElementById('roomCapacity').value = room.capacity || '';
+            document.getElementById('roomDuration').value = room.defaultDurationMinutes || '60';
+            document.getElementById('roomModalTitle').textContent = '룸 수정';
+            document.getElementById('roomModal').classList.remove('hidden');
+            document.getElementById('roomModal').classList.add('flex');
+        }
+
+        function submitRoomForm() {
+            const id = document.getElementById('roomId').value;
+            const placeId = document.getElementById('roomPlaceId').value;
+            const payload = {
+                placeId: parseInt(placeId),
+                name: document.getElementById('roomName').value,
+                description: document.getElementById('roomDescription').value,
+                capacity: document.getElementById('roomCapacity').value ? parseInt(document.getElementById('roomCapacity').value) : null,
+                defaultDurationMinutes: document.getElementById('roomDuration').value ? parseInt(document.getElementById('roomDuration').value) : 60
+            };
+
+            if (!payload.name) {
+                alert('룸명을 입력해주세요.');
+                return;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/admin/rental/rooms/${id}` : '/admin/rental/rooms';
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('저장되었습니다.');
+                        closeRoomForm();
+                        loadRooms();
+                    } else {
+                        alert(result.error?.message || '저장에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('오류가 발생했습니다.'));
+        }
+    </script>
+</div>
+</body>
+</html>
+

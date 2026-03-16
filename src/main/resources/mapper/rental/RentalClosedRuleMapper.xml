@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nt.cms.rental.calendar.mapper.RentalClosedRuleMapper">
+
+    <select id="findByPlaceIdAndRange"
+            resultType="com.nt.cms.rental.calendar.dto.RentalPlaceClosedRuleResponse">
+        SELECT
+            id,
+            place_id   AS placeId,
+            rule_type  AS ruleType,
+            start_date AS startDate,
+            end_date   AS endDate,
+            week_day   AS weekDay,
+            holiday_name
+        FROM rental_place_closed_rule
+        WHERE place_id = #{placeId}
+          AND deleted = 0
+          AND (
+                (start_date IS NULL AND end_date IS NULL)
+                OR (start_date &lt;= #{toDate} AND (end_date IS NULL OR end_date &gt;= #{fromDate}))
+          )
+        ORDER BY COALESCE(start_date, '1970-01-01') ASC, rule_type ASC
+    </select>
+
+    <insert id="insert">
+        INSERT INTO rental_place_closed_rule (
+            place_id,
+            rule_type,
+            start_date,
+            end_date,
+            week_day,
+            holiday_name,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by,
+            deleted
+        ) VALUES (
+            #{placeId},
+            #{rule.ruleType},
+            #{rule.startDate},
+            #{rule.endDate},
+            #{rule.weekDay},
+            #{rule.holidayName},
+            NOW(),
+            #{actorId},
+            NOW(),
+            #{actorId},
+            0
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE rental_place_closed_rule
+        SET
+            rule_type    = #{rule.ruleType},
+            start_date   = #{rule.startDate},
+            end_date     = #{rule.endDate},
+            week_day     = #{rule.weekDay},
+            holiday_name = #{rule.holidayName},
+            updated_at   = NOW(),
+            updated_by   = #{actorId}
+        WHERE id = #{id}
+          AND place_id = #{placeId}
+          AND deleted = 0
+    </update>
+
+    <update id="softDelete">
+        UPDATE rental_place_closed_rule
+        SET
+            deleted   = 1,
+            updated_at = NOW(),
+            updated_by = #{actorId}
+        WHERE id = #{id}
+          AND place_id = #{placeId}
+          AND deleted = 0
+    </update>
+
+</mapper>
+

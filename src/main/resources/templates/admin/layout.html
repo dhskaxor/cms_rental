@@ -133,6 +133,57 @@
                     <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     <span>파일 관리</span>
                 </a>
+                <!-- Rental module menus -->
+                <a th:href="@{/admin/rental/places/view}" th:classappend="${currentMenu == 'rental-places'} ? 'active' : ''"
+                   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                    <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 7a2 2 0 012-2h3l2-2h4l2 2h3a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-6 4h3"/>
+                    </svg>
+                    <span>렌탈 장소</span>
+                </a>
+                <a th:href="@{/admin/rental/rooms/view}" th:classappend="${currentMenu == 'rental-rooms'} ? 'active' : ''"
+                   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                    <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 10h16M4 14h10M4 18h6"/>
+                    </svg>
+                    <span>렌탈 룸</span>
+                </a>
+                <a th:href="@{/admin/rental/pricing/view}" th:classappend="${currentMenu == 'rental-pricing'} ? 'active' : ''"
+                   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                    <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8c-2.21 0-4 .895-4 2s1.79 2 4 2 4 .895 4 2-1.79 2-4 2m0-8c2.21 0 4 .895 4 2M12 8V6m0 10v2"/>
+                    </svg>
+                    <span>렌탈 요금</span>
+                </a>
+                <a th:href="@{/admin/rental/closed-rules/view}" th:classappend="${currentMenu == 'rental-closed-rules'} ? 'active' : ''"
+                   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                    <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12h6m-3-3v6m8-6a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>렌탈 휴관/공휴일</span>
+                </a>
+                <a th:href="@{/admin/rental/unavailable-slots/view}" th:classappend="${currentMenu == 'rental-unavailable-slots'} ? 'active' : ''"
+                   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                    <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <span>렌탈 대여불가</span>
+                </a>
+                <a th:href="@{/admin/rental/calendar/view}" th:classappend="${currentMenu == 'rental-calendar'} ? 'active' : ''"
+                   class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                    <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M5 11h14M5 9a2 2 0 012-2h10a2 2 0 012 2v9a2 2 0 01-2 2H7a2 2 0 01-2-2V9z"/>
+                    </svg>
+                    <span>렌탈 달력</span>
+                </a>
                 <a th:href="@{/admin/audit-logs}" th:classappend="${currentMenu == 'audit'} ? 'active' : ''"
                    class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg">
                     <svg class="w-5 h-5 shrink-0 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>

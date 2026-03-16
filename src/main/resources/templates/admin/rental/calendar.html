@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout}">
+<head>
+    <title>렌탈 달력 관리</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">렌탈 달력 관리</h1>
+                <p class="text-sm text-gray-500 mt-1">
+                    장소와 룸을 선택하고 날짜 범위를 지정하면, 해당 기간의 예약 가능 슬롯과 요금을 한 번에 확인할 수 있습니다.
+                </p>
+            </div>
+        </div>
+
+        <!-- 필터 영역 -->
+        <div class="bg-white shadow rounded-lg mb-6">
+            <div class="px-4 py-4 grid grid-cols-5 gap-4 items-end">
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">장소</label>
+                    <select id="filterPlace" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">선택하세요</option>
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">룸</label>
+                    <select id="filterRoom" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">먼저 장소를 선택하세요</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">슬롯 단위(분)</label>
+                    <input id="filterSlotMinutes" type="number" min="15" step="15" value="60"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">시작일</label>
+                    <input id="filterFrom" type="date"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
+                    <input id="filterTo" type="date"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="col-span-1 flex justify-end">
+                    <button type="button" onclick="loadCalendar()"
+                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                        조회
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 달력 컨테이너 -->
+        <div id="calendarContainer" class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+            <div id="calendarEmpty" class="text-center text-gray-500 py-12 text-sm">
+                상단에서 장소/룸/기간을 선택한 후 조회 버튼을 눌러주세요.
+            </div>
+            <div id="calendarTableWrapper" class="hidden">
+                <table class="min-w-full border border-gray-200 text-xs">
+                    <thead id="calendarHead" class="bg-gray-50"></thead>
+                    <tbody id="calendarBody"></tbody>
+                </table>
+                <p class="mt-2 text-xs text-gray-500">
+                    파란색: 예약 가능, 회색: 휴관/대여불가, 빨간색: 예약됨. 가격은 슬롯 기준 금액입니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initDates();
+            loadPlacesForCalendar();
+            document.getElementById('filterPlace').addEventListener('change', loadRoomsForCalendar);
+        });
+
+        function initDates() {
+            const today = new Date();
+            const to = today.toISOString().substring(0, 10);
+            const fromDate = new Date(today);
+            fromDate.setDate(today.getDate() - 3);
+            const from = fromDate.toISOString().substring(0, 10);
+            document.getElementById('filterFrom').value = from;
+            document.getElementById('filterTo').value = to;
+        }
+
+        function loadPlacesForCalendar() {
+            const sel = document.getElementById('filterPlace');
+            sel.innerHTML = '<option value="">로딩 중...</option>';
+            fetch('/admin/rental/places', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        sel.innerHTML = '<option value="">장소를 불러오지 못함</option>';
+                        return;
+                    }
+                    const places = result.data || [];
+                    if (!places.length) {
+                        sel.innerHTML = '<option value="">등록된 장소 없음</option>';
+                        return;
+                    }
+                    sel.innerHTML = '<option value="">장소 선택</option>';
+                    places.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.textContent = p.name;
+                        sel.appendChild(opt);
+                    });
+                })
+                .catch(() => {
+                    sel.innerHTML = '<option value="">장소를 불러오지 못함</option>';
+                });
+        }
+
+        function loadRoomsForCalendar() {
+            const placeId = document.getElementById('filterPlace').value;
+            const sel = document.getElementById('filterRoom');
+            if (!placeId) {
+                sel.innerHTML = '<option value="">먼저 장소를 선택하세요</option>';
+                return;
+            }
+            sel.innerHTML = '<option value="">로딩 중...</option>';
+            fetch(`/admin/rental/rooms?placeId=${placeId}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        sel.innerHTML = '<option value="">룸을 불러오지 못함</option>';
+                        return;
+                    }
+                    const rooms = result.data || [];
+                    if (!rooms.length) {
+                        sel.innerHTML = '<option value="">등록된 룸 없음</option>';
+                        return;
+                    }
+                    sel.innerHTML = '<option value="">룸 선택</option>';
+                    rooms.forEach(rm => {
+                        const opt = document.createElement('option');
+                        opt.value = rm.id;
+                        opt.textContent = rm.name;
+                        sel.appendChild(opt);
+                    });
+                })
+                .catch(() => {
+                    sel.innerHTML = '<option value="">룸을 불러오지 못함</option>';
+                });
+        }
+
+        function loadCalendar() {
+            const placeId = document.getElementById('filterPlace').value;
+            const roomId = document.getElementById('filterRoom').value;
+            const from = document.getElementById('filterFrom').value;
+            const to = document.getElementById('filterTo').value;
+            const slotMinutes = document.getElementById('filterSlotMinutes').value || 60;
+
+            if (!placeId || !roomId || !from || !to) {
+                alert('장소, 룸, 기간을 모두 선택해주세요.');
+                return;
+            }
+
+            document.getElementById('calendarEmpty').textContent = '데이터를 불러오는 중입니다...';
+            document.getElementById('calendarEmpty').classList.remove('hidden');
+            document.getElementById('calendarTableWrapper').classList.add('hidden');
+
+            const params = new URLSearchParams({
+                placeId,
+                roomId,
+                fromDate: from,
+                toDate: to,
+                slotMinutes
+            });
+
+            fetch(`/admin/rental/calendar?${params.toString()}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        document.getElementById('calendarEmpty').textContent = result.error?.message || '달력 데이터를 불러오지 못했습니다.';
+                        return;
+                    }
+                    renderCalendar(result.data || []);
+                })
+                .catch(() => {
+                    document.getElementById('calendarEmpty').textContent = '달력 데이터를 불러오지 못했습니다.';
+                });
+        }
+
+        function renderCalendar(days) {
+            if (!days.length) {
+                document.getElementById('calendarEmpty').textContent = '데이터가 없습니다.';
+                document.getElementById('calendarEmpty').classList.remove('hidden');
+                document.getElementById('calendarTableWrapper').classList.add('hidden');
+                return;
+            }
+
+            const head = document.getElementById('calendarHead');
+            const body = document.getElementById('calendarBody');
+            head.innerHTML = '';
+            body.innerHTML = '';
+
+            const trHead = document.createElement('tr');
+            trHead.innerHTML = `
+                <th class="border border-gray-200 px-2 py-1 text-left text-xs text-gray-500">날짜</th>
+                <th class="border border-gray-200 px-2 py-1 text-left text-xs text-gray-500">타입</th>
+                <th class="border border-gray-200 px-2 py-1 text-left text-xs text-gray-500">슬롯</th>
+            `;
+            head.appendChild(trHead);
+
+            days.forEach(day => {
+                const tr = document.createElement('tr');
+                const slotsHtml = (day.slots || []).map(slot => {
+                    let baseClass = 'inline-flex items-center px-1 py-0.5 rounded mb-1 mr-1 border';
+                    if (!slot.available && slot.reservationStatus) {
+                        baseClass += ' bg-red-100 text-red-800 border-red-200';
+                    } else if (!slot.available) {
+                        baseClass += ' bg-gray-100 text-gray-700 border-gray-200';
+                    } else {
+                        baseClass += ' bg-blue-100 text-blue-800 border-blue-200';
+                    }
+                    const timeLabel = slot.start.substring(11, 16);
+                    const priceLabel = slot.price != null ? `${slot.price.toLocaleString()}원` : '-';
+                    return `<span class="${baseClass}" title="${slot.reason || ''}">
+                        <span class="font-mono mr-1">${timeLabel}</span>
+                        <span class="text-[10px]">${priceLabel}</span>
+                    </span>`;
+                }).join('');
+
+                tr.innerHTML = `
+                    <td class="border border-gray-200 px-2 py-1 align-top text-xs text-gray-700 whitespace-nowrap">${day.date}</td>
+                    <td class="border border-gray-200 px-2 py-1 align-top text-xs text-gray-600 whitespace-nowrap">
+                        ${day.dayType}${day.holidayName ? ' / ' + day.holidayName : ''}
+                    </td>
+                    <td class="border border-gray-200 px-2 py-1 align-top text-xs">
+                        ${slotsHtml || '<span class="text-gray-400 text-xs">슬롯 없음</span>'}
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+
+            document.getElementById('calendarEmpty').classList.add('hidden');
+            document.getElementById('calendarTableWrapper').classList.remove('hidden');
+        }
+    </script>
+</div>
+</body>
+</html>
+
