@@ -2,6 +2,7 @@ package com.nt.cms.rental.calendar.service;
 
 import com.nt.cms.common.exception.BusinessException;
 import com.nt.cms.common.exception.ErrorCode;
+import com.nt.cms.rental.calendar.dto.ReservationSummary;
 import com.nt.cms.rental.calendar.dto.RentalCalendarDayResponse;
 import com.nt.cms.rental.calendar.dto.RentalCalendarRequest;
 import com.nt.cms.rental.calendar.dto.RentalCalendarSlotResponse;
@@ -53,8 +54,7 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
                 request.getRoomId(), fromDateTime, toDateTime);
 
         Map<LocalDate, List<Map<String, Object>>> specialByDate = specialPricingList.stream()
-                .collect(Collectors.groupingBy(m -> ((Date) m.get("date")).toInstant()
-                        .atZone(ZoneId.systemDefault()).toLocalDate()));
+                .collect(Collectors.groupingBy(m -> toLocalDate(m.get("date"))));
 
         List<RentalCalendarDayResponse> days = new ArrayList<>();
         for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
@@ -124,25 +124,60 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
                 }
             }
 
+            List<ReservationSummary> dayReservations = buildReservationsForDate(date, reservations);
+
             days.add(RentalCalendarDayResponse.builder()
                     .date(date.toString())
                     .dayType(dayType)
                     .holidayName(holidayName)
                     .slots(slots)
+                    .reservations(dayReservations)
                     .build());
         }
 
         return days;
     }
 
+    private List<ReservationSummary> buildReservationsForDate(LocalDate date, List<Map<String, Object>> reservations) {
+        LocalDateTime dayStart = date.atStartOfDay();
+        LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
+        return reservations.stream()
+                .filter(row -> {
+                    Date s = (Date) row.get("start_datetime");
+                    Date e = (Date) row.get("end_datetime");
+                    if (s == null || e == null) return false;
+                    LocalDateTime rs = LocalDateTime.ofInstant(s.toInstant(), ZoneId.systemDefault());
+                    LocalDateTime re = LocalDateTime.ofInstant(e.toInstant(), ZoneId.systemDefault());
+                    return rs.isBefore(dayEnd) && re.isAfter(dayStart);
+                })
+                .map(row -> {
+                    Date s = (Date) row.get("start_datetime");
+                    Date e = (Date) row.get("end_datetime");
+                    LocalDateTime rs = LocalDateTime.ofInstant(s.toInstant(), ZoneId.systemDefault());
+                    LocalDateTime re = LocalDateTime.ofInstant(e.toInstant(), ZoneId.systemDefault());
+                    String startTime = rs.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                    String endTime = re.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                    Long totalPrice = row.get("total_price") != null
+                            ? ((Number) row.get("total_price")).longValue() : 0L;
+                    return ReservationSummary.builder()
+                            .id(((Number) row.get("id")).longValue())
+                            .userName((String) row.get("user_name"))
+                            .startTime(startTime)
+                            .endTime(endTime)
+                            .totalPrice(totalPrice)
+                            .status((String) row.get("status"))
+                            .build();
+                })
+                .sorted(Comparator.comparing(ReservationSummary::getStartTime))
+                .collect(Collectors.toList());
+    }
+
     private boolean isClosedByRules(LocalDate date, List<Map<String, Object>> rules) {
         for (Map<String, Object> rule : rules) {
             String ruleType = (String) rule.get("rule_type");
             if ("DATE".equals(ruleType)) {
-                Date start = (Date) rule.get("start_date");
-                Date end = (Date) rule.get("end_date");
-                LocalDate s = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                LocalDate e = end != null ? end.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() : s;
+                LocalDate s = toLocalDate(rule.get("start_date"));
+                LocalDate e = Optional.ofNullable(toLocalDate(rule.get("end_date"))).orElse(s);
                 if (!date.isBefore(s) && !date.isAfter(e)) {
                     return true;
                 }
@@ -152,9 +187,8 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
                     return true;
                 }
             } else if ("HOLIDAY".equals(ruleType)) {
-                Date start = (Date) rule.get("start_date");
-                if (start != null) {
-                    LocalDate s = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalDate s = toLocalDate(rule.get("start_date"));
+                if (s != null) {
                     if (s.equals(date)) {
                         return true;
                     }
@@ -170,9 +204,8 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
             if (!"HOLIDAY".equals(ruleType)) {
                 continue;
             }
-            Date start = (Date) rule.get("start_date");
-            if (start != null) {
-                LocalDate s = start.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate s = toLocalDate(rule.get("start_date"));
+            if (s != null) {
                 if (s.equals(date)) {
                     return (String) rule.get("holiday_name");
                 }
@@ -301,6 +334,28 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
     }
 
     private record PriceResult(Long price, String source) {
+    }
+
+    private LocalDate toLocalDate(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof java.sql.Date sqlDate) {
+            return sqlDate.toLocalDate();
+        }
+        if (value instanceof java.sql.Timestamp ts) {
+            return ts.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        if (value instanceof Date utilDate) {
+            return utilDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        if (value instanceof LocalDate ld) {
+            return ld;
+        }
+        if (value instanceof LocalDateTime ldt) {
+            return ldt.toLocalDate();
+        }
+        throw new IllegalArgumentException("Unsupported date type: " + value.getClass());
     }
 }
 

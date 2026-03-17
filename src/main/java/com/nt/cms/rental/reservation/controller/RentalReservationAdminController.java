@@ -4,12 +4,11 @@ import com.nt.cms.auth.security.CustomUserDetails;
 import com.nt.cms.common.response.ApiResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationSearchRequest;
+import com.nt.cms.rental.reservation.dto.RentalReservationSearchResponse;
 import com.nt.cms.rental.reservation.service.RentalReservationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin/rental/reservations")
@@ -19,8 +18,13 @@ public class RentalReservationAdminController {
     private final RentalReservationService rentalReservationService;
 
     @GetMapping
-    public ApiResponse<List<RentalReservationResponse>> searchReservations(RentalReservationSearchRequest request) {
+    public ApiResponse<RentalReservationSearchResponse> searchReservations(RentalReservationSearchRequest request) {
         return ApiResponse.success(rentalReservationService.searchReservations(request));
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<RentalReservationResponse> getReservation(@PathVariable Long id) {
+        return ApiResponse.success(rentalReservationService.getReservationByAdmin(id));
     }
 
     @PostMapping("/{id}/confirm")

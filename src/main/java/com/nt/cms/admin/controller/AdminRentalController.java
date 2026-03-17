@@ -38,17 +38,22 @@ public class AdminRentalController {
     }
 
     @GetMapping("/unavailable-slots/view")
-    public String unavailableSlots(Model model) {
-        model.addAttribute("currentMenu", "rental-unavailable-slots");
-        model.addAttribute("pageTitle", "렌탈 대여불가 시간 관리");
-        return "admin/rental/unavailable-slots";
+    public String unavailableSlotsRedirect() {
+        return "redirect:/admin/rental/pricing/view";
     }
 
     @GetMapping("/calendar/view")
     public String calendar(Model model) {
         model.addAttribute("currentMenu", "rental-calendar");
-        model.addAttribute("pageTitle", "렌탈 달력 관리");
+        model.addAttribute("pageTitle", "예약 관리 - 달력");
         return "admin/rental/calendar";
+    }
+
+    @GetMapping("/reservations/view")
+    public String reservations(Model model) {
+        model.addAttribute("currentMenu", "rental-reservations");
+        model.addAttribute("pageTitle", "예약 관리 - 목록");
+        return "admin/rental/reservations";
     }
 }
 

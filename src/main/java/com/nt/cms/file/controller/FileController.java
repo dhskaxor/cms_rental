@@ -20,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -51,17 +53,21 @@ public class FileController {
     }
 
     /**
-     * 다중 파일 업로드 (게시글 등)
+     * 다중 파일 업로드 (게시글, 장소/룸 사진 등).
+     * 같은 이름 "files"로 여러 파일을 보내면 배열로 수신해 List로 변환합니다.
      */
     @PostMapping(value = "/upload/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority(T(com.nt.cms.common.constant.Permission).FILE_CREATE.value)")
     @Operation(summary = "다중 파일 업로드", description = "여러 파일을 업로드합니다. maxCount로 최대 개수 제한.")
     public ApiResponse<List<FileResponse>> uploadFiles(
-            @RequestParam("files") List<MultipartFile> files,
+            @RequestParam("files") MultipartFile[] files,
             @RequestParam(value = "refType", defaultValue = "POST") String refType,
             @RequestParam(value = "refId", required = false) Long refId,
             @RequestParam(value = "maxCount", defaultValue = "5") int maxCount) {
-        List<FileResponse> responses = fileService.uploadFiles(files, refType, refId != null ? refId : 0L, maxCount);
+        List<MultipartFile> fileList = (files != null && files.length > 0)
+                ? Arrays.asList(files)
+                : Collections.emptyList();
+        List<FileResponse> responses = fileService.uploadFiles(fileList, refType, refId != null ? refId : 0L, maxCount);
         return ApiResponse.success(responses);
     }
 

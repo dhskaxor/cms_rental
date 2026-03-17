@@ -26,6 +26,14 @@ public class DefaultRentalPlaceService implements RentalPlaceService {
     private final RentalPlaceMapper rentalPlaceMapper;
     private final FileService fileService;
 
+    private static String defaultOpeningTime(String value) {
+        return (value == null || value.isBlank()) ? "09:00" : value;
+    }
+
+    private static String defaultClosingTime(String value) {
+        return (value == null || value.isBlank()) ? "21:00" : value;
+    }
+
     @Override
     @Transactional
     public Long createPlace(RentalPlaceRequest request, Long actorId) {
@@ -36,8 +44,8 @@ public class DefaultRentalPlaceService implements RentalPlaceService {
                 .address(request.getAddress())
                 .description(request.getDescription())
                 .timeZone(request.getTimeZone())
-                .openingTime(request.getOpeningTime())
-                .closingTime(request.getClosingTime())
+                .openingTime(defaultOpeningTime(request.getOpeningTime()))
+                .closingTime(defaultClosingTime(request.getClosingTime()))
                 .createdAt(now)
                 .createdBy(actorId)
                 .updatedAt(now)
@@ -61,8 +69,8 @@ public class DefaultRentalPlaceService implements RentalPlaceService {
         existing.setAddress(request.getAddress());
         existing.setDescription(request.getDescription());
         existing.setTimeZone(request.getTimeZone());
-        existing.setOpeningTime(request.getOpeningTime());
-        existing.setClosingTime(request.getClosingTime());
+        existing.setOpeningTime(defaultOpeningTime(request.getOpeningTime()));
+        existing.setClosingTime(defaultClosingTime(request.getClosingTime()));
         existing.setUpdatedAt(LocalDateTime.now());
         existing.setUpdatedBy(actorId);
 

@@ -12,6 +12,7 @@ public class RentalReservationVO {
     private Long id;
     private Long roomId;
     private Long userId;
+    private String userName;
     private LocalDateTime startDatetime;
     private LocalDateTime endDatetime;
     private String status;

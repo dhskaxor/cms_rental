@@ -17,6 +17,10 @@ public class RentalRoomResponse {
     private Integer capacity;
     private Integer defaultDurationMinutes;
 
+    private Long basePrice;
+    private Long weekendPrice;
+    private String weekendApplyTo;
+
     private List<FileResponse> photos;
 }
 

@@ -7,6 +7,7 @@
         <id property="id" column="id"/>
         <result property="roomId" column="room_id"/>
         <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
         <result property="startDatetime" column="start_datetime"/>
         <result property="endDatetime" column="end_datetime"/>
         <result property="status" column="status"/>
@@ -75,6 +76,19 @@
         WHERE id = #{id}
     </select>
 
+    <select id="findByIdWithUserName" resultMap="RentalReservationResultMap" databaseId="mariadb">
+        SELECT r.*, u.name AS user_name
+        FROM rental_reservation r
+        LEFT JOIN `user` u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.id = #{id}
+    </select>
+    <select id="findByIdWithUserName" resultMap="RentalReservationResultMap" databaseId="h2">
+        SELECT r.*, u.name AS user_name
+        FROM rental_reservation r
+        LEFT JOIN "user" u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.id = #{id}
+    </select>
+
     <select id="findByUserId" resultMap="RentalReservationResultMap">
         SELECT *
         FROM rental_reservation
@@ -82,23 +96,92 @@
         ORDER BY start_datetime DESC
     </select>
 
-    <select id="search" resultMap="RentalReservationResultMap">
-        SELECT *
-        FROM rental_reservation
-        WHERE deleted = 0
+    <select id="search" resultMap="RentalReservationResultMap" databaseId="mariadb">
+        SELECT r.*, u.name AS user_name
+        FROM rental_reservation r
+        LEFT JOIN `user` u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.deleted = 0
         <if test="request.roomId != null">
-            AND room_id = #{request.roomId}
+            AND r.room_id = #{request.roomId}
         </if>
         <if test="request.status != null and request.status != ''">
-            AND status = #{request.status}
+            AND r.status = #{request.status}
         </if>
         <if test="request.from != null and request.from != ''">
-            AND start_datetime &gt;= #{request.from}
+            AND r.start_datetime &gt;= #{request.from}
         </if>
         <if test="request.to != null and request.to != ''">
-            AND end_datetime &lt;= #{request.to}
+            AND r.end_datetime &lt;= #{request.to}
         </if>
-        ORDER BY start_datetime DESC
+        <if test="request.userName != null and request.userName != ''">
+            AND u.name LIKE CONCAT('%', #{request.userName}, '%')
+        </if>
+        ORDER BY r.start_datetime DESC
+    </select>
+    <select id="search" resultMap="RentalReservationResultMap" databaseId="h2">
+        SELECT r.*, u.name AS user_name
+        FROM rental_reservation r
+        LEFT JOIN "user" u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.deleted = 0
+        <if test="request.roomId != null">
+            AND r.room_id = #{request.roomId}
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND r.status = #{request.status}
+        </if>
+        <if test="request.from != null and request.from != ''">
+            AND r.start_datetime &gt;= #{request.from}
+        </if>
+        <if test="request.to != null and request.to != ''">
+            AND r.end_datetime &lt;= #{request.to}
+        </if>
+        <if test="request.userName != null and request.userName != ''">
+            AND u.name LIKE '%' || #{request.userName} || '%'
+        </if>
+        ORDER BY r.start_datetime DESC
+    </select>
+
+    <select id="sumTotalPriceBySearch" resultType="java.lang.Long" databaseId="mariadb">
+        SELECT COALESCE(SUM(r.total_price), 0)
+        FROM rental_reservation r
+        LEFT JOIN `user` u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.deleted = 0
+        <if test="request.roomId != null">
+            AND r.room_id = #{request.roomId}
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND r.status = #{request.status}
+        </if>
+        <if test="request.from != null and request.from != ''">
+            AND r.start_datetime &gt;= #{request.from}
+        </if>
+        <if test="request.to != null and request.to != ''">
+            AND r.end_datetime &lt;= #{request.to}
+        </if>
+        <if test="request.userName != null and request.userName != ''">
+            AND u.name LIKE CONCAT('%', #{request.userName}, '%')
+        </if>
+    </select>
+    <select id="sumTotalPriceBySearch" resultType="java.lang.Long" databaseId="h2">
+        SELECT COALESCE(SUM(r.total_price), 0)
+        FROM rental_reservation r
+        LEFT JOIN "user" u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.deleted = 0
+        <if test="request.roomId != null">
+            AND r.room_id = #{request.roomId}
+        </if>
+        <if test="request.status != null and request.status != ''">
+            AND r.status = #{request.status}
+        </if>
+        <if test="request.from != null and request.from != ''">
+            AND r.start_datetime &gt;= #{request.from}
+        </if>
+        <if test="request.to != null and request.to != ''">
+            AND r.end_datetime &lt;= #{request.to}
+        </if>
+        <if test="request.userName != null and request.userName != ''">
+            AND u.name LIKE '%' || #{request.userName} || '%'
+        </if>
     </select>
 
     <select id="findOverlappingReservations" resultMap="RentalReservationResultMap">

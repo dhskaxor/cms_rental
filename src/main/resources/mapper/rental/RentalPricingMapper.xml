@@ -69,7 +69,18 @@
             updated_at = NOW()
     </insert>
 
-    <insert id="upsertWeekendHolidayPricing">
+    <update id="updateWeekendHolidayPricing">
+        UPDATE rental_room_pricing_weekend_holiday
+        SET
+            apply_to = #{applyTo},
+            unit_minutes = #{unitMinutes},
+            price = #{price},
+            updated_at = NOW()
+        WHERE room_id = #{roomId}
+          AND deleted = 0
+    </update>
+
+    <insert id="insertWeekendHolidayPricing">
         INSERT INTO rental_room_pricing_weekend_holiday (
             room_id,
             apply_to,
@@ -91,13 +102,9 @@
             NULL,
             0
         )
-        ON DUPLICATE KEY UPDATE
-            unit_minutes = VALUES(unit_minutes),
-            price = VALUES(price),
-            updated_at = NOW()
     </insert>
 
-    <insert id="insertSpecialPricing" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertSpecialPricing">
         INSERT INTO rental_room_pricing_special (
             room_id,
             date,

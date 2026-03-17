@@ -3,249 +3,398 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{admin/layout}">
 <head>
-    <title>렌탈 달력 관리</title>
+    <title>예약 관리 - 달력</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <style>
+        .fc .fc-daygrid-day.fc-day-sat { background-color: #dbeafe; }
+        .fc .fc-daygrid-day.fc-day-sun { background-color: #fee2e2; }
+        .fc .fc-daygrid-day.fc-day-holiday { background-color: #fee2e2; }
+        .fc .fc-daygrid-day.fc-day-closed { background-color: #dcfce7; }
+        .fc-calendar-day.closed-only { display: flex; align-items: center; justify-content: center; min-height: 3rem; text-align: center; }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">렌탈 달력 관리</h1>
+                <h1 class="text-2xl font-bold text-gray-800">예약 관리 - 달력</h1>
                 <p class="text-sm text-gray-500 mt-1">
-                    장소와 룸을 선택하고 날짜 범위를 지정하면, 해당 기간의 예약 가능 슬롯과 요금을 한 번에 확인할 수 있습니다.
+                    장소와 룸을 선택하면, 렌탈 요금 관리와 동일하게 <span class="font-semibold">이번 달을 기준</span>으로 예약 현황을 달력에서 확인할 수 있습니다.
                 </p>
             </div>
         </div>
 
-        <!-- 필터 영역 -->
-        <div class="bg-white shadow rounded-lg mb-6">
-            <div class="px-4 py-4 grid grid-cols-5 gap-4 items-end">
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">장소</label>
-                    <select id="filterPlace" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">선택하세요</option>
-                    </select>
+        <div class="grid grid-cols-4 gap-6">
+            <!-- 좌측: 장소/룸/옵션 -->
+            <div class="col-span-1 space-y-4">
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">장소</h2>
+                    </div>
+                    <ul id="calendarPlaceList" class="divide-y divide-gray-200 max-h-48 overflow-y-auto">
+                        <li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>
+                    </ul>
                 </div>
-                <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">룸</label>
-                    <select id="filterRoom" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <option value="">먼저 장소를 선택하세요</option>
-                    </select>
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">룸</h2>
+                    </div>
+                    <ul id="calendarRoomList" class="divide-y divide-gray-200 max-h-48 overflow-y-auto">
+                        <li class="px-4 py-4 text-center text-gray-500 text-sm">먼저 장소를 선택하세요.</li>
+                    </ul>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">슬롯 단위(분)</label>
-                    <input id="filterSlotMinutes" type="number" min="15" step="15" value="60"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">기간 / 옵션</h2>
+                    </div>
+                    <div class="px-4 py-3 space-y-3">
+                        <p class="text-[11px] text-gray-500 leading-relaxed">
+                            시작일·종료일은 <span class="font-medium">이번 달 1일 ~ 마지막 날</span>로 자동 설정되며,
+                            달력에서 이전/다음 월을 이동하면 해당 월 기준으로 자동으로 다시 조회됩니다.
+                        </p>
+                        <input id="filterFrom" type="hidden">
+                        <input id="filterTo" type="hidden">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">시작일</label>
-                    <input id="filterFrom" type="date"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">종료일</label>
-                    <input id="filterTo" type="date"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                </div>
-                <div class="col-span-1 flex justify-end">
-                    <button type="button" onclick="loadCalendar()"
-                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                        조회
-                    </button>
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">사용 방법</h2>
+                    </div>
+                    <div class="px-4 py-3 text-xs text-gray-600 space-y-2">
+                        <p><span class="font-medium text-gray-700">예약 클릭</span> → 상세 정보 및 취소/승인/반려 처리</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 달력 컨테이너 -->
-        <div id="calendarContainer" class="bg-white shadow rounded-lg p-4 overflow-x-auto">
-            <div id="calendarEmpty" class="text-center text-gray-500 py-12 text-sm">
-                상단에서 장소/룸/기간을 선택한 후 조회 버튼을 눌러주세요.
-            </div>
-            <div id="calendarTableWrapper" class="hidden">
-                <table class="min-w-full border border-gray-200 text-xs">
-                    <thead id="calendarHead" class="bg-gray-50"></thead>
-                    <tbody id="calendarBody"></tbody>
-                </table>
-                <p class="mt-2 text-xs text-gray-500">
-                    파란색: 예약 가능, 회색: 휴관/대여불가, 빨간색: 예약됨. 가격은 슬롯 기준 금액입니다.
-                </p>
+            <!-- 우측: 달력 -->
+            <div class="col-span-3 bg-white shadow rounded-lg overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-200">
+                    <h2 class="text-sm font-medium text-gray-700">
+                        <span id="calendarRoomTitle">장소와 룸을 선택한 후 조회해주세요.</span>
+                    </h2>
+                </div>
+                <div class="p-4">
+                    <div id="calendarEl"></div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- 예약 상세 모달 -->
+    <div id="reservationDetailModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">예약 상세</h2>
+                <button type="button" onclick="closeReservationDetailModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <div id="reservationDetailBody" class="px-4 py-5 text-sm text-gray-700 space-y-2"></div>
+            <div id="reservationDetailActions" class="px-4 py-3 bg-gray-50 flex flex-wrap gap-2 rounded-b-lg">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/ko.global.min.js"></script>
     <script>
+        function formatPrice(n) {
+            return n == null || n === '' ? '-' : Number(n).toLocaleString('ko-KR');
+        }
+
+        let currentPlaceId = null;
+        let currentRoomId = null;
+        let calendarDaysMap = {};
+        let calendarInstance = null;
+        let isLoadingCalendar = false;
+        let isProgrammaticCalendarRender = false;
+
         document.addEventListener('DOMContentLoaded', () => {
             initDates();
-            loadPlacesForCalendar();
-            document.getElementById('filterPlace').addEventListener('change', loadRoomsForCalendar);
+            loadPlaces();
         });
 
         function initDates() {
             const today = new Date();
-            const to = today.toISOString().substring(0, 10);
-            const fromDate = new Date(today);
-            fromDate.setDate(today.getDate() - 3);
-            const from = fromDate.toISOString().substring(0, 10);
-            document.getElementById('filterFrom').value = from;
-            document.getElementById('filterTo').value = to;
+            const from = new Date(today.getFullYear(), today.getMonth(), 1);
+            const to = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            document.getElementById('filterFrom').value = from.toISOString().slice(0, 10);
+            document.getElementById('filterTo').value = to.toISOString().slice(0, 10);
         }
 
-        function loadPlacesForCalendar() {
-            const sel = document.getElementById('filterPlace');
-            sel.innerHTML = '<option value="">로딩 중...</option>';
+        function loadPlaces() {
+            const ul = document.getElementById('calendarPlaceList');
+            ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>';
             fetch('/admin/rental/places', { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(result => {
                     if (!result.success) {
-                        sel.innerHTML = '<option value="">장소를 불러오지 못함</option>';
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소를 불러오지 못했습니다.</li>';
                         return;
                     }
                     const places = result.data || [];
                     if (!places.length) {
-                        sel.innerHTML = '<option value="">등록된 장소 없음</option>';
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">등록된 장소가 없습니다.</li>';
                         return;
                     }
-                    sel.innerHTML = '<option value="">장소 선택</option>';
+                    ul.innerHTML = '';
                     places.forEach(p => {
-                        const opt = document.createElement('option');
-                        opt.value = p.id;
-                        opt.textContent = p.name;
-                        sel.appendChild(opt);
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm';
+                        li.innerHTML = `<span>${p.name}</span><span class="text-xs text-gray-400 ml-1">ID: ${p.id}</span>`;
+                        li.onclick = () => selectPlace(p);
+                        ul.appendChild(li);
                     });
                 })
                 .catch(() => {
-                    sel.innerHTML = '<option value="">장소를 불러오지 못함</option>';
+                    ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">장소를 불러오지 못했습니다.</li>';
                 });
         }
 
-        function loadRoomsForCalendar() {
-            const placeId = document.getElementById('filterPlace').value;
-            const sel = document.getElementById('filterRoom');
-            if (!placeId) {
-                sel.innerHTML = '<option value="">먼저 장소를 선택하세요</option>';
-                return;
-            }
-            sel.innerHTML = '<option value="">로딩 중...</option>';
-            fetch(`/admin/rental/rooms?placeId=${placeId}`, { credentials: 'same-origin' })
+        function selectPlace(place) {
+            currentPlaceId = place.id;
+            currentRoomId = null;
+            document.getElementById('calendarRoomTitle').textContent = '룸을 선택한 후 조회해주세요.';
+            const ul = document.getElementById('calendarRoomList');
+            ul.innerHTML = '<li class="px-4 py-4 text-center text-gray-500 text-sm">로딩 중...</li>';
+            fetch(`/admin/rental/rooms?placeId=${place.id}`, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(result => {
                     if (!result.success) {
-                        sel.innerHTML = '<option value="">룸을 불러오지 못함</option>';
+                        ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">룸을 불러오지 못했습니다.</li>';
                         return;
                     }
                     const rooms = result.data || [];
-                    if (!rooms.length) {
-                        sel.innerHTML = '<option value="">등록된 룸 없음</option>';
-                        return;
-                    }
-                    sel.innerHTML = '<option value="">룸 선택</option>';
+                    ul.innerHTML = '';
                     rooms.forEach(rm => {
-                        const opt = document.createElement('option');
-                        opt.value = rm.id;
-                        opt.textContent = rm.name;
-                        sel.appendChild(opt);
+                        const li = document.createElement('li');
+                        li.className = 'px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm';
+                        li.innerHTML = `<span>${rm.name}</span><span class="text-xs text-gray-400 ml-1">ID: ${rm.id}</span>`;
+                        li.onclick = () => selectRoom(rm);
+                        ul.appendChild(li);
                     });
                 })
                 .catch(() => {
-                    sel.innerHTML = '<option value="">룸을 불러오지 못함</option>';
+                    ul.innerHTML = '<li class="px-4 py-4 text-center text-red-500 text-sm">룸을 불러오지 못했습니다.</li>';
                 });
+        }
+
+        function selectRoom(room) {
+            currentRoomId = room.id;
+            document.getElementById('calendarRoomTitle').textContent = `[${room.id}] ${room.name} 예약 현황`;
+            loadCalendar();
         }
 
         function loadCalendar() {
-            const placeId = document.getElementById('filterPlace').value;
-            const roomId = document.getElementById('filterRoom').value;
-            const from = document.getElementById('filterFrom').value;
-            const to = document.getElementById('filterTo').value;
-            const slotMinutes = document.getElementById('filterSlotMinutes').value || 60;
-
-            if (!placeId || !roomId || !from || !to) {
-                alert('장소, 룸, 기간을 모두 선택해주세요.');
+            if (!currentPlaceId || !currentRoomId) {
+                alert('장소와 룸을 선택해주세요.');
                 return;
             }
+            const from = document.getElementById('filterFrom').value;
+            const to = document.getElementById('filterTo').value;
+            if (!from || !to) {
+                alert('시작일과 종료일을 입력해주세요.');
+                return;
+            }
+            // 예약 달력은 내부적으로 60분 단위 슬롯을 사용하지만,
+            // 화면에서는 월 단위 예약 요약만 보여주므로 슬롯 단위는 고정값으로 처리한다.
+            fetchCalendarData(from, to, null, () => renderCalendar(from));
+        }
 
-            document.getElementById('calendarEmpty').textContent = '데이터를 불러오는 중입니다...';
-            document.getElementById('calendarEmpty').classList.remove('hidden');
-            document.getElementById('calendarTableWrapper').classList.add('hidden');
-
+        function fetchCalendarData(from, to, slotMinutes, onSuccess) {
+            if (!currentPlaceId || !currentRoomId || isLoadingCalendar) return;
+            isLoadingCalendar = true;
             const params = new URLSearchParams({
-                placeId,
-                roomId,
+                placeId: currentPlaceId,
+                roomId: currentRoomId,
                 fromDate: from,
-                toDate: to,
-                slotMinutes
+                toDate: to
             });
-
+            // slotMinutes는 서버에서 기본값(60분)으로 처리하며,
+            // 예약 달력 UI에서는 더 이상 노출하거나 제어하지 않는다.
             fetch(`/admin/rental/calendar?${params.toString()}`, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(result => {
+                    isLoadingCalendar = false;
                     if (!result.success) {
-                        document.getElementById('calendarEmpty').textContent = result.error?.message || '달력 데이터를 불러오지 못했습니다.';
+                        alert(result.error?.message || '달력 데이터를 불러오지 못했습니다.');
                         return;
                     }
-                    renderCalendar(result.data || []);
+                    const days = result.data || [];
+                    calendarDaysMap = {};
+                    days.forEach(d => { calendarDaysMap[d.date] = d; });
+                    if (onSuccess) onSuccess();
                 })
                 .catch(() => {
-                    document.getElementById('calendarEmpty').textContent = '달력 데이터를 불러오지 못했습니다.';
+                    isLoadingCalendar = false;
+                    alert('달력 데이터를 불러오지 못했습니다.');
                 });
         }
 
-        function renderCalendar(days) {
-            if (!days.length) {
-                document.getElementById('calendarEmpty').textContent = '데이터가 없습니다.';
-                document.getElementById('calendarEmpty').classList.remove('hidden');
-                document.getElementById('calendarTableWrapper').classList.add('hidden');
-                return;
+        function buildDayContent(dateStr) {
+            const day = calendarDaysMap[dateStr];
+            if (!day) return '';
+            if (day.dayType === 'CLOSED') {
+                return '<div class="fc-calendar-day closed-only"><span class="text-sm font-medium text-gray-700">휴관일</span></div>';
             }
-
-            const head = document.getElementById('calendarHead');
-            const body = document.getElementById('calendarBody');
-            head.innerHTML = '';
-            body.innerHTML = '';
-
-            const trHead = document.createElement('tr');
-            trHead.innerHTML = `
-                <th class="border border-gray-200 px-2 py-1 text-left text-xs text-gray-500">날짜</th>
-                <th class="border border-gray-200 px-2 py-1 text-left text-xs text-gray-500">타입</th>
-                <th class="border border-gray-200 px-2 py-1 text-left text-xs text-gray-500">슬롯</th>
-            `;
-            head.appendChild(trHead);
-
-            days.forEach(day => {
-                const tr = document.createElement('tr');
-                const slotsHtml = (day.slots || []).map(slot => {
-                    let baseClass = 'inline-flex items-center px-1 py-0.5 rounded mb-1 mr-1 border';
-                    if (!slot.available && slot.reservationStatus) {
-                        baseClass += ' bg-red-100 text-red-800 border-red-200';
-                    } else if (!slot.available) {
-                        baseClass += ' bg-gray-100 text-gray-700 border-gray-200';
-                    } else {
-                        baseClass += ' bg-blue-100 text-blue-800 border-blue-200';
-                    }
-                    const timeLabel = slot.start.substring(11, 16);
-                    const priceLabel = slot.price != null ? `${slot.price.toLocaleString()}원` : '-';
-                    return `<span class="${baseClass}" title="${slot.reason || ''}">
-                        <span class="font-mono mr-1">${timeLabel}</span>
-                        <span class="text-[10px]">${priceLabel}</span>
-                    </span>`;
-                }).join('');
-
-                tr.innerHTML = `
-                    <td class="border border-gray-200 px-2 py-1 align-top text-xs text-gray-700 whitespace-nowrap">${day.date}</td>
-                    <td class="border border-gray-200 px-2 py-1 align-top text-xs text-gray-600 whitespace-nowrap">
-                        ${day.dayType}${day.holidayName ? ' / ' + day.holidayName : ''}
-                    </td>
-                    <td class="border border-gray-200 px-2 py-1 align-top text-xs">
-                        ${slotsHtml || '<span class="text-gray-400 text-xs">슬롯 없음</span>'}
-                    </td>
-                `;
-                body.appendChild(tr);
+            const reservations = day.reservations || [];
+            if (!reservations.length) return '<div class="fc-calendar-day text-[10px] text-gray-500">예약 없음</div>';
+            let html = '<div class="fc-calendar-day">';
+            let total = 0;
+            reservations.forEach(r => {
+                total += r.totalPrice || 0;
+                const name = r.userName || '예약자';
+                const price = formatPrice(r.totalPrice);
+                html += `<div class="calendar-reservation cursor-pointer text-[10px] text-indigo-700 hover:bg-indigo-50 rounded px-0.5 -mx-0.5" data-reservation-id="${r.id}" onclick="event.stopPropagation(); openReservationDetail(${r.id})">${name}: ${r.startTime}~${r.endTime}(${price}원)</div>`;
             });
+            html += `<div class="text-[10px] font-medium text-gray-700 mt-1 border-t border-gray-100 pt-0.5">총합계: ${formatPrice(total)}원</div>`;
+            html += '</div>';
+            return html;
+        }
 
-            document.getElementById('calendarEmpty').classList.add('hidden');
-            document.getElementById('calendarTableWrapper').classList.remove('hidden');
+        function renderCalendar(initialDate) {
+            if (calendarInstance) {
+                calendarInstance.destroy();
+                calendarInstance = null;
+            }
+            const el = document.getElementById('calendarEl');
+            if (!el) return;
+
+            const today = new Date();
+            const opts = {
+                initialView: 'dayGridMonth',
+                locale: 'ko',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+                height: 'auto',
+                initialDate: initialDate || (today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-01'),
+                datesSet(arg) {
+                    if (isProgrammaticCalendarRender) {
+                        isProgrammaticCalendarRender = false;
+                        return;
+                    }
+                    if (!currentPlaceId || !currentRoomId || isLoadingCalendar) return;
+                    const visibleStart = arg.view?.currentStart;
+                    if (!visibleStart) return;
+                    // month view의 currentStart는 보이는 첫 날짜(이전달 말일)라서
+                    // 가운데 주에 해당하는 날짜(+7일)를 기준으로 실제 달을 계산한다.
+                    const center = new Date(visibleStart.getTime());
+                    center.setDate(center.getDate() + 7);
+                    const year = center.getFullYear();
+                    const month = center.getMonth(); // 0-based
+                    const fromStr = year + '-' + String(month + 1).padStart(2, '0') + '-01';
+                    const lastDay = new Date(year, month + 1, 0);
+                    const toStr = lastDay.getFullYear() + '-' + String(lastDay.getMonth() + 1).padStart(2, '0') + '-' + String(lastDay.getDate()).padStart(2, '0');
+                    document.getElementById('filterFrom').value = fromStr;
+                    document.getElementById('filterTo').value = toStr;
+                    fetchCalendarData(fromStr, toStr, null, () => {
+                        if (calendarInstance && calendarInstance.view) {
+                            const visibleStart2 = calendarInstance.view.currentStart;
+                            const center2 = new Date(visibleStart2.getTime());
+                            center2.setDate(center2.getDate() + 7);
+                            const y = center2.getFullYear();
+                            const m = center2.getMonth(); // 0-based
+                            const dateStr = y + '-' + String(m + 1).padStart(2, '0') + '-01';
+                            calendarInstance.destroy();
+                            calendarInstance = null;
+                            isProgrammaticCalendarRender = true;
+                            renderCalendar(dateStr);
+                        }
+                    });
+                },
+                dayCellDidMount(arg) {
+                    const d = arg.date;
+                    const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                    const closed = calendarDaysMap[dateStr]?.dayType === 'CLOSED';
+                    const holiday = (calendarDaysMap[dateStr]?.holidayName);
+                    if (closed) arg.el.classList.add('fc-day-closed');
+                    else if (holiday) arg.el.classList.add('fc-day-holiday');
+                    else {
+                        const d = arg.date.getDay();
+                        if (d === 6) arg.el.classList.add('fc-day-sat');
+                        else if (d === 0) arg.el.classList.add('fc-day-sun');
+                    }
+                    const wrap = document.createElement('div');
+                    wrap.className = 'fc-calendar-day-wrap';
+                    wrap.innerHTML = buildDayContent(dateStr);
+                    const frame = arg.el.querySelector('.fc-daygrid-day-frame');
+                    if (frame) frame.appendChild(wrap);
+                }
+            };
+            calendarInstance = new FullCalendar.Calendar(el, opts);
+            calendarInstance.render();
+        }
+
+        function openReservationDetail(id) {
+            fetch(`/admin/rental/reservations/${id}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (!result.success) {
+                        alert('예약 정보를 불러오지 못했습니다.');
+                        return;
+                    }
+                    const r = result.data;
+                    const startStr = (r.start || '').replace('T', ' ').substring(0, 16);
+                    const endStr = (r.end || '').replace('T', ' ').substring(0, 16);
+                    const statusMap = {
+                        'REQUESTED': '승인대기',
+                        'CONFIRMED': '승인',
+                        'CANCELLED_BY_USER': '사용자 취소',
+                        'REJECTED_BY_ADMIN': '관리자 반려',
+                        'CANCELLED_BY_ADMIN': '관리자 취소'
+                    };
+                    document.getElementById('reservationDetailBody').innerHTML = `
+                        <p><span class="font-medium text-gray-600">예약자:</span> ${r.userName || '-'}</p>
+                        <p><span class="font-medium text-gray-600">기간:</span> ${startStr} ~ ${endStr}</p>
+                        <p><span class="font-medium text-gray-600">금액:</span> ${formatPrice(r.totalPrice)}원</p>
+                        <p><span class="font-medium text-gray-600">상태:</span> ${statusMap[r.status] || r.status}</p>
+                        ${r.memo ? '<p><span class="font-medium text-gray-600">메모:</span> ' + r.memo + '</p>' : ''}
+                    `;
+                    const actions = document.getElementById('reservationDetailActions');
+                    actions.innerHTML = '';
+                    if (r.status === 'REQUESTED') {
+                        addActionBtn(actions, '승인', 'bg-green-600 hover:bg-green-700', () => doReservationAction(id, 'confirm'));
+                        addActionBtn(actions, '반려', 'bg-amber-600 hover:bg-amber-700', () => doReservationAction(id, 'reject'));
+                    }
+                    if (r.status === 'REQUESTED' || r.status === 'CONFIRMED') {
+                        addActionBtn(actions, '취소', 'bg-red-600 hover:bg-red-700', () => doReservationAction(id, 'cancel'));
+                    }
+                    document.getElementById('reservationDetailModal').dataset.reservationId = id;
+                    document.getElementById('reservationDetailModal').classList.remove('hidden');
+                    document.getElementById('reservationDetailModal').classList.add('flex');
+                })
+                .catch(() => alert('예약 정보를 불러오지 못했습니다.'));
+        }
+
+        function addActionBtn(container, text, cls, onClick) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'px-4 py-2 rounded-md text-sm font-medium text-white ' + cls;
+            btn.textContent = text;
+            btn.onclick = onClick;
+            container.appendChild(btn);
+        }
+
+        function doReservationAction(id, action) {
+            const path = action === 'confirm' ? 'confirm' : action === 'reject' ? 'reject' : 'cancel';
+            if (!confirm(action === 'confirm' ? '예약을 승인하시겠습니까?' : action === 'reject' ? '예약을 반려하시겠습니까?' : '예약을 취소하시겠습니까?')) return;
+            fetch(`/admin/rental/reservations/${id}/${path}`, { method: 'POST', credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert(action === 'confirm' ? '승인되었습니다.' : action === 'reject' ? '반려되었습니다.' : '취소되었습니다.');
+                        closeReservationDetailModal();
+                        if (currentPlaceId && currentRoomId) loadCalendar();
+                    } else {
+                        alert(result.error?.message || '처리에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('처리 중 오류가 발생했습니다.'));
+        }
+
+        function closeReservationDetailModal() {
+            document.getElementById('reservationDetailModal').classList.add('hidden');
+            document.getElementById('reservationDetailModal').classList.remove('flex');
         }
     </script>
 </div>
 </body>
 </html>
-

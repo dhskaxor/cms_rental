@@ -4,6 +4,9 @@ import com.nt.cms.common.exception.BusinessException;
 import com.nt.cms.common.exception.ErrorCode;
 import com.nt.cms.file.dto.FileResponse;
 import com.nt.cms.file.service.FileService;
+import com.nt.cms.rental.pricing.dto.RoomBasePricingResponse;
+import com.nt.cms.rental.pricing.dto.RoomWeekendHolidayPricingResponse;
+import com.nt.cms.rental.pricing.mapper.RentalPricingMapper;
 import com.nt.cms.rental.room.dto.RentalRoomRequest;
 import com.nt.cms.rental.room.dto.RentalRoomResponse;
 import com.nt.cms.rental.room.mapper.RentalRoomMapper;
@@ -23,20 +26,26 @@ public class DefaultRentalRoomService implements RentalRoomService {
 
     private static final String FILE_REF_TYPE_ROOM = "RENTAL_ROOM";
 
+    private static final int PRICING_UNIT_MINUTES = 60;
+    private static final String DEFAULT_WEEKEND_APPLY_TO = "BOTH";
+
     private final RentalRoomMapper rentalRoomMapper;
     private final FileService fileService;
+    private final RentalPricingMapper rentalPricingMapper;
 
     @Override
     @Transactional
     public Long createRoom(RentalRoomRequest request, Long actorId) {
         LocalDateTime now = LocalDateTime.now();
 
+        int capacity = request.getCapacity() != null ? request.getCapacity() : 5;
+        int durationMinutes = request.getDefaultDurationMinutes() != null ? request.getDefaultDurationMinutes() : 60;
         RentalRoomVO vo = RentalRoomVO.builder()
                 .placeId(request.getPlaceId())
                 .name(request.getName())
                 .description(request.getDescription())
-                .capacity(request.getCapacity())
-                .defaultDurationMinutes(request.getDefaultDurationMinutes())
+                .capacity(capacity)
+                .defaultDurationMinutes(durationMinutes)
                 .createdAt(now)
                 .createdBy(actorId)
                 .updatedAt(now)
@@ -45,7 +54,19 @@ public class DefaultRentalRoomService implements RentalRoomService {
                 .build();
 
         rentalRoomMapper.insert(vo);
-        return vo.getId();
+        Long roomId = vo.getId();
+        if (request.getBasePrice() != null) {
+            rentalPricingMapper.upsertBasePricing(roomId, PRICING_UNIT_MINUTES, request.getBasePrice());
+        }
+        if (request.getWeekendPrice() != null) {
+            String applyTo = request.getWeekendApplyTo() != null && !request.getWeekendApplyTo().isBlank()
+                    ? request.getWeekendApplyTo() : DEFAULT_WEEKEND_APPLY_TO;
+            int updated = rentalPricingMapper.updateWeekendHolidayPricing(roomId, applyTo, PRICING_UNIT_MINUTES, request.getWeekendPrice());
+            if (updated == 0) {
+                rentalPricingMapper.insertWeekendHolidayPricing(roomId, applyTo, PRICING_UNIT_MINUTES, request.getWeekendPrice());
+            }
+        }
+        return roomId;
     }
 
     @Override
@@ -59,12 +80,23 @@ public class DefaultRentalRoomService implements RentalRoomService {
         existing.setPlaceId(request.getPlaceId());
         existing.setName(request.getName());
         existing.setDescription(request.getDescription());
-        existing.setCapacity(request.getCapacity());
-        existing.setDefaultDurationMinutes(request.getDefaultDurationMinutes());
+        existing.setCapacity(request.getCapacity() != null ? request.getCapacity() : 5);
+        existing.setDefaultDurationMinutes(request.getDefaultDurationMinutes() != null ? request.getDefaultDurationMinutes() : 60);
         existing.setUpdatedAt(LocalDateTime.now());
         existing.setUpdatedBy(actorId);
 
         rentalRoomMapper.update(existing);
+        if (request.getBasePrice() != null) {
+            rentalPricingMapper.upsertBasePricing(id, PRICING_UNIT_MINUTES, request.getBasePrice());
+        }
+        if (request.getWeekendPrice() != null) {
+            String applyTo = request.getWeekendApplyTo() != null && !request.getWeekendApplyTo().isBlank()
+                    ? request.getWeekendApplyTo() : DEFAULT_WEEKEND_APPLY_TO;
+            int updated = rentalPricingMapper.updateWeekendHolidayPricing(id, applyTo, PRICING_UNIT_MINUTES, request.getWeekendPrice());
+            if (updated == 0) {
+                rentalPricingMapper.insertWeekendHolidayPricing(id, applyTo, PRICING_UNIT_MINUTES, request.getWeekendPrice());
+            }
+        }
     }
 
     @Override
@@ -74,7 +106,9 @@ public class DefaultRentalRoomService implements RentalRoomService {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
         }
         List<FileResponse> photos = fileService.getFilesByRef(FILE_REF_TYPE_ROOM, id);
-        return toResponse(vo, photos);
+        RoomBasePricingResponse base = rentalPricingMapper.findBasePricingByRoomId(id);
+        RoomWeekendHolidayPricingResponse weekend = rentalPricingMapper.findWeekendHolidayPricingByRoomId(id);
+        return toResponse(vo, photos, base, weekend);
     }
 
     @Override
@@ -83,7 +117,9 @@ public class DefaultRentalRoomService implements RentalRoomService {
         return list.stream()
                 .map(vo -> {
                     List<FileResponse> photos = fileService.getFilesByRef(FILE_REF_TYPE_ROOM, vo.getId());
-                    return toResponse(vo, photos);
+                    RoomBasePricingResponse base = rentalPricingMapper.findBasePricingByRoomId(vo.getId());
+                    RoomWeekendHolidayPricingResponse weekend = rentalPricingMapper.findWeekendHolidayPricingByRoomId(vo.getId());
+                    return toResponse(vo, photos, base, weekend);
                 })
                 .collect(Collectors.toList());
     }
@@ -94,12 +130,15 @@ public class DefaultRentalRoomService implements RentalRoomService {
         return list.stream()
                 .map(vo -> {
                     List<FileResponse> photos = fileService.getFilesByRef(FILE_REF_TYPE_ROOM, vo.getId());
-                    return toResponse(vo, photos);
+                    RoomBasePricingResponse base = rentalPricingMapper.findBasePricingByRoomId(vo.getId());
+                    RoomWeekendHolidayPricingResponse weekend = rentalPricingMapper.findWeekendHolidayPricingByRoomId(vo.getId());
+                    return toResponse(vo, photos, base, weekend);
                 })
                 .collect(Collectors.toList());
     }
 
-    private RentalRoomResponse toResponse(RentalRoomVO vo, List<FileResponse> photos) {
+    private RentalRoomResponse toResponse(RentalRoomVO vo, List<FileResponse> photos,
+                                          RoomBasePricingResponse base, RoomWeekendHolidayPricingResponse weekend) {
         return RentalRoomResponse.builder()
                 .id(vo.getId())
                 .placeId(vo.getPlaceId())
@@ -107,6 +146,9 @@ public class DefaultRentalRoomService implements RentalRoomService {
                 .description(vo.getDescription())
                 .capacity(vo.getCapacity())
                 .defaultDurationMinutes(vo.getDefaultDurationMinutes())
+                .basePrice(base != null ? base.getPrice() : null)
+                .weekendPrice(weekend != null ? weekend.getPrice() : null)
+                .weekendApplyTo(weekend != null ? weekend.getApplyTo() : null)
                 .photos(photos)
                 .build();
     }

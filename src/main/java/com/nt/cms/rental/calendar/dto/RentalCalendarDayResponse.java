@@ -13,5 +13,6 @@ public class RentalCalendarDayResponse {
     private String dayType;
     private String holidayName;
     private List<RentalCalendarSlotResponse> slots;
+    private List<ReservationSummary> reservations;
 }
 

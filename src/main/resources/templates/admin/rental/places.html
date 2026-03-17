@@ -64,15 +64,31 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">오픈 시간 (HH:mm)</label>
-                        <input id="placeOpeningTime" type="text" placeholder="09:00"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label class="block text-sm font-medium text-gray-700">오픈 시간</label>
+                        <select id="placeOpeningTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <!-- 00:00 ~ 23:00 정각 -->
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">마감 시간 (HH:mm)</label>
-                        <input id="placeClosingTime" type="text" placeholder="18:00"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label class="block text-sm font-medium text-gray-700">마감 시간</label>
+                        <select id="placeClosingTime" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <!-- 00:00 ~ 23:00 정각 -->
+                        </select>
                     </div>
+                </div>
+                <div class="border-t pt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">첨부파일</label>
+                    <input type="hidden" id="placeMaxFileCount" value="20">
+                    <!-- 수정 시 기존 파일 목록 -->
+                    <div id="placeExistingFilesWrap" class="mb-3 hidden">
+                        <ul id="placeExistingFilesList" class="space-y-2 text-sm"></ul>
+                    </div>
+                    <!-- 새 파일 추가 -->
+                    <input type="file" id="placePhotos" accept="image/*" multiple
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <!-- 선택한 파일 목록 (업로드 전) -->
+                    <ul id="placeSelectedFilesList" class="mt-3 space-y-2 text-sm hidden"></ul>
+                    <p class="mt-1 text-xs text-gray-500">파일 선택 시 Ctrl/Shift로 여러 개 동시 선택 가능 · 최대 20개</p>
                 </div>
             </form>
             <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
@@ -89,7 +105,66 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', loadPlaces);
+        document.addEventListener('DOMContentLoaded', function() {
+            const openSel = document.getElementById('placeOpeningTime');
+            const closeSel = document.getElementById('placeClosingTime');
+            for (let h = 0; h < 24; h++) {
+                const v = String(h).padStart(2, '0') + ':00';
+                openSel.appendChild(new Option(v, v));
+                closeSel.appendChild(new Option(v, v));
+            }
+            window.placeSelectedNewFiles = [];
+            (function() {
+                var placeFileInput = document.getElementById('placePhotos');
+                function placeGetExistingCount() {
+                    var list = document.getElementById('placeExistingFilesList');
+                    return list ? list.querySelectorAll('li').length : 0;
+                }
+                function placeRenderSelectedList() {
+                    var ul = document.getElementById('placeSelectedFilesList');
+                    if (!ul) return;
+                    var arr = window.placeSelectedNewFiles || [];
+                    ul.innerHTML = '';
+                    if (arr.length === 0) {
+                        ul.classList.add('hidden');
+                        return;
+                    }
+                    ul.classList.remove('hidden');
+                    arr.forEach(function(f, i) {
+                        var li = document.createElement('li');
+                        li.className = 'flex items-center justify-between py-1 border-b border-gray-100';
+                        li.innerHTML = '<span class="text-gray-700">' + (f.name || '파일') + '</span>' +
+                            '<button type="button" data-index="' + i + '" class="text-red-600 hover:text-red-800">제거</button>';
+                        li.querySelector('button').onclick = function() {
+                            window.placeSelectedNewFiles.splice(parseInt(this.dataset.index), 1);
+                            placeRenderSelectedList();
+                        };
+                        ul.appendChild(li);
+                    });
+                }
+                if (placeFileInput) {
+                    placeFileInput.addEventListener('change', function() {
+                        var maxCount = parseInt(document.getElementById('placeMaxFileCount').value) || 20;
+                        var existingCount = placeGetExistingCount();
+                        var arr = window.placeSelectedNewFiles || [];
+                        var available = maxCount - existingCount - arr.length;
+                        if (available <= 0) {
+                            alert('첨부파일은 최대 ' + maxCount + '개까지 가능합니다.');
+                            this.value = '';
+                            return;
+                        }
+                        var files = Array.prototype.slice.call(this.files || []);
+                        var toAdd = files.slice(0, available);
+                        if (files.length > available) alert('최대 ' + maxCount + '개까지 가능합니다. ' + available + '개만 추가됩니다.');
+                        window.placeSelectedNewFiles = arr.concat(toAdd);
+                        placeRenderSelectedList();
+                        this.value = '';
+                    });
+                }
+                window.placeRenderSelectedList = placeRenderSelectedList;
+            })();
+            loadPlaces();
+        });
 
         function loadPlaces() {
             const tbody = document.getElementById('placeTableBody');
@@ -134,8 +209,13 @@
             document.getElementById('placeName').value = '';
             document.getElementById('placeAddress').value = '';
             document.getElementById('placeDescription').value = '';
-            document.getElementById('placeOpeningTime').value = '';
-            document.getElementById('placeClosingTime').value = '';
+            document.getElementById('placeOpeningTime').value = '09:00';
+            document.getElementById('placeClosingTime').value = '21:00';
+            document.getElementById('placeExistingFilesWrap').classList.add('hidden');
+            document.getElementById('placeExistingFilesList').innerHTML = '';
+            window.placeSelectedNewFiles = [];
+            if (window.placeRenderSelectedList) window.placeRenderSelectedList();
+            document.getElementById('placePhotos').value = '';
             document.getElementById('placeModalTitle').textContent = '장소 등록';
             document.getElementById('placeModal').classList.remove('hidden');
             document.getElementById('placeModal').classList.add('flex');
@@ -146,16 +226,58 @@
             document.getElementById('placeModal').classList.remove('flex');
         }
 
+        function timeToHhMm(val) {
+            if (!val) return null;
+            var s = String(val).trim();
+            if (s.length >= 5) s = s.substring(0, 5);
+            if (s.length === 4 && s.indexOf(':') === 1) s = '0' + s;
+            return s;
+        }
         function editPlace(place) {
             document.getElementById('placeId').value = place.id;
             document.getElementById('placeName').value = place.name || '';
             document.getElementById('placeAddress').value = place.address || '';
             document.getElementById('placeDescription').value = place.description || '';
-            document.getElementById('placeOpeningTime').value = place.openingTime || '';
-            document.getElementById('placeClosingTime').value = place.closingTime || '';
+            document.getElementById('placeOpeningTime').value = timeToHhMm(place.openingTime) || '09:00';
+            document.getElementById('placeClosingTime').value = timeToHhMm(place.closingTime) || '21:00';
+            window.placeSelectedNewFiles = [];
+            if (window.placeRenderSelectedList) window.placeRenderSelectedList();
+            document.getElementById('placePhotos').value = '';
+            var existingWrap = document.getElementById('placeExistingFilesWrap');
+            var existingList = document.getElementById('placeExistingFilesList');
+            existingList.innerHTML = '';
+            if (place.photos && place.photos.length > 0) {
+                existingWrap.classList.remove('hidden');
+                place.photos.forEach(function(photo) {
+                    var li = document.createElement('li');
+                    li.className = 'flex items-center justify-between py-1 border-b border-gray-100';
+                    li.dataset.id = photo.id;
+                    li.innerHTML = '<a href="/api/v1/files/' + photo.id + '/download" class="text-indigo-600 hover:text-indigo-900" download>' + (photo.originalName || '파일') + '</a>' +
+                        '<button type="button" onclick="deletePlacePhoto(' + place.id + ',' + photo.id + ', this)" class="text-red-600 hover:text-red-800">삭제</button>';
+                    existingList.appendChild(li);
+                });
+            } else {
+                existingWrap.classList.add('hidden');
+            }
             document.getElementById('placeModalTitle').textContent = '장소 수정';
             document.getElementById('placeModal').classList.remove('hidden');
             document.getElementById('placeModal').classList.add('flex');
+        }
+
+        function deletePlacePhoto(placeId, fileId, btnEl) {
+            if (!confirm('이 파일을 삭제하시겠습니까?')) return;
+            fetch('/api/v1/files/' + fileId, { method: 'DELETE', credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (result.success) {
+                        var li = btnEl.closest('li');
+                        if (li) li.remove();
+                        if (document.getElementById('placeExistingFilesList').querySelectorAll('li').length === 0) {
+                            document.getElementById('placeExistingFilesWrap').classList.add('hidden');
+                        }
+                    } else alert(result.error?.message || '삭제에 실패했습니다.');
+                })
+                .catch(function() { alert('오류가 발생했습니다.'); });
         }
 
         function submitPlaceForm() {
@@ -185,12 +307,30 @@
             })
                 .then(r => r.json())
                 .then(result => {
-                    if (result.success) {
+                    if (!result.success) {
+                        alert(result.error?.message || '저장에 실패했습니다.');
+                        return;
+                    }
+                    const placeId = id ? id : result.data;
+                    const selectedFiles = window.placeSelectedNewFiles || [];
+                    if (selectedFiles.length > 0) {
+                        const formData = new FormData();
+                        for (let i = 0; i < selectedFiles.length; i++) formData.append('files', selectedFiles[i]);
+                        formData.append('refType', 'RENTAL_PLACE');
+                        formData.append('refId', placeId);
+                        formData.append('maxCount', '20');
+                        fetch('/api/v1/files/upload/batch', { method: 'POST', credentials: 'same-origin', body: formData })
+                            .then(r2 => r2.json())
+                            .then(function() {
+                                alert('저장되었습니다.');
+                                closePlaceForm();
+                                loadPlaces();
+                            })
+                            .catch(function() { alert('저장되었으나 사진 업로드에 실패할 수 있습니다.'); closePlaceForm(); loadPlaces(); });
+                    } else {
                         alert('저장되었습니다.');
                         closePlaceForm();
                         loadPlaces();
-                    } else {
-                        alert(result.error?.message || '저장에 실패했습니다.');
                     }
                 })
                 .catch(() => alert('오류가 발생했습니다.'));

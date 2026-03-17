@@ -19,7 +19,12 @@ public interface RentalPricingMapper {
 
     RoomWeekendHolidayPricingResponse findWeekendHolidayPricingByRoomId(@Param("roomId") Long roomId);
 
-    void upsertWeekendHolidayPricing(@Param("roomId") Long roomId,
+    int updateWeekendHolidayPricing(@Param("roomId") Long roomId,
+                                    @Param("applyTo") String applyTo,
+                                    @Param("unitMinutes") Integer unitMinutes,
+                                    @Param("price") Long price);
+
+    void insertWeekendHolidayPricing(@Param("roomId") Long roomId,
                                      @Param("applyTo") String applyTo,
                                      @Param("unitMinutes") Integer unitMinutes,
                                      @Param("price") Long price);

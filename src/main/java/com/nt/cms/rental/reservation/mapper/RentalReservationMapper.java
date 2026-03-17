@@ -17,6 +17,8 @@ public interface RentalReservationMapper {
 
     RentalReservationVO findById(@Param("id") Long id);
 
+    RentalReservationVO findByIdWithUserName(@Param("id") Long id);
+
     List<RentalReservationVO> findByUserId(@Param("userId") Long userId);
 
     List<RentalReservationVO> search(@Param("request") RentalReservationSearchRequest request);
@@ -24,5 +26,7 @@ public interface RentalReservationMapper {
     List<RentalReservationVO> findOverlappingReservations(@Param("roomId") Long roomId,
                                                           @Param("start") LocalDateTime start,
                                                           @Param("end") LocalDateTime end);
+
+    Long sumTotalPriceBySearch(@Param("request") RentalReservationSearchRequest request);
 }
 

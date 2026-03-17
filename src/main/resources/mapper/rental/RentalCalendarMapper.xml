@@ -78,20 +78,39 @@
           AND date BETWEEN #{fromDate} AND #{toDate}
     </select>
 
-    <select id="findReservations" resultType="map">
+    <select id="findReservations" resultType="map" databaseId="mariadb">
         SELECT
-            id,
-            room_id,
-            user_id,
-            start_datetime,
-            end_datetime,
-            status,
-            total_price
-        FROM rental_reservation
-        WHERE room_id = #{roomId}
-          AND deleted = 0
-          AND start_datetime &lt;= #{toDateTime}
-          AND end_datetime &gt;= #{fromDateTime}
+            r.id,
+            r.room_id,
+            r.user_id,
+            r.start_datetime,
+            r.end_datetime,
+            r.status,
+            r.total_price,
+            u.name AS user_name
+        FROM rental_reservation r
+        LEFT JOIN `user` u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.room_id = #{roomId}
+          AND r.deleted = 0
+          AND r.start_datetime &lt;= #{toDateTime}
+          AND r.end_datetime &gt;= #{fromDateTime}
+    </select>
+    <select id="findReservations" resultType="map" databaseId="h2">
+        SELECT
+            r.id,
+            r.room_id,
+            r.user_id,
+            r.start_datetime,
+            r.end_datetime,
+            r.status,
+            r.total_price,
+            u.name AS user_name
+        FROM rental_reservation r
+        LEFT JOIN "user" u ON r.user_id = u.id AND u.deleted = 0
+        WHERE r.room_id = #{roomId}
+          AND r.deleted = 0
+          AND r.start_datetime &lt;= #{toDateTime}
+          AND r.end_datetime &gt;= #{fromDateTime}
     </select>
 
 </mapper>

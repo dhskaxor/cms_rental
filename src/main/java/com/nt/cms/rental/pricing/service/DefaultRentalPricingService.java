@@ -43,12 +43,20 @@ public class DefaultRentalPricingService implements RentalPricingService {
     @Override
     @Transactional
     public void updateWeekendHolidayPricing(Long roomId, RoomWeekendHolidayPricingRequest request, Long actorId) {
-        rentalPricingMapper.upsertWeekendHolidayPricing(
+        int updated = rentalPricingMapper.updateWeekendHolidayPricing(
                 roomId,
                 request.getApplyTo(),
                 request.getUnitMinutes(),
                 request.getPrice()
         );
+        if (updated == 0) {
+            rentalPricingMapper.insertWeekendHolidayPricing(
+                    roomId,
+                    request.getApplyTo(),
+                    request.getUnitMinutes(),
+                    request.getPrice()
+            );
+        }
     }
 
     @Override

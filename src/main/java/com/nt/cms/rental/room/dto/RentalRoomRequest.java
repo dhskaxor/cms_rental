@@ -10,5 +10,9 @@ public class RentalRoomRequest {
     private String description;
     private Integer capacity;
     private Integer defaultDurationMinutes;
+
+    private Long basePrice;
+    private Long weekendPrice;
+    private String weekendApplyTo;
 }
 

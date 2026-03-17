@@ -4,6 +4,14 @@
       layout:decorate="~{admin/layout}">
 <head>
     <title>렌탈 요금 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <style>
+        .fc .fc-daygrid-day.fc-day-sat { background-color: #dbeafe; }
+        .fc .fc-daygrid-day.fc-day-sun { background-color: #fee2e2; }
+        .fc .fc-daygrid-day.fc-day-holiday { background-color: #fee2e2; }
+        .fc .fc-daygrid-day.fc-day-closed { background-color: #dcfce7; }
+        .fc-pricing-day.closed-only { display: flex; align-items: center; justify-content: center; min-height: 3rem; text-align: center; }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -12,7 +20,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">렌탈 요금 관리</h1>
                 <p class="text-sm text-gray-500 mt-1">
-                    좌측에서 장소와 룸을 선택한 뒤, 기본/주말·공휴일/특수 요금을 설정할 수 있습니다.
+                    장소와 룸을 선택한 뒤, 달력에서 특정 일자·시간대별 요금을 설정할 수 있습니다. 기본/주말 요금은 룸 설정에서 관리합니다.
                 </p>
             </div>
         </div>
@@ -36,105 +44,102 @@
                         <li class="px-4 py-4 text-center text-gray-500 text-sm">먼저 장소를 선택하세요.</li>
                     </ul>
                 </div>
+                <div class="bg-white shadow rounded-lg overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h2 class="text-sm font-medium text-gray-700">사용 방법</h2>
+                    </div>
+                    <div class="px-4 py-3 text-xs text-gray-600 space-y-2">
+                        <p><span class="font-medium text-gray-700">날짜 클릭</span> → 해당 일 전체 요금, 시간대별 요금, 공휴일·휴관일·렌탈 불가 지정</p>
+                        <p><span class="font-medium text-indigo-700">시간대 클릭</span> → 특수 요금 수정/삭제 팝업</p>
+                        <p><span class="font-medium text-red-600">삭제 아이콘</span> → 전체 요금 삭제 (해당 일 전체 요금 적용 시 표시)</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- 요금 설정 -->
+            <!-- 달력 요금 -->
             <div class="col-span-3 bg-white shadow rounded-lg overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
                     <h2 class="text-sm font-medium text-gray-700">
-                        <span id="pricingRoomTitle">룸을 선택하면 요금을 설정할 수 있습니다.</span>
+                        <span id="pricingRoomTitle">룸을 선택하면 달력에서 요금을 설정할 수 있습니다.</span>
                     </h2>
+                    <p id="pricingRoomRates" class="text-xs text-gray-500 hidden"></p>
                 </div>
-                <div class="p-4 space-y-6">
-                    <!-- 기본 요금 -->
-                    <section>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-2">기본 요금</h3>
-                        <div class="grid grid-cols-3 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700">단위(분)</label>
-                                <input id="baseUnitMinutes" type="number" min="15" step="15" value="60"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700">가격(원)</label>
-                                <input id="basePrice" type="number" min="0" step="1000"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                            <div class="flex justify-end">
-                                <button type="button" onclick="saveBasePricing()"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                                    기본 요금 저장
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <hr class="border-gray-200">
-
-                    <!-- 주말/공휴일 요금 -->
-                    <section>
-                        <h3 class="text-sm font-semibold text-gray-800 mb-2">주말/공휴일 요금</h3>
-                        <div class="grid grid-cols-4 gap-4 items-end">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700">적용 대상</label>
-                                <select id="weekendApplyTo"
-                                        class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                    <option value="">선택</option>
-                                    <option value="WEEKEND">주말</option>
-                                    <option value="HOLIDAY">공휴일</option>
-                                    <option value="BOTH">주말+공휴일</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700">단위(분)</label>
-                                <input id="weekendUnitMinutes" type="number" min="15" step="15" value="60"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700">가격(원)</label>
-                                <input id="weekendPrice" type="number" min="0" step="1000"
-                                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                            </div>
-                            <div class="flex justify-end">
-                                <button type="button" onclick="saveWeekendHolidayPricing()"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                                    주말/공휴일 요금 저장
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    <hr class="border-gray-200">
-
-                    <!-- 특수 요금 -->
-                    <section>
-                        <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-sm font-semibold text-gray-800">특수 요금</h3>
-                            <button type="button" onclick="openSpecialModal()"
-                                    class="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md shadow-sm text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                                + 특수 요금 추가
-                            </button>
-                        </div>
-                        <div class="border border-gray-200 rounded-md max-h-60 overflow-y-auto">
+                <div class="p-4">
+                    <div id="pricingCalendar"></div>
+                    <div id="specialListMonth" class="mt-4 hidden">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-2">이번 달 특수 요금</h3>
+                        <div class="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
                             <table class="min-w-full text-xs">
-                                <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">날짜</th>
-                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">시간</th>
-                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">단위(분)</th>
-                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500 uppercase tracking-wider">가격(원)</th>
-                                    <th class="px-3 py-2 text-right text-[11px] font-medium text-gray-500 uppercase tracking-wider">관리</th>
-                                </tr>
-                                </thead>
-                                <tbody id="specialTableBody" class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">특수 요금이 없습니다.</td>
-                                </tr>
-                                </tbody>
+                                <thead class="bg-gray-50"><tr>
+                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500">날짜</th>
+                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500">시간</th>
+                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500">가격(원)</th>
+                                    <th class="px-3 py-2 text-right text-[11px] font-medium text-gray-500">관리</th>
+                                </tr></thead>
+                                <tbody id="specialListMonthBody"></tbody>
                             </table>
                         </div>
-                    </section>
+                    </div>
+                    <div id="unavailableListMonth" class="mt-4 hidden">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-2">이번 달 렌탈 불가</h3>
+                        <div class="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                            <table class="min-w-full text-xs">
+                                <thead class="bg-gray-50"><tr>
+                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500">날짜</th>
+                                    <th class="px-3 py-2 text-left text-[11px] font-medium text-gray-500">시간</th>
+                                    <th class="px-3 py-2 text-right text-[11px] font-medium text-gray-500">관리</th>
+                                </tr></thead>
+                                <tbody id="unavailableListMonthBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 날짜 클릭 메뉴 -->
+    <div id="dateClickMenu" class="fixed z-50 hidden bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[200px]" onclick="event.stopPropagation()">
+        <button type="button" id="dateMenuWholeDay" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">해당 일 전체 요금 설정</button>
+        <button type="button" id="dateMenuTimeRange" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">시간대별 요금 추가</button>
+        <div id="dateMenuSpecialPricingList" class="hidden border-t border-gray-100 mt-1 pt-1"></div>
+        <hr class="my-1 border-gray-200">
+        <button type="button" id="dateMenuHoliday" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공휴일 지정</button>
+        <button type="button" id="dateMenuClosed" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">휴관일 지정</button>
+        <button type="button" id="dateMenuUnavailableSlot" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">렌탈 불가 지정</button>
+        <button type="button" id="dateMenuUnsetClosed" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 hidden">공휴/휴관 해제</button>
+    </div>
+
+    <!-- 시간대별 요금 수정/삭제 팝업 -->
+    <div id="specialEditPopover" class="fixed z-[60] hidden bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[120px]" onclick="event.stopPropagation()">
+        <button type="button" id="specialEditPopoverEdit" class="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50">수정</button>
+        <button type="button" id="specialEditPopoverDelete" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">삭제</button>
+    </div>
+
+    <!-- 공휴일 지정 모달 -->
+    <div id="holidayModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">공휴일 지정</h2>
+                <button type="button" onclick="closeHolidayModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form id="holidayForm" class="px-4 py-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">날짜</label>
+                    <input id="holidayDate" type="date" min="" readonly
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 sm:text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">공휴일 이름</label>
+                    <input id="holidayName" type="text" placeholder="예: 설날"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+            </form>
+            <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button type="button" onclick="closeHolidayModal()"
+                        class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">취소</button>
+                <button type="button" onclick="submitHolidayForm()"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">저장</button>
             </div>
         </div>
     </div>
@@ -150,32 +155,77 @@
                 <input type="hidden" id="specialId">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">날짜</label>
-                    <input id="specialDate" type="date"
+                    <input id="specialDate" type="date" min=""
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div id="specialTimeRangeRow" class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">시작 시간</label>
-                        <input id="specialStartTime" type="time"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label class="block text-sm font-medium text-gray-700">시작 시</label>
+                        <select id="specialStartTime"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">선택</option>
+                            <option value="00:00">0시</option>
+                            <option value="01:00">1시</option>
+                            <option value="02:00">2시</option>
+                            <option value="03:00">3시</option>
+                            <option value="04:00">4시</option>
+                            <option value="05:00">5시</option>
+                            <option value="06:00">6시</option>
+                            <option value="07:00">7시</option>
+                            <option value="08:00">8시</option>
+                            <option value="09:00">9시</option>
+                            <option value="10:00">10시</option>
+                            <option value="11:00">11시</option>
+                            <option value="12:00">12시</option>
+                            <option value="13:00">13시</option>
+                            <option value="14:00">14시</option>
+                            <option value="15:00">15시</option>
+                            <option value="16:00">16시</option>
+                            <option value="17:00">17시</option>
+                            <option value="18:00">18시</option>
+                            <option value="19:00">19시</option>
+                            <option value="20:00">20시</option>
+                            <option value="21:00">21시</option>
+                            <option value="22:00">22시</option>
+                            <option value="23:00">23시</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">종료 시간</label>
-                        <input id="specialEndTime" type="time"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <label class="block text-sm font-medium text-gray-700">종료 시</label>
+                        <select id="specialEndTime"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">선택</option>
+                            <option value="01:00">1시</option>
+                            <option value="02:00">2시</option>
+                            <option value="03:00">3시</option>
+                            <option value="04:00">4시</option>
+                            <option value="05:00">5시</option>
+                            <option value="06:00">6시</option>
+                            <option value="07:00">7시</option>
+                            <option value="08:00">8시</option>
+                            <option value="09:00">9시</option>
+                            <option value="10:00">10시</option>
+                            <option value="11:00">11시</option>
+                            <option value="12:00">12시</option>
+                            <option value="13:00">13시</option>
+                            <option value="14:00">14시</option>
+                            <option value="15:00">15시</option>
+                            <option value="16:00">16시</option>
+                            <option value="17:00">17시</option>
+                            <option value="18:00">18시</option>
+                            <option value="19:00">19시</option>
+                            <option value="20:00">20시</option>
+                            <option value="21:00">21시</option>
+                            <option value="22:00">22시</option>
+                            <option value="23:00">23시</option>
+                            <option value="23:59">24시(종료)</option>
+                        </select>
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">단위(분)</label>
-                        <input id="specialUnitMinutes" type="number" min="15" step="15" value="60"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">가격(원)</label>
-                        <input id="specialPrice" type="number" min="0" step="1000"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">1시간당 가격(원)</label>
+                    <input id="specialPrice" type="number" min="0" step="1000"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
             </form>
             <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
@@ -191,9 +241,116 @@
         </div>
     </div>
 
+    <!-- 렌탈 불가 모달 -->
+    <div id="unavailableSlotModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">렌탈 불가 지정</h2>
+                <button type="button" onclick="closeUnavailableSlotModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form id="unavailableSlotForm" class="px-4 py-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">날짜</label>
+                    <input id="unavailableSlotDate" type="date" readonly
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 sm:text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">시작 시</label>
+                        <select id="unavailableSlotStartTime"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">선택</option>
+                            <option value="00:00">0시</option>
+                            <option value="01:00">1시</option>
+                            <option value="02:00">2시</option>
+                            <option value="03:00">3시</option>
+                            <option value="04:00">4시</option>
+                            <option value="05:00">5시</option>
+                            <option value="06:00">6시</option>
+                            <option value="07:00">7시</option>
+                            <option value="08:00">8시</option>
+                            <option value="09:00">9시</option>
+                            <option value="10:00">10시</option>
+                            <option value="11:00">11시</option>
+                            <option value="12:00">12시</option>
+                            <option value="13:00">13시</option>
+                            <option value="14:00">14시</option>
+                            <option value="15:00">15시</option>
+                            <option value="16:00">16시</option>
+                            <option value="17:00">17시</option>
+                            <option value="18:00">18시</option>
+                            <option value="19:00">19시</option>
+                            <option value="20:00">20시</option>
+                            <option value="21:00">21시</option>
+                            <option value="22:00">22시</option>
+                            <option value="23:00">23시</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">종료 시</label>
+                        <select id="unavailableSlotEndTime"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="">선택</option>
+                            <option value="01:00">1시</option>
+                            <option value="02:00">2시</option>
+                            <option value="03:00">3시</option>
+                            <option value="04:00">4시</option>
+                            <option value="05:00">5시</option>
+                            <option value="06:00">6시</option>
+                            <option value="07:00">7시</option>
+                            <option value="08:00">8시</option>
+                            <option value="09:00">9시</option>
+                            <option value="10:00">10시</option>
+                            <option value="11:00">11시</option>
+                            <option value="12:00">12시</option>
+                            <option value="13:00">13시</option>
+                            <option value="14:00">14시</option>
+                            <option value="15:00">15시</option>
+                            <option value="16:00">16시</option>
+                            <option value="17:00">17시</option>
+                            <option value="18:00">18시</option>
+                            <option value="19:00">19시</option>
+                            <option value="20:00">20시</option>
+                            <option value="21:00">21시</option>
+                            <option value="22:00">22시</option>
+                            <option value="23:00">23시</option>
+                            <option value="23:59">24시(종료)</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+            <div class="px-4 py-3 bg-gray-50 flex justify-end space-x-2 rounded-b-lg">
+                <button type="button" onclick="closeUnavailableSlotModal()"
+                        class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">취소</button>
+                <button type="button" onclick="submitUnavailableSlotForm()"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/ko.global.min.js"></script>
     <script>
+        function formatPrice(n) {
+            return n == null || n === '' ? '-' : Number(n).toLocaleString('ko-KR');
+        }
+
+        function toLocalDateStr(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + d;
+        }
+
         let currentPricingPlaceId = null;
         let currentPricingRoomId = null;
+        let currentPricingRoom = null;
+        let specialList = [];
+        let closedRuleList = [];
+        let unavailableSlotList = [];
+        let pricingCalendarInstance = null;
+        let dateClickMenuDate = null;
+        let skipNextClosedLoad = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             loadPricingPlaces();
@@ -234,9 +391,11 @@
         function selectPricingPlace(place) {
             currentPricingPlaceId = place.id;
             currentPricingRoomId = null;
+            currentPricingRoom = null;
+            closedRuleList = [];
             document.getElementById('pricingRoomTitle').textContent = '룸을 선택하면 요금을 설정할 수 있습니다.';
-            document.getElementById('specialTableBody').innerHTML =
-                '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">특수 요금이 없습니다.</td></tr>';
+            document.getElementById('pricingRoomRates').classList.add('hidden');
+            destroyPricingCalendar();
             loadPricingRooms();
         }
 
@@ -278,7 +437,12 @@
 
         function selectPricingRoom(room) {
             currentPricingRoomId = room.id;
-            document.getElementById('pricingRoomTitle').textContent = `[${room.id}] ${room.name} 의 요금 설정`;
+            currentPricingRoom = room;
+            unavailableSlotList = [];
+            document.getElementById('pricingRoomTitle').textContent = `[${room.id}] ${room.name} 요금`;
+            const ratesEl = document.getElementById('pricingRoomRates');
+            ratesEl.classList.remove('hidden');
+            ratesEl.textContent = `기본 ${formatPrice(room.basePrice)}원/시간, 주말·공휴 ${formatPrice(room.weekendPrice)}원/시간 (${room.weekendApplyTo || 'BOTH'})`;
             loadAllPricing();
         }
 
@@ -291,164 +455,415 @@
         }
 
         function loadAllPricing() {
-            if (!ensureRoomSelected()) {
-                return;
-            }
-            loadBasePricing();
-            loadWeekendHolidayPricing();
+            if (!ensureRoomSelected()) return;
             loadSpecialPricing();
         }
 
-        function loadBasePricing() {
-            fetch(`/admin/rental/rooms/${currentPricingRoomId}/pricing/base`, { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(result => {
-                    if (!result.success || !result.data) {
-                        document.getElementById('baseUnitMinutes').value = 60;
-                        document.getElementById('basePrice').value = '';
-                        return;
-                    }
-                    document.getElementById('baseUnitMinutes').value = result.data.unitMinutes ?? 60;
-                    document.getElementById('basePrice').value = result.data.price ?? '';
-                })
-                .catch(() => {
-                    document.getElementById('baseUnitMinutes').value = 60;
-                    document.getElementById('basePrice').value = '';
-                });
+        function destroyPricingCalendar() {
+            if (pricingCalendarInstance) {
+                pricingCalendarInstance.destroy();
+                pricingCalendarInstance = null;
+            }
         }
 
-        function saveBasePricing() {
-            if (!ensureRoomSelected()) return;
-            const unitMinutes = parseInt(document.getElementById('baseUnitMinutes').value || '0', 10);
-            const price = parseInt(document.getElementById('basePrice').value || '0', 10);
-            if (!unitMinutes || unitMinutes <= 0 || unitMinutes % 15 !== 0) {
-                alert('단위(분)는 15분 단위로 입력해주세요.');
-                return;
+        function getClosedInfoForDate(dateStr, date) {
+            const d = date ? date.getDay() : null;
+            for (const r of closedRuleList) {
+                if (r.ruleType === 'HOLIDAY' && r.startDate === dateStr) {
+                    return { rule: r, ruleType: 'HOLIDAY', label: r.holidayName || '공휴일' };
+                }
+                if (r.ruleType === 'DATE') {
+                    const end = r.endDate || r.startDate;
+                    if (dateStr >= r.startDate && dateStr <= end) {
+                        return { rule: r, ruleType: 'DATE', label: r.startDate === r.endDate || !r.endDate ? '휴관' : '휴관' };
+                    }
+                }
+                if (r.ruleType === 'WEEKDAY' && d != null && r.weekDay != null) {
+                    const dbToJs = r.weekDay === 7 ? 0 : r.weekDay;
+                    if (d === dbToJs) return { rule: r, ruleType: 'WEEKDAY', label: '휴관' };
+                }
             }
-            if (price < 0) {
-                alert('가격은 0 이상이어야 합니다.');
-                return;
+            return null;
+        }
+
+        function isWholeDaySpecial(sp) {
+            const start = (sp.startTime || '').substring(0, 5);
+            const end = (sp.endTime || '').substring(0, 5);
+            return start === '00:00' && (end === '23:59' || end === '24:00');
+        }
+
+        function buildDayContent(date) {
+            if (!currentPricingRoom) return '';
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${d}`;
+            const closedInfo = getClosedInfoForDate(dateStr, date);
+            if (closedInfo && closedInfo.ruleType !== 'HOLIDAY') {
+                return '<div class="fc-pricing-day closed-only"><span class="text-sm font-medium text-gray-700">휴관일</span></div>';
             }
-            const payload = { unitMinutes, price };
-            fetch(`/admin/rental/rooms/${currentPricingRoomId}/pricing/base`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify(payload)
-            })
-                .then(r => r.json())
-                .then(result => {
-                    if (result.success) {
-                        alert('기본 요금이 저장되었습니다.');
-                        loadBasePricing();
+            const daySpecials = specialList.filter(s => s.date === dateStr).sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+            const wholeDay = daySpecials.find(isWholeDaySpecial);
+            const timeRangeSpecials = daySpecials.filter(sp => !isWholeDaySpecial(sp));
+            const applyTo = (currentPricingRoom.weekendApplyTo || 'BOTH').toUpperCase();
+            const useHolidayPrice = applyTo === 'HOLIDAY' || applyTo === 'BOTH';
+            let defaultPrice;
+            if (wholeDay) {
+                defaultPrice = wholeDay.price ?? 0;
+            } else if (closedInfo && closedInfo.ruleType === 'HOLIDAY' && useHolidayPrice) {
+                defaultPrice = currentPricingRoom.weekendPrice ?? 0;
+            } else {
+                const dayOfWeek = date.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                const useWeekend = isWeekend && (applyTo === 'WEEKEND' || applyTo === 'BOTH');
+                defaultPrice = useWeekend ? (currentPricingRoom.weekendPrice ?? 0) : (currentPricingRoom.basePrice ?? 0);
+            }
+            let html = '<div class="fc-pricing-day">';
+            if (closedInfo && closedInfo.ruleType === 'HOLIDAY') {
+                html += '<div class="text-[10px] font-medium text-red-600 mb-0.5">' + (closedInfo.label || '') + '</div>';
+            }
+            if (wholeDay) {
+                html += '<div class="text-[10px] text-gray-600 inline-flex items-center gap-0.5">기본 ' + formatPrice(defaultPrice) + '원/시간 <span class="pricing-direct-action cursor-pointer text-red-500 hover:text-red-700 inline-flex" onclick="event.stopPropagation(); deleteSpecial(' + wholeDay.id + ')" title="삭제"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></span></div>';
+            } else {
+                html += '<div class="text-[10px] text-gray-600">기본 ' + formatPrice(defaultPrice) + '원/시간</div>';
+            }
+            timeRangeSpecials.forEach(sp => {
+                const start = (sp.startTime || '').substring(0, 5);
+                const end = (sp.endTime || '').substring(0, 5);
+                html += '<div class="pricing-direct-action text-[10px] text-indigo-700 mt-0.5 cursor-pointer hover:bg-indigo-50 rounded px-0.5 -mx-0.5" onclick="event.stopPropagation(); showSpecialEditPopover(event, ' + sp.id + ')">' + start + '~' + end + ': ' + formatPrice(sp.price) + '원</div>';
+            });
+            const dayUnavailable = unavailableSlotList.filter(u => u.scopeType === 'ONE_TIME' && (u.startDateTime || '').substring(0, 10) === dateStr)
+                .sort((a, b) => (a.startDateTime || '').localeCompare(b.startDateTime || ''));
+            dayUnavailable.forEach(u => {
+                const start = (u.startDateTime || '').substring(11, 16);
+                const end = (u.endDateTime || '').substring(11, 16);
+                html += '<div class="text-[10px] text-amber-700 mt-0.5">렌탈 불가 ' + start + '~' + end + '</div>';
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function initPricingCalendar(initialDate) {
+            destroyPricingCalendar();
+            const el = document.getElementById('pricingCalendar');
+            if (!el || !currentPricingRoomId) return;
+            const opts = {
+                initialView: 'dayGridMonth',
+                locale: 'ko',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+                height: 'auto',
+                dayCellDidMount(arg) {
+                    const dateStr = toLocalDateStr(arg.date);
+                    const closedInfo = getClosedInfoForDate(dateStr, arg.date);
+                    if (closedInfo) {
+                        if (closedInfo.ruleType === 'HOLIDAY') arg.el.classList.add('fc-day-holiday');
+                        else arg.el.classList.add('fc-day-closed');
                     } else {
-                        alert(result.error?.message || '기본 요금 저장에 실패했습니다.');
+                        const d = arg.date.getDay();
+                        if (d === 6) arg.el.classList.add('fc-day-sat');
+                        else if (d === 0) arg.el.classList.add('fc-day-sun');
                     }
-                })
-                .catch(() => alert('기본 요금 저장 중 오류가 발생했습니다.'));
-        }
-
-        function loadWeekendHolidayPricing() {
-            fetch(`/admin/rental/rooms/${currentPricingRoomId}/pricing/weekend-holiday`, { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(result => {
-                    if (!result.success || !result.data) {
-                        document.getElementById('weekendApplyTo').value = '';
-                        document.getElementById('weekendUnitMinutes').value = 60;
-                        document.getElementById('weekendPrice').value = '';
-                        return;
-                    }
-                    document.getElementById('weekendApplyTo').value = result.data.applyTo || '';
-                    document.getElementById('weekendUnitMinutes').value = result.data.unitMinutes ?? 60;
-                    document.getElementById('weekendPrice').value = result.data.price ?? '';
-                })
-                .catch(() => {
-                    document.getElementById('weekendApplyTo').value = '';
-                    document.getElementById('weekendUnitMinutes').value = 60;
-                    document.getElementById('weekendPrice').value = '';
-                });
-        }
-
-        function saveWeekendHolidayPricing() {
-            if (!ensureRoomSelected()) return;
-            const applyTo = document.getElementById('weekendApplyTo').value;
-            const unitMinutes = parseInt(document.getElementById('weekendUnitMinutes').value || '0', 10);
-            const price = parseInt(document.getElementById('weekendPrice').value || '0', 10);
-            if (!applyTo) {
-                alert('적용 대상을 선택해주세요.');
-                return;
-            }
-            if (!unitMinutes || unitMinutes <= 0 || unitMinutes % 15 !== 0) {
-                alert('단위(분)는 15분 단위로 입력해주세요.');
-                return;
-            }
-            if (price < 0) {
-                alert('가격은 0 이상이어야 합니다.');
-                return;
-            }
-            const payload = { applyTo, unitMinutes, price };
-            fetch(`/admin/rental/rooms/${currentPricingRoomId}/pricing/weekend-holiday`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify(payload)
-            })
-                .then(r => r.json())
-                .then(result => {
-                    if (result.success) {
-                        alert('주말/공휴일 요금이 저장되었습니다.');
-                        loadWeekendHolidayPricing();
+                    const wrap = document.createElement('div');
+                    wrap.className = 'fc-pricing-day-wrap';
+                    wrap.innerHTML = buildDayContent(arg.date);
+                    const frame = arg.el.querySelector('.fc-daygrid-day-frame');
+                    if (frame) frame.appendChild(wrap);
+                },
+                dateClick(info) {
+                    if (info.jsEvent.target.closest('.pricing-direct-action')) return;
+                    dateClickMenuDate = info.dateStr;
+                    const d = new Date(info.dateStr);
+                    const closedInfo = getClosedInfoForDate(info.dateStr, d);
+                    const today = new Date().toISOString().slice(0, 10);
+                    const isPast = info.dateStr < today;
+                    const unsetBtn = document.getElementById('dateMenuUnsetClosed');
+                    const isClosedOrHoliday = !!closedInfo;
+                    const showSetMenus = !isPast && !isClosedOrHoliday;
+                    document.getElementById('dateMenuWholeDay').style.display = showSetMenus ? '' : 'none';
+                    document.getElementById('dateMenuTimeRange').style.display = showSetMenus ? '' : 'none';
+                    document.getElementById('dateMenuHoliday').style.display = showSetMenus ? '' : 'none';
+                    document.getElementById('dateMenuClosed').style.display = showSetMenus ? '' : 'none';
+                    document.getElementById('dateMenuUnavailableSlot').style.display = showSetMenus ? '' : 'none';
+                    const menuHrs = document.querySelectorAll('#dateClickMenu hr');
+                    menuHrs.forEach(hr => { hr.style.display = showSetMenus ? '' : 'none'; });
+                    document.getElementById('dateMenuSpecialPricingList').classList.add('hidden');
+                    document.getElementById('dateMenuSpecialPricingList').innerHTML = '';
+                    if (closedInfo && currentPricingPlaceId) {
+                        unsetBtn.classList.remove('hidden');
+                        unsetBtn.dataset.ruleId = closedInfo.rule.id;
                     } else {
-                        alert(result.error?.message || '주말/공휴일 요금 저장에 실패했습니다.');
+                        unsetBtn.classList.add('hidden');
+                    }
+                    if (isPast && !closedInfo) return;
+                    document.getElementById('specialEditPopover').classList.add('hidden');
+                    const menu = document.getElementById('dateClickMenu');
+                    menu.style.left = info.jsEvent.clientX + 'px';
+                    menu.style.top = info.jsEvent.clientY + 'px';
+                    menu.classList.remove('hidden');
+                    info.jsEvent.stopPropagation();
+                },
+                datesSet(arg) {
+                    renderSpecialListForMonth(arg.start, arg.end);
+                    renderUnavailableListForMonth(arg.start, arg.end);
+                    if (!skipNextClosedLoad) loadClosedRules(arg.start, arg.end);
+                    skipNextClosedLoad = false;
+                    if (currentPricingRoomId) loadUnavailableSlots(arg.start, arg.end);
+                }
+            };
+            if (initialDate) opts.initialDate = initialDate;
+            pricingCalendarInstance = new FullCalendar.Calendar(el, opts);
+            pricingCalendarInstance.render();
+        }
+
+        function renderSpecialListForMonth(start, end) {
+            const container = document.getElementById('specialListMonth');
+            const tbody = document.getElementById('specialListMonthBody');
+            if (!currentPricingRoomId || !start || !end) {
+                container.classList.add('hidden');
+                return;
+            }
+            const startStr = toLocalDateStr(start);
+            const endStr = toLocalDateStr(end);
+            const list = specialList.filter(s => s.date >= startStr && s.date <= endStr)
+                .sort((a, b) => (a.date + (a.startTime || '')).localeCompare(b.date + (b.startTime || '')));
+            if (!list.length) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            tbody.innerHTML = '';
+            list.forEach(sp => {
+                const tr = document.createElement('tr');
+                const timeLabel = (sp.startTime || '').substring(0, 5) + ' ~ ' + (sp.endTime || '').substring(0, 5);
+                tr.innerHTML = `
+                    <td class="px-3 py-2 text-gray-700">${sp.date}</td>
+                    <td class="px-3 py-2 text-gray-700">${timeLabel}</td>
+                    <td class="px-3 py-2 text-gray-700">${formatPrice(sp.price)}</td>
+                    <td class="px-3 py-2 text-right">
+                        <button type="button" class="text-indigo-600 hover:text-indigo-900 mr-2" onclick="editSpecialById(${sp.id})">수정</button>
+                        <button type="button" class="text-red-600 hover:text-red-900" onclick="deleteSpecial(${sp.id})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function editSpecialById(id) {
+            const sp = specialList.find(s => s.id === id);
+            if (sp) editSpecial(sp);
+        }
+
+        let specialEditPopoverId = null;
+        function showSpecialEditPopover(ev, spId) {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            specialEditPopoverId = spId;
+            const popover = document.getElementById('specialEditPopover');
+            popover.style.left = ev.clientX + 'px';
+            popover.style.top = ev.clientY + 'px';
+            popover.classList.remove('hidden');
+            document.addEventListener('click', hideSpecialEditPopoverOnce);
+        }
+        function hideSpecialEditPopoverOnce() {
+            document.getElementById('specialEditPopover').classList.add('hidden');
+            document.removeEventListener('click', hideSpecialEditPopoverOnce);
+        }
+        document.getElementById('specialEditPopoverEdit')?.addEventListener('click', () => {
+            if (specialEditPopoverId != null) {
+                const sp = specialList.find(s => s.id === specialEditPopoverId);
+                if (sp) editSpecial(sp);
+            }
+            hideSpecialEditPopoverOnce();
+        });
+        document.getElementById('specialEditPopoverDelete')?.addEventListener('click', () => {
+            if (specialEditPopoverId != null) {
+                deleteSpecial(specialEditPopoverId);
+            }
+            hideSpecialEditPopoverOnce();
+        });
+
+        function loadClosedRules(start, end) {
+            if (!currentPricingPlaceId || !start || !end) return;
+            const from = toLocalDateStr(start);
+            const to = toLocalDateStr(end);
+            fetch(`/admin/rental/places/${currentPricingPlaceId}/closed-rules?fromDate=${from}&toDate=${to}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    closedRuleList = result.success && result.data ? result.data : [];
+                    if (pricingCalendarInstance && currentPricingRoomId) {
+                        const preserveDate = pricingCalendarInstance.view?.currentStart;
+                        skipNextClosedLoad = true;
+                        destroyPricingCalendar();
+                        initPricingCalendar(preserveDate);
                     }
                 })
-                .catch(() => alert('주말/공휴일 요금 저장 중 오류가 발생했습니다.'));
+                .catch(() => { closedRuleList = []; });
         }
 
         function loadSpecialPricing() {
-            const tbody = document.getElementById('specialTableBody');
-            tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">로딩 중...</td></tr>';
+            const from = new Date();
+            from.setDate(1);
+            const to = new Date(from.getFullYear(), from.getMonth() + 1, 0);
+            if (currentPricingPlaceId) loadClosedRules(from, to);
             fetch(`/admin/rental/rooms/${currentPricingRoomId}/pricing/special`, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(result => {
                     if (!result.success) {
-                        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-red-500 text-xs">특수 요금을 불러오지 못했습니다.</td></tr>';
-                        return;
+                        specialList = [];
+                    } else {
+                        specialList = result.data || [];
                     }
-                    const list = result.data || [];
-                    if (!list.length) {
-                        tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-gray-500 text-xs">특수 요금이 없습니다.</td></tr>';
-                        return;
-                    }
-                    tbody.innerHTML = '';
-                    list.forEach(sp => {
-                        const tr = document.createElement('tr');
-                        const timeLabel = `${(sp.startTime || '').substring(0,5)} ~ ${(sp.endTime || '').substring(0,5)}`;
-                        tr.innerHTML = `
-                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${sp.date}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${timeLabel}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${sp.unitMinutes}</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-700">${(sp.price ?? 0).toLocaleString()}원</td>
-                            <td class="px-3 py-2 whitespace-nowrap text-right text-xs">
-                                <button type="button" class="text-indigo-600 hover:text-indigo-900 mr-2" onclick='editSpecial(${JSON.stringify(sp)})'>수정</button>
-                                <button type="button" class="text-red-600 hover:text-red-900" onclick="deleteSpecial(${sp.id})">삭제</button>
-                            </td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
+                    initPricingCalendar();
                 })
                 .catch(() => {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-3 py-4 text-center text-red-500 text-xs">특수 요금을 불러오지 못했습니다.</td></tr>';
+                    specialList = [];
+                    initPricingCalendar();
                 });
         }
 
-        function openSpecialModal() {
+        document.getElementById('dateMenuWholeDay').addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            openSpecialModal(dateClickMenuDate, true);
+        });
+        document.getElementById('dateMenuTimeRange').addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            openSpecialModal(dateClickMenuDate, false);
+        });
+        document.getElementById('dateMenuHoliday').addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            openHolidayModal(dateClickMenuDate);
+        });
+        document.getElementById('dateMenuClosed').addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            addClosedDay(dateClickMenuDate);
+        });
+        document.getElementById('dateMenuUnavailableSlot').addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            openUnavailableSlotModal(dateClickMenuDate);
+        });
+        document.getElementById('dateMenuUnsetClosed').addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+            const ruleId = document.getElementById('dateMenuUnsetClosed').dataset.ruleId;
+            if (ruleId) unsetClosedRule(ruleId);
+        });
+        document.addEventListener('click', () => {
+            document.getElementById('dateClickMenu').classList.add('hidden');
+        });
+
+        function ensurePlaceSelected() {
+            if (!currentPricingPlaceId) {
+                alert('먼저 장소를 선택하세요.');
+                return false;
+            }
+            return true;
+        }
+
+        function openHolidayModal(dateStr) {
+            if (!ensurePlaceSelected()) return;
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('holidayDate').min = tomorrow.toISOString().slice(0, 10);
+            document.getElementById('holidayDate').value = dateStr || '';
+            document.getElementById('holidayName').value = '';
+            document.getElementById('holidayModal').classList.remove('hidden');
+            document.getElementById('holidayModal').classList.add('flex');
+        }
+
+        function closeHolidayModal() {
+            document.getElementById('holidayModal').classList.add('hidden');
+            document.getElementById('holidayModal').classList.remove('flex');
+        }
+
+        function submitHolidayForm() {
+            if (!ensurePlaceSelected()) return;
+            const date = document.getElementById('holidayDate').value;
+            const name = document.getElementById('holidayName').value?.trim();
+            if (!date || !name) {
+                alert('날짜와 공휴일 이름을 입력해주세요.');
+                return;
+            }
+            fetch(`/admin/rental/places/${currentPricingPlaceId}/closed-rules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ ruleType: 'HOLIDAY', startDate: date, endDate: null, weekDay: null, holidayName: name })
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('공휴일이 등록되었습니다.');
+                        closeHolidayModal();
+                        refreshClosedRules();
+                    } else {
+                        alert(result.error?.message || '등록에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('등록 중 오류가 발생했습니다.'));
+        }
+
+        function addClosedDay(dateStr) {
+            if (!ensurePlaceSelected()) return;
+            if (!confirm(dateStr + '을(를) 휴관일로 지정하시겠습니까?')) return;
+            fetch(`/admin/rental/places/${currentPricingPlaceId}/closed-rules`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ ruleType: 'DATE', startDate: dateStr, endDate: dateStr, weekDay: null, holidayName: null })
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('휴관일로 지정되었습니다.');
+                        refreshClosedRules();
+                    } else {
+                        alert(result.error?.message || '등록에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('등록 중 오류가 발생했습니다.'));
+        }
+
+        function unsetClosedRule(ruleId) {
+            if (!ensurePlaceSelected()) return;
+            if (!confirm('해당 날짜의 공휴/휴관을 해제하시겠습니까?')) return;
+            fetch(`/admin/rental/places/${currentPricingPlaceId}/closed-rules/${ruleId}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('해제되었습니다.');
+                        refreshClosedRules();
+                    } else {
+                        alert(result.error?.message || '해제에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('해제 중 오류가 발생했습니다.'));
+        }
+
+        function refreshClosedRules() {
+            if (pricingCalendarInstance && pricingCalendarInstance.view) {
+                const arg = pricingCalendarInstance.view;
+                loadClosedRules(arg.activeStart, arg.activeEnd);
+            }
+        }
+
+        function openSpecialModal(presetDate, wholeDay) {
             if (!ensureRoomSelected()) return;
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('specialDate').min = tomorrow.toISOString().slice(0, 10);
             document.getElementById('specialId').value = '';
-            document.getElementById('specialDate').value = '';
-            document.getElementById('specialStartTime').value = '';
-            document.getElementById('specialEndTime').value = '';
-            document.getElementById('specialUnitMinutes').value = 60;
+            document.getElementById('specialDate').value = presetDate || '';
+            const timeRow = document.getElementById('specialTimeRangeRow');
+            if (wholeDay === true) {
+                timeRow.classList.add('hidden');
+                document.getElementById('specialStartTime').value = '00:00';
+                document.getElementById('specialEndTime').value = '23:59';
+            } else {
+                timeRow.classList.remove('hidden');
+                document.getElementById('specialStartTime').value = '';
+                document.getElementById('specialEndTime').value = '';
+            }
             document.getElementById('specialPrice').value = '';
             document.getElementById('specialModalTitle').textContent = '특수 요금 등록';
             document.getElementById('specialModal').classList.remove('hidden');
@@ -458,6 +873,7 @@
         function closeSpecialModal() {
             document.getElementById('specialModal').classList.add('hidden');
             document.getElementById('specialModal').classList.remove('flex');
+            document.getElementById('specialTimeRangeRow').classList.remove('hidden');
         }
 
         function editSpecial(sp) {
@@ -465,9 +881,9 @@
             document.getElementById('specialDate').value = sp.date || '';
             document.getElementById('specialStartTime').value = (sp.startTime || '').substring(0, 5);
             document.getElementById('specialEndTime').value = (sp.endTime || '').substring(0, 5);
-            document.getElementById('specialUnitMinutes').value = sp.unitMinutes ?? 60;
             document.getElementById('specialPrice').value = sp.price ?? '';
             document.getElementById('specialModalTitle').textContent = '특수 요금 수정';
+            document.getElementById('specialTimeRangeRow').classList.remove('hidden');
             document.getElementById('specialModal').classList.remove('hidden');
             document.getElementById('specialModal').classList.add('flex');
         }
@@ -476,17 +892,21 @@
             if (!ensureRoomSelected()) return;
             const id = document.getElementById('specialId').value;
             const date = document.getElementById('specialDate').value;
-            const startTime = document.getElementById('specialStartTime').value;
-            const endTime = document.getElementById('specialEndTime').value;
-            const unitMinutes = parseInt(document.getElementById('specialUnitMinutes').value || '0', 10);
+            let startTime = document.getElementById('specialStartTime').value;
+            let endTime = document.getElementById('specialEndTime').value;
+            const timeRowHidden = document.getElementById('specialTimeRangeRow').classList.contains('hidden');
+            if (timeRowHidden) {
+                startTime = '00:00';
+                endTime = '23:59';
+            }
             const price = parseInt(document.getElementById('specialPrice').value || '0', 10);
 
-            if (!date || !startTime || !endTime) {
-                alert('날짜와 시작/종료 시간을 모두 입력해주세요.');
+            if (!date) {
+                alert('날짜를 입력해주세요.');
                 return;
             }
-            if (!unitMinutes || unitMinutes <= 0 || unitMinutes % 15 !== 0) {
-                alert('단위(분)는 15분 단위로 입력해주세요.');
+            if (!timeRowHidden && (!startTime || !endTime)) {
+                alert('시작/종료 시간을 입력해주세요.');
                 return;
             }
             if (price < 0) {
@@ -496,9 +916,9 @@
 
             const payload = {
                 date,
-                startTime: startTime + ':00',
-                endTime: endTime + ':00',
-                unitMinutes,
+                startTime: startTime.length === 5 ? startTime + ':00' : startTime,
+                endTime: endTime.length === 5 ? endTime + ':00' : endTime,
+                unitMinutes: 60,
                 price
             };
 
@@ -540,6 +960,137 @@
                     if (result.success) {
                         alert('삭제되었습니다.');
                         loadSpecialPricing();
+                    } else {
+                        alert(result.error?.message || '삭제에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('삭제 중 오류가 발생했습니다.'));
+        }
+
+        // 렌탈 불가
+        function loadUnavailableSlots(start, end) {
+            if (!currentPricingRoomId || !start || !end) return;
+            const from = toLocalDateStr(start) + 'T00:00:00';
+            const to = toLocalDateStr(end) + 'T23:59:59';
+            fetch(`/admin/rental/rooms/${currentPricingRoomId}/unavailable-slots?fromDateTime=${encodeURIComponent(from)}&toDateTime=${encodeURIComponent(to)}`, { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(result => {
+                    unavailableSlotList = result.success && result.data ? result.data : [];
+                    renderUnavailableListForMonth(start, end);
+                })
+                .catch(() => { unavailableSlotList = []; });
+        }
+
+        function renderUnavailableListForMonth(start, end) {
+            const container = document.getElementById('unavailableListMonth');
+            const tbody = document.getElementById('unavailableListMonthBody');
+            if (!currentPricingRoomId || !start || !end) {
+                container.classList.add('hidden');
+                return;
+            }
+            const startStr = toLocalDateStr(start);
+            const endStr = toLocalDateStr(end);
+            const list = unavailableSlotList.filter(u => {
+                const dt = (u.startDateTime || '').substring(0, 10);
+                return u.scopeType === 'ONE_TIME' && dt >= startStr && dt <= endStr;
+            }).sort((a, b) => (a.startDateTime || '').localeCompare(b.startDateTime || ''));
+            if (!list.length) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+            tbody.innerHTML = '';
+            list.forEach(u => {
+                const dateStr = (u.startDateTime || '').substring(0, 10);
+                const s = (u.startDateTime || '').substring(11, 16);
+                const e = (u.endDateTime || '').substring(11, 16);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-3 py-2 text-gray-700">${dateStr}</td>
+                    <td class="px-3 py-2 text-gray-700">${s} ~ ${e}</td>
+                    <td class="px-3 py-2 text-right">
+                        <button type="button" class="text-red-600 hover:text-red-900" onclick="deleteUnavailableSlot(${u.id})">삭제</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openUnavailableSlotModal(dateStr) {
+            if (!ensureRoomSelected()) return;
+            document.getElementById('unavailableSlotDate').value = dateStr || '';
+            document.getElementById('unavailableSlotStartTime').value = '';
+            document.getElementById('unavailableSlotEndTime').value = '';
+            document.getElementById('unavailableSlotModal').classList.remove('hidden');
+            document.getElementById('unavailableSlotModal').classList.add('flex');
+        }
+
+        function closeUnavailableSlotModal() {
+            document.getElementById('unavailableSlotModal').classList.add('hidden');
+            document.getElementById('unavailableSlotModal').classList.remove('flex');
+        }
+
+        function submitUnavailableSlotForm() {
+            if (!ensureRoomSelected()) return;
+            const dateStr = document.getElementById('unavailableSlotDate').value;
+            const startTime = document.getElementById('unavailableSlotStartTime').value;
+            const endTime = document.getElementById('unavailableSlotEndTime').value;
+            if (!dateStr || !startTime || !endTime) {
+                alert('날짜와 시작/종료 시간을 모두 선택해주세요.');
+                return;
+            }
+            if (startTime >= endTime) {
+                alert('종료 시간이 시작 시간보다 이후여야 합니다.');
+                return;
+            }
+            const startDateTime = dateStr + 'T' + (startTime.length === 5 ? startTime + ':00' : startTime);
+            const endDateTime = dateStr + 'T' + (endTime.length === 5 ? endTime + ':00' : endTime);
+            const payload = {
+                scopeType: 'ONE_TIME',
+                startDateTime,
+                endDateTime,
+                weekDay: null,
+                startTime: null,
+                endTime: null,
+                reason: null
+            };
+            fetch(`/admin/rental/rooms/${currentPricingRoomId}/unavailable-slots`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('렌탈 불가가 등록되었습니다.');
+                        closeUnavailableSlotModal();
+                        if (pricingCalendarInstance && pricingCalendarInstance.view) {
+                            const arg = pricingCalendarInstance.view;
+                            loadUnavailableSlots(arg.activeStart, arg.activeEnd);
+                        }
+                    } else {
+                        alert(result.error?.message || '등록에 실패했습니다.');
+                    }
+                })
+                .catch(() => alert('등록 중 오류가 발생했습니다.'));
+        }
+
+        function deleteUnavailableSlot(id) {
+            if (!ensureRoomSelected()) return;
+            if (!confirm('해당 렌탈 불가 구간을 삭제하시겠습니까?')) return;
+            fetch(`/admin/rental/rooms/${currentPricingRoomId}/unavailable-slots/${id}`, {
+                method: 'DELETE',
+                credentials: 'same-origin'
+            })
+                .then(r => r.json())
+                .then(result => {
+                    if (result.success) {
+                        alert('삭제되었습니다.');
+                        if (pricingCalendarInstance && pricingCalendarInstance.view) {
+                            const arg = pricingCalendarInstance.view;
+                            loadUnavailableSlots(arg.activeStart, arg.activeEnd);
+                        }
                     } else {
                         alert(result.error?.message || '삭제에 실패했습니다.');
                     }

@@ -46,7 +46,7 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">룸명</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">설명</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">수용 인원</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">기본 단위(분)</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">기본 단위</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">관리</th>
                         </tr>
                         </thead>
@@ -63,34 +63,72 @@
 
     <!-- 룸 생성/수정 모달 -->
     <div id="roomModal" class="fixed inset-0 bg-gray-900 bg-opacity-40 z-40 hidden items-center justify-center">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl">
             <div class="px-4 py-3 border-b border-gray-200 flex justify-between items-center">
                 <h2 id="roomModalTitle" class="text-lg font-medium text-gray-900">룸 등록</h2>
                 <button type="button" onclick="closeRoomForm()" class="text-gray-400 hover:text-gray-600">&times;</button>
             </div>
-            <form id="roomForm" class="px-4 py-5 space-y-4">
+            <form id="roomForm" class="px-4 py-5 space-y-4 max-h-[70vh] overflow-y-auto">
                 <input type="hidden" id="roomId">
                 <input type="hidden" id="roomPlaceId">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">룸명</label>
+
+                <div class="flex items-center space-x-4">
+                    <label class="w-32 text-sm font-medium text-gray-700">룸명</label>
                     <input id="roomName" type="text"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">설명</label>
+
+                <div class="flex items-start space-x-4">
+                    <label class="w-32 pt-2 text-sm font-medium text-gray-700">설명</label>
                     <textarea id="roomDescription" rows="3"
-                              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
+                              class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">수용 인원</label>
-                        <input id="roomCapacity" type="number" min="1"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+
+                <div class="flex items-center space-x-4">
+                    <label class="w-32 text-sm font-medium text-gray-700">수용 인원</label>
+                    <input id="roomCapacity" type="number" min="1" value="5"
+                           class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <input type="hidden" id="roomDuration" value="60">
+                </div>
+
+                <div class="border-t pt-4 space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <label class="w-40 text-sm font-medium text-gray-700">기본 요금 (1시간당, 원)</label>
+                        <input id="roomBasePrice" type="number" min="0" step="1000" placeholder="예: 10000"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">기본 예약 단위(분)</label>
-                        <input id="roomDuration" type="number" min="15" step="15" value="60"
-                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <div class="flex items-center space-x-4">
+                        <label class="w-40 text-sm font-medium text-gray-700">주말 요금 (1시간당, 원)</label>
+                        <input id="roomWeekendPrice" type="number" min="0" step="1000" placeholder="예: 15000"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <label class="w-40 text-sm font-medium text-gray-700">주말 적용</label>
+                        <select id="roomWeekendApplyTo"
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <option value="WEEKEND">주말만</option>
+                            <option value="HOLIDAY">공휴일만</option>
+                            <option value="BOTH">주말+공휴일</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4 space-y-3">
+                    <div class="flex items-center space-x-4">
+                        <label class="w-32 text-sm font-medium text-gray-700">첨부파일</label>
+                        <div class="flex-1">
+                            <input type="hidden" id="roomMaxFileCount" value="20">
+                            <!-- 수정 시 기존 파일 목록 -->
+                            <div id="roomExistingFilesWrap" class="mb-3 hidden">
+                                <ul id="roomExistingFilesList" class="space-y-2 text-sm"></ul>
+                            </div>
+                            <!-- 새 파일 추가 -->
+                            <input type="file" id="roomPhotos" accept="image/*" multiple
+                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <!-- 선택한 파일 목록 (업로드 전) -->
+                            <ul id="roomSelectedFilesList" class="mt-3 space-y-2 text-sm hidden"></ul>
+                            <p class="mt-1 text-xs text-gray-500">파일 선택 시 Ctrl/Shift로 여러 개 동시 선택 가능 · 최대 20개</p>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -110,7 +148,80 @@
     <script>
         let currentPlaceId = null;
 
+        function formatPrice(n) {
+            if (n == null || n === '') return '-';
+            return Number(n).toLocaleString('ko-KR');
+        }
+
+        function durationHourLabel(minutes) {
+            if (minutes == null || minutes === '') return '-';
+            var m = parseInt(minutes, 10);
+            if (m === 60) return '1시간';
+            if (m === 120) return '2시간';
+            if (m === 180) return '3시간';
+            if (m === 240) return '4시간';
+            if (m === 300) return '5시간';
+            if (m === 360) return '6시간';
+            if (m === 420) return '7시간';
+            if (m === 480) return '8시간';
+            if (m === 540) return '9시간';
+            if (m === 600) return '10시간';
+            if (m === 660) return '11시간';
+            if (m === 720) return '12시간';
+            return m + '분';
+        }
+
+        window.roomSelectedNewFiles = [];
         document.addEventListener('DOMContentLoaded', () => {
+            (function() {
+                var roomFileInput = document.getElementById('roomPhotos');
+                function roomGetExistingCount() {
+                    var list = document.getElementById('roomExistingFilesList');
+                    return list ? list.querySelectorAll('li').length : 0;
+                }
+                function roomRenderSelectedList() {
+                    var ul = document.getElementById('roomSelectedFilesList');
+                    if (!ul) return;
+                    var arr = window.roomSelectedNewFiles || [];
+                    ul.innerHTML = '';
+                    if (arr.length === 0) {
+                        ul.classList.add('hidden');
+                        return;
+                    }
+                    ul.classList.remove('hidden');
+                    arr.forEach(function(f, i) {
+                        var li = document.createElement('li');
+                        li.className = 'flex items-center justify-between py-1 border-b border-gray-100';
+                        li.innerHTML = '<span class="text-gray-700">' + (f.name || '파일') + '</span>' +
+                            '<button type="button" data-index="' + i + '" class="text-red-600 hover:text-red-800">제거</button>';
+                        li.querySelector('button').onclick = function() {
+                            window.roomSelectedNewFiles.splice(parseInt(this.dataset.index), 1);
+                            roomRenderSelectedList();
+                        };
+                        ul.appendChild(li);
+                    });
+                }
+                if (roomFileInput) {
+                    roomFileInput.addEventListener('change', function() {
+                        var maxCount = parseInt(document.getElementById('roomMaxFileCount').value) || 20;
+                        var existingCount = roomGetExistingCount();
+                        var arr = window.roomSelectedNewFiles || [];
+                        var available = maxCount - existingCount - arr.length;
+                        if (available <= 0) {
+                            alert('첨부파일은 최대 ' + maxCount + '개까지 가능합니다.');
+                            this.value = '';
+                            return;
+                        }
+                        var files = Array.prototype.slice.call(this.files || []);
+                        var toAdd = files.slice(0, available);
+                        if (files.length > available) alert('최대 ' + maxCount + '개까지 가능합니다. ' + available + '개만 추가됩니다.');
+                        window.roomSelectedNewFiles = arr.concat(toAdd);
+                        roomRenderSelectedList();
+                        this.value = '';
+                    });
+                }
+                window.roomRenderSelectedList = roomRenderSelectedList;
+            })();
             loadPlacesForRooms();
         });
 
@@ -179,7 +290,7 @@
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${rm.name}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.description || ''}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.capacity || '-'}</td>
-                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${rm.defaultDurationMinutes || '-'}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${durationHourLabel(rm.defaultDurationMinutes)}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-right text-sm">
                                 <button type="button" class="text-indigo-600 hover:text-indigo-900 mr-3" onclick='editRoom(${JSON.stringify(rm)})'>수정</button>
                             </td>
@@ -201,8 +312,16 @@
             document.getElementById('roomPlaceId').value = currentPlaceId;
             document.getElementById('roomName').value = '';
             document.getElementById('roomDescription').value = '';
-            document.getElementById('roomCapacity').value = '';
+            document.getElementById('roomCapacity').value = '5';
             document.getElementById('roomDuration').value = '60';
+            document.getElementById('roomBasePrice').value = '';
+            document.getElementById('roomWeekendPrice').value = '';
+            document.getElementById('roomWeekendApplyTo').value = 'BOTH';
+            document.getElementById('roomExistingFilesWrap').classList.add('hidden');
+            document.getElementById('roomExistingFilesList').innerHTML = '';
+            window.roomSelectedNewFiles = [];
+            if (window.roomRenderSelectedList) window.roomRenderSelectedList();
+            document.getElementById('roomPhotos').value = '';
             document.getElementById('roomModalTitle').textContent = '룸 등록';
             document.getElementById('roomModal').classList.remove('hidden');
             document.getElementById('roomModal').classList.add('flex');
@@ -218,11 +337,49 @@
             document.getElementById('roomPlaceId').value = room.placeId;
             document.getElementById('roomName').value = room.name || '';
             document.getElementById('roomDescription').value = room.description || '';
-            document.getElementById('roomCapacity').value = room.capacity || '';
-            document.getElementById('roomDuration').value = room.defaultDurationMinutes || '60';
+            document.getElementById('roomCapacity').value = room.capacity != null ? room.capacity : '5';
+            document.getElementById('roomDuration').value = '60';
+            document.getElementById('roomBasePrice').value = room.basePrice != null ? room.basePrice : '';
+            document.getElementById('roomWeekendPrice').value = room.weekendPrice != null ? room.weekendPrice : '';
+            document.getElementById('roomWeekendApplyTo').value = room.weekendApplyTo || 'BOTH';
+            window.roomSelectedNewFiles = [];
+            if (window.roomRenderSelectedList) window.roomRenderSelectedList();
+            document.getElementById('roomPhotos').value = '';
+            var existingWrap = document.getElementById('roomExistingFilesWrap');
+            var existingList = document.getElementById('roomExistingFilesList');
+            existingList.innerHTML = '';
+            if (room.photos && room.photos.length > 0) {
+                existingWrap.classList.remove('hidden');
+                room.photos.forEach(function(photo) {
+                    var li = document.createElement('li');
+                    li.className = 'flex items-center justify-between py-1 border-b border-gray-100';
+                    li.dataset.id = photo.id;
+                    li.innerHTML = '<a href="/api/v1/files/' + photo.id + '/download" class="text-indigo-600 hover:text-indigo-900" download>' + (photo.originalName || '파일') + '</a>' +
+                        '<button type="button" onclick="deleteRoomPhoto(' + room.id + ',' + photo.id + ', this)" class="text-red-600 hover:text-red-800">삭제</button>';
+                    existingList.appendChild(li);
+                });
+            } else {
+                existingWrap.classList.add('hidden');
+            }
             document.getElementById('roomModalTitle').textContent = '룸 수정';
             document.getElementById('roomModal').classList.remove('hidden');
             document.getElementById('roomModal').classList.add('flex');
+        }
+
+        function deleteRoomPhoto(roomId, fileId, btnEl) {
+            if (!confirm('이 파일을 삭제하시겠습니까?')) return;
+            fetch('/api/v1/files/' + fileId, { method: 'DELETE', credentials: 'same-origin' })
+                .then(function(r) { return r.json(); })
+                .then(function(result) {
+                    if (result.success) {
+                        var li = btnEl.closest('li');
+                        if (li) li.remove();
+                        if (document.getElementById('roomExistingFilesList').querySelectorAll('li').length === 0) {
+                            document.getElementById('roomExistingFilesWrap').classList.add('hidden');
+                        }
+                    } else alert(result.error?.message || '삭제에 실패했습니다.');
+                })
+                .catch(function() { alert('오류가 발생했습니다.'); });
         }
 
         function submitRoomForm() {
@@ -232,8 +389,11 @@
                 placeId: parseInt(placeId),
                 name: document.getElementById('roomName').value,
                 description: document.getElementById('roomDescription').value,
-                capacity: document.getElementById('roomCapacity').value ? parseInt(document.getElementById('roomCapacity').value) : null,
-                defaultDurationMinutes: document.getElementById('roomDuration').value ? parseInt(document.getElementById('roomDuration').value) : 60
+                capacity: document.getElementById('roomCapacity').value ? parseInt(document.getElementById('roomCapacity').value) : 5,
+                defaultDurationMinutes: 60,
+                basePrice: document.getElementById('roomBasePrice').value ? parseInt(document.getElementById('roomBasePrice').value, 10) : null,
+                weekendPrice: document.getElementById('roomWeekendPrice').value ? parseInt(document.getElementById('roomWeekendPrice').value, 10) : null,
+                weekendApplyTo: document.getElementById('roomWeekendApplyTo').value || null
             };
 
             if (!payload.name) {
@@ -252,12 +412,30 @@
             })
                 .then(r => r.json())
                 .then(result => {
-                    if (result.success) {
+                    if (!result.success) {
+                        alert(result.error?.message || '저장에 실패했습니다.');
+                        return;
+                    }
+                    const roomId = id ? id : result.data;
+                    const selectedFiles = window.roomSelectedNewFiles || [];
+                    if (selectedFiles.length > 0) {
+                        const formData = new FormData();
+                        for (let i = 0; i < selectedFiles.length; i++) formData.append('files', selectedFiles[i]);
+                        formData.append('refType', 'RENTAL_ROOM');
+                        formData.append('refId', roomId);
+                        formData.append('maxCount', '20');
+                        fetch('/api/v1/files/upload/batch', { method: 'POST', credentials: 'same-origin', body: formData })
+                            .then(r2 => r2.json())
+                            .then(function() {
+                                alert('저장되었습니다.');
+                                closeRoomForm();
+                                loadRooms();
+                            })
+                            .catch(function() { alert('저장되었으나 사진 업로드에 실패할 수 있습니다.'); closeRoomForm(); loadRooms(); });
+                    } else {
                         alert('저장되었습니다.');
                         closeRoomForm();
                         loadRooms();
-                    } else {
-                        alert(result.error?.message || '저장에 실패했습니다.');
                     }
                 })
                 .catch(() => alert('오류가 발생했습니다.'));

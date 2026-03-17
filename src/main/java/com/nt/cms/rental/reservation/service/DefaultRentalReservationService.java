@@ -5,6 +5,7 @@ import com.nt.cms.common.exception.ErrorCode;
 import com.nt.cms.rental.reservation.dto.RentalReservationRequest;
 import com.nt.cms.rental.reservation.dto.RentalReservationResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationSearchRequest;
+import com.nt.cms.rental.reservation.dto.RentalReservationSearchResponse;
 import com.nt.cms.rental.reservation.mapper.RentalReservationMapper;
 import com.nt.cms.rental.reservation.vo.RentalReservationVO;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,15 @@ public class DefaultRentalReservationService implements RentalReservationService
     }
 
     @Override
+    public RentalReservationResponse getReservationByAdmin(Long id) {
+        RentalReservationVO vo = rentalReservationMapper.findByIdWithUserName(id);
+        if (vo == null || Boolean.TRUE.equals(vo.getDeleted())) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
+        return toResponse(vo);
+    }
+
+    @Override
     public List<RentalReservationResponse> getMyReservations(Long userId) {
         return rentalReservationMapper.findByUserId(userId).stream()
                 .filter(vo -> !Boolean.TRUE.equals(vo.getDeleted()))
@@ -81,11 +91,16 @@ public class DefaultRentalReservationService implements RentalReservationService
     }
 
     @Override
-    public List<RentalReservationResponse> searchReservations(RentalReservationSearchRequest request) {
-        return rentalReservationMapper.search(request).stream()
+    public RentalReservationSearchResponse searchReservations(RentalReservationSearchRequest request) {
+        List<RentalReservationResponse> items = rentalReservationMapper.search(request).stream()
                 .filter(vo -> !Boolean.TRUE.equals(vo.getDeleted()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+        Long totalAmount = rentalReservationMapper.sumTotalPriceBySearch(request);
+        return RentalReservationSearchResponse.builder()
+                .items(items)
+                .totalAmount(totalAmount != null ? totalAmount : 0L)
+                .build();
     }
 
     @Override
@@ -138,6 +153,7 @@ public class DefaultRentalReservationService implements RentalReservationService
                 .id(vo.getId())
                 .roomId(vo.getRoomId())
                 .userId(vo.getUserId())
+                .userName(vo.getUserName())
                 .start(vo.getStartDatetime().toString())
                 .end(vo.getEndDatetime().toString())
                 .status(vo.getStatus())
