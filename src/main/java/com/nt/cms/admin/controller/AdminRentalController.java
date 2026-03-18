@@ -12,28 +12,28 @@ public class AdminRentalController {
     @GetMapping("/places/view")
     public String places(Model model) {
         model.addAttribute("currentMenu", "rental-places");
-        model.addAttribute("pageTitle", "렌탈 장소 관리");
+        model.addAttribute("pageTitle", "예약 장소 관리");
         return "admin/rental/places";
     }
 
     @GetMapping("/rooms/view")
     public String rooms(Model model) {
         model.addAttribute("currentMenu", "rental-rooms");
-        model.addAttribute("pageTitle", "렌탈 룸 관리");
+        model.addAttribute("pageTitle", "예약 공간 관리");
         return "admin/rental/rooms";
     }
 
     @GetMapping("/pricing/view")
     public String pricing(Model model) {
         model.addAttribute("currentMenu", "rental-pricing");
-        model.addAttribute("pageTitle", "렌탈 요금 관리");
+        model.addAttribute("pageTitle", "예약 요금 관리");
         return "admin/rental/pricing";
     }
 
     @GetMapping("/closed-rules/view")
     public String closedRules(Model model) {
         model.addAttribute("currentMenu", "rental-closed-rules");
-        model.addAttribute("pageTitle", "렌탈 휴관/공휴일 관리");
+        model.addAttribute("pageTitle", "예약 휴관/공휴일 관리");
         return "admin/rental/closed-rules";
     }
 

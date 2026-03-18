@@ -39,15 +39,11 @@ public class PublicRentalController {
     @GetMapping("/rooms/{roomId}/calendar")
     public ApiResponse<List<RentalCalendarDayResponse>> getRoomCalendar(@PathVariable Long roomId,
                                                                         @RequestParam Long placeId,
-                                                                        @RequestParam String fromDate,
-                                                                        @RequestParam String toDate,
-                                                                        @RequestParam(required = false) Integer slotMinutes) {
+                                                                        @RequestParam String yearMonth) {
         RentalCalendarRequest request = new RentalCalendarRequest();
         request.setPlaceId(placeId);
         request.setRoomId(roomId);
-        request.setFromDate(fromDate);
-        request.setToDate(toDate);
-        request.setSlotMinutes(slotMinutes);
+        request.setYearMonth(yearMonth);
         return ApiResponse.success(rentalCalendarService.getCalendar(request));
     }
 }

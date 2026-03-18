@@ -24,24 +24,38 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
 
     @Override
     public List<RentalCalendarDayResponse> getCalendar(RentalCalendarRequest request) {
+        validateRequest(request);
+
+        YearMonth yearMonth = YearMonth.parse(request.getYearMonth());
+        LocalDate fromDate = yearMonth.atDay(1);
+        LocalDate toDate = yearMonth.atEndOfMonth();
+
+        CalendarData calendarData = loadCalendarData(request, fromDate, toDate);
+
+        Map<LocalDate, List<Map<String, Object>>> specialsByDate = calendarData.specialPricing().stream()
+                .collect(Collectors.groupingBy(row -> toLocalDate(row.get("date"))));
+
+        List<RentalCalendarDayResponse> days = new ArrayList<>();
+        for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
+            days.add(buildDay(date, calendarData, specialsByDate));
+        }
+
+        return days;
+    }
+
+    private void validateRequest(RentalCalendarRequest request) {
         if (request.getRoomId() == null) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "roomId는 필수입니다.");
         }
-        if (request.getFromDate() == null || request.getToDate() == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "fromDate/toDate는 필수입니다.");
+        if (request.getYearMonth() == null || request.getYearMonth().isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "yearMonth는 필수입니다. (예: 2026-03)");
         }
+    }
 
-        LocalDate fromDate = LocalDate.parse(request.getFromDate());
-        LocalDate toDate = LocalDate.parse(request.getToDate());
-        if (toDate.isBefore(fromDate)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE, "toDate는 fromDate 이후여야 합니다.");
-        }
-        int slotMinutes = Optional.ofNullable(request.getSlotMinutes()).orElse(60);
-
+    private CalendarData loadCalendarData(RentalCalendarRequest request, LocalDate fromDate, LocalDate toDate) {
         LocalDateTime fromDateTime = fromDate.atStartOfDay();
-        LocalDateTime toDateTime = toDate.plusDays(1).atStartOfDay(); // inclusive 날짜 범위
+        LocalDateTime toDateTime = toDate.plusDays(1).atStartOfDay();
 
-        // 휴관/대여불가/요금/예약 데이터 조회
         List<Map<String, Object>> closedRules = rentalCalendarMapper.findPlaceClosedRules(
                 request.getPlaceId(), fromDate, toDate);
         List<Map<String, Object>> unavailableSlots = rentalCalendarMapper.findRoomUnavailableSlots(
@@ -53,89 +67,130 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
         List<Map<String, Object>> reservations = rentalCalendarMapper.findReservations(
                 request.getRoomId(), fromDateTime, toDateTime);
 
-        Map<LocalDate, List<Map<String, Object>>> specialByDate = specialPricingList.stream()
-                .collect(Collectors.groupingBy(m -> toLocalDate(m.get("date"))));
+        return new CalendarData(
+                closedRules,
+                unavailableSlots,
+                basePricingList,
+                weekendHolidayPricingList,
+                specialPricingList,
+                reservations
+        );
+    }
 
-        List<RentalCalendarDayResponse> days = new ArrayList<>();
-        for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
-            DayOfWeek dow = date.getDayOfWeek();
-            boolean isWeekend = dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
+    private RentalCalendarDayResponse buildDay(LocalDate date,
+                                               CalendarData calendarData,
+                                               Map<LocalDate, List<Map<String, Object>>> specialsByDate) {
+        boolean isClosed = isClosedByRules(date, calendarData.closedRules());
+        String dayType = isClosed ? "CLOSED" : "OPEN";
+        String holidayName = isClosed ? findHolidayName(date, calendarData.closedRules()) : null;
 
-            String dayType = "OPEN";
-            String holidayName = null;
+        List<RentalCalendarSlotResponse> slots = isClosed
+                ? Collections.emptyList()
+                : buildSlots(
+                        date,
+                        calendarData,
+                        specialsByDate.getOrDefault(date, Collections.emptyList())
+                );
 
-            boolean isClosed = isClosedByRules(date, closedRules);
-            if (isClosed) {
-                dayType = "CLOSED";
-                holidayName = findHolidayName(date, closedRules);
+        List<ReservationSummary> dayReservations = buildReservationsForDate(date, calendarData.reservations());
+
+        return RentalCalendarDayResponse.builder()
+                .date(date.toString())
+                .dayType(dayType)
+                .holidayName(holidayName)
+                .slots(slots)
+                .reservations(dayReservations)
+                .build();
+    }
+
+    private List<RentalCalendarSlotResponse> buildSlots(LocalDate date,
+                                                        CalendarData calendarData,
+                                                        List<Map<String, Object>> specialsForDate) {
+        List<RentalCalendarSlotResponse> slots = new ArrayList<>();
+
+        LocalDateTime dayStart = date.atStartOfDay();
+        LocalDateTime dayEnd = dayStart.plusDays(1);
+        boolean isWeekend = isWeekend(date);
+        int slotMinutes = 60;
+
+        for (LocalDateTime slotStart = dayStart;
+             slotStart.isBefore(dayEnd);
+             slotStart = slotStart.plusMinutes(slotMinutes)) {
+
+            LocalDateTime slotEnd = slotStart.plusMinutes(slotMinutes);
+            if (slotEnd.isAfter(dayEnd)) {
+                break;
             }
 
-            List<RentalCalendarSlotResponse> slots = new ArrayList<>();
-            if (!isClosed) {
-                LocalDateTime dayStart = date.atStartOfDay();
-                LocalDateTime dayEnd = dayStart.plusDays(1);
-                for (LocalDateTime slotStart = dayStart;
-                     slotStart.isBefore(dayEnd);
-                     slotStart = slotStart.plusMinutes(slotMinutes)) {
-
-                    LocalDateTime slotEnd = slotStart.plusMinutes(slotMinutes);
-                    if (slotEnd.isAfter(dayEnd)) {
-                        break;
-                    }
-
-                    boolean available = true;
-                    String reason = null;
-
-                    if (isUnavailable(slotStart, slotEnd, unavailableSlots)) {
-                        available = false;
-                        reason = "UNAVAILABLE";
-                    }
-                    Map<String, Object> conflictReservation = findReservation(slotStart, slotEnd, reservations);
-                    Long price = null;
-                    String priceSource = null;
-
-                    if (available) {
-                        PriceResult priceResult = calculatePrice(slotStart.toLocalDate(), slotStart.toLocalTime(),
-                                slotMinutes, isWeekend, specialByDate.getOrDefault(date, Collections.emptyList()),
-                                weekendHolidayPricingList, basePricingList);
-                        if (priceResult != null) {
-                            price = priceResult.price();
-                            priceSource = priceResult.source();
-                        }
-                    }
-
-                    RentalCalendarSlotResponse.RentalCalendarSlotResponseBuilder builder =
-                            RentalCalendarSlotResponse.builder()
-                                    .start(slotStart.toString())
-                                    .end(slotEnd.toString())
-                                    .available(available)
-                                    .reason(reason)
-                                    .price(price)
-                                    .priceSource(priceSource);
-
-                    if (conflictReservation != null) {
-                        builder.reservationId(((Number) conflictReservation.get("id")).longValue())
-                                .reservationStatus((String) conflictReservation.get("status"))
-                                .available(false)
-                                .reason("RESERVED");
-                    }
-
-                    slots.add(builder.build());
-                }
-            }
-
-            List<ReservationSummary> dayReservations = buildReservationsForDate(date, reservations);
-
-            days.add(RentalCalendarDayResponse.builder()
-                    .date(date.toString())
-                    .dayType(dayType)
-                    .holidayName(holidayName)
-                    .slots(slots)
-                    .reservations(dayReservations)
-                    .build());
+            slots.add(buildSlot(
+                    slotStart,
+                    slotEnd,
+                    isWeekend,
+                    slotMinutes,
+                    specialsForDate,
+                    calendarData
+            ));
         }
 
-        return days;
+        return slots;
+    }
+
+    private boolean isWeekend(LocalDate date) {
+        DayOfWeek dow = date.getDayOfWeek();
+        return dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
+    }
+
+    private RentalCalendarSlotResponse buildSlot(LocalDateTime slotStart,
+                                                 LocalDateTime slotEnd,
+                                                 boolean isWeekend,
+                                                 int slotMinutes,
+                                                 List<Map<String, Object>> specialsForDate,
+                                                 CalendarData calendarData) {
+        boolean available = true;
+        String reason = null;
+
+        if (isUnavailable(slotStart, slotEnd, calendarData.unavailableSlots())) {
+            available = false;
+            reason = "UNAVAILABLE";
+        }
+
+        Map<String, Object> conflictReservation = findReservation(slotStart, slotEnd, calendarData.reservations());
+        Long price = null;
+        String priceSource = null;
+
+        if (available) {
+            PriceResult priceResult = calculatePrice(
+                    slotStart.toLocalDate(),
+                    slotStart.toLocalTime(),
+                    slotMinutes,
+                    isWeekend,
+                    specialsForDate,
+                    calendarData.weekendHolidayPricing(),
+                    calendarData.basePricing()
+            );
+            if (priceResult != null) {
+                price = priceResult.price();
+                priceSource = priceResult.source();
+            }
+        }
+
+        RentalCalendarSlotResponse.RentalCalendarSlotResponseBuilder builder =
+                RentalCalendarSlotResponse.builder()
+                        .start(slotStart.toString())
+                        .end(slotEnd.toString())
+                        .available(available)
+                        .reason(reason)
+                        .price(price)
+                        .priceSource(priceSource);
+
+        if (conflictReservation != null) {
+            builder.reservationId(((Number) conflictReservation.get("id")).longValue())
+                    .reservationStatus((String) conflictReservation.get("status"))
+                    .available(false)
+                    .reason("RESERVED");
+        }
+
+        return builder.build();
     }
 
     private List<ReservationSummary> buildReservationsForDate(LocalDate date, List<Map<String, Object>> reservations) {
@@ -334,6 +389,16 @@ public class DefaultRentalCalendarService implements RentalCalendarService {
     }
 
     private record PriceResult(Long price, String source) {
+    }
+
+    private record CalendarData(
+            List<Map<String, Object>> closedRules,
+            List<Map<String, Object>> unavailableSlots,
+            List<Map<String, Object>> basePricing,
+            List<Map<String, Object>> weekendHolidayPricing,
+            List<Map<String, Object>> specialPricing,
+            List<Map<String, Object>> reservations
+    ) {
     }
 
     private LocalDate toLocalDate(Object value) {

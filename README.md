@@ -1514,6 +1514,14 @@ src/main/resources/templates/site/page/
 
 > **참고**: 사용자 사이트는 Thymeleaf 서버 렌더링(SSR) 방식으로 동작합니다. 메뉴·팝업·최신글·게시판 링크는 서버에서 렌더링되며 JS 없이 콘텐츠 확인이 가능합니다.
 
+### 11.10 예약(대관) 모듈
+
+장소·공간(룸) 단위로 휴관/공휴일, 예약 불가 구간, 요금(기본·주말·공휴·특수)을 설정하고, 사용자가 시간대별로 예약할 수 있는 기능을 제공합니다.
+
+- **관리자 메뉴**: 예약 장소, 예약 공간, 예약 요금, 예약 관리(달력/목록) — `/admin/rental/*/view`
+- **주요 API**: 장소/룸 CRUD, 휴관 규칙, 대여불가 구간, 요금 설정, 달력 검색(`GET /api/v1/rental/search`), 예약 생성·조회·상태 변경
+- **상세 문서**: [docs/RENTAL_MODULE_STRUCTURE.md](docs/RENTAL_MODULE_STRUCTURE.md), [docs/RENTAL_PRICING_LOGIC.md](docs/RENTAL_PRICING_LOGIC.md)
+
 ---
 
 ## 12. 캐싱

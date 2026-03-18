@@ -102,11 +102,13 @@ flowchart TB
 
 `RentalCalendarService` / `DefaultRentalCalendarService` 가 다음을 수행합니다.
 
-1. **RentalCalendarMapper**로 기간 내 데이터 조회:
+1. **입력 검증** (`validateRequest`): `roomId`, `yearMonth` 필수 검사.
+2. **데이터 로딩** (`loadCalendarData`): **RentalCalendarMapper**로 기간 내 데이터 조회
    - 휴관 규칙(`findPlaceClosedRules`), 룸 대여불가(`findRoomUnavailableSlots`), 기본 요금(`findBasePricing`), 주말·공휴 요금(`findWeekendHolidayPricing`), 특수 요금(`findSpecialPricing`), 예약(`findReservations`).
-2. 일별로 휴관 여부 판단 후, **해당 일이 열린 날**에 한해 슬롯(기본 60분 단위) 루프.
-3. 각 슬롯에 대해: 대여불가 구간·기존 예약과 겹치면 비가능, 아니면 가능 + 적용 요금(특수 > 주말/공휴 > 기본) 계산.
-4. 결과를 `List<RentalCalendarDayResponse>` (일별 + 슬롯 리스트)로 반환.
+   - 결과를 `CalendarData` 레코드로 묶어 전달.
+3. **일별 구성** (`buildDay`): 일별로 휴관 여부 판단 후, 해당 일이 열린 날에만 **슬롯 생성** (`buildSlots`).
+4. **슬롯별 구성** (`buildSlot`): 대여불가 구간·기존 예약과 겹치면 비가능, 아니면 가능 + 적용 요금(특수 > 주말/공휴 > 기본) 계산.
+5. 결과를 `List<RentalCalendarDayResponse>` (일별 + 슬롯 리스트)로 반환.
 
 매퍼 정의: `src/main/resources/mapper/rental/RentalCalendarMapper.xml`.
 
@@ -122,8 +124,8 @@ flowchart TB
 | `unavailable-slots.html` | 룸별 대여불가 구간 |
 | `calendar.html` | 일별 슬롯 가용여부·요금 조회 |
 
-- **메뉴** (`layout.html`): 렌탈 장소, 렌탈 룸, 렌탈 요금, 렌탈 대여불가, 렌탈 달력
-- **휴관·공휴일**: 요금 달력에서 날짜 클릭으로 지정 (closed-rules 별도 페이지 제거)
+- **메뉴** (`layout.html`): 예약 장소, 예약 공간, 예약 요금, 예약 관리 - 달력, 예약 관리 - 목록 (UI 문구는 "예약"으로 통일)
+- **휴관·공휴일**: 요금 달력에서 날짜 클릭으로 지정. 별도 `closed-rules.html`에서 장소별 휴관 규칙 관리 가능.
 
 ---
 
@@ -140,3 +142,25 @@ flowchart TB
 
 요금 계산, 적용 우선순위, API 사용법 등은 **`docs/RENTAL_PRICING_LOGIC.md`**를 참고하세요.  
 사용자 예약·관리자 예약·정산 등에서 동일한 규칙을 사용할 수 있도록 정리되어 있습니다.
+
+---
+
+## 9. 예약 상태 플로우
+
+| 상태 | 설명 |
+|------|------|
+| REQUESTED | 사용자 신청 직후 |
+| CONFIRMED | 관리자 승인 |
+| REJECTED_BY_ADMIN | 관리자 거절 |
+| CANCELLED_BY_USER | 사용자 취소 |
+| CANCELLED_BY_ADMIN | 관리자 취소 |
+
+---
+
+## 10. 테스트
+
+- **단위 테스트**: `src/test/java/com/nt/cms/rental/`
+  - `calendar/service/DefaultRentalCalendarServiceTest`: 입력 검증, 휴관 규칙 적용, 기본 캘린더 반환
+  - `reservation/service/DefaultRentalReservationServiceTest`: 예약 생성(정상/시간 역전/중복), 검색 합계
+  - `pricing/service/DefaultRentalPricingServiceTest`: 기본 요금 upsert, 주말·공휴일 요금 update/insert
+- **컨트롤러 테스트**: `calendar/controller/RentalCalendarPublicControllerTest` — `GET /api/v1/rental/search` 200/400

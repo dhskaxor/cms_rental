@@ -7,8 +7,5 @@ public class RentalCalendarRequest {
 
     private Long placeId;
     private Long roomId;
-    private String fromDate; // YYYY-MM-DD
-    private String toDate;   // YYYY-MM-DD
-    private Integer slotMinutes;
+    private String yearMonth; // YYYY-MM
 }
-
