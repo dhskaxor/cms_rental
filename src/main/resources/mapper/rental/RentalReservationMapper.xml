@@ -3,6 +3,42 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.nt.cms.rental.reservation.mapper.RentalReservationMapper">
 
+    <sql id="reservationColumns">
+        id,
+        room_id,
+        user_id,
+        start_datetime,
+        end_datetime,
+        status,
+        total_price,
+        memo,
+        payment_status,
+        payment_id,
+        created_at,
+        created_by,
+        updated_at,
+        updated_by,
+        deleted
+    </sql>
+
+    <sql id="reservationColumnsWithAlias">
+        r.id,
+        r.room_id,
+        r.user_id,
+        r.start_datetime,
+        r.end_datetime,
+        r.status,
+        r.total_price,
+        r.memo,
+        r.payment_status,
+        r.payment_id,
+        r.created_at,
+        r.created_by,
+        r.updated_at,
+        r.updated_by,
+        r.deleted
+    </sql>
+
     <resultMap id="RentalReservationResultMap" type="com.nt.cms.rental.reservation.vo.RentalReservationVO">
         <id property="id" column="id"/>
         <result property="roomId" column="room_id"/>
@@ -71,28 +107,38 @@
     </update>
 
     <select id="findById" resultMap="RentalReservationResultMap">
-        SELECT *
+        SELECT
+            <include refid="reservationColumns"/>
         FROM rental_reservation
         WHERE id = #{id}
+          AND deleted = 0
     </select>
 
     <select id="findByIdWithUserName" resultMap="RentalReservationResultMap" databaseId="mariadb">
-        SELECT r.*, u.name AS user_name
+        SELECT
+            <include refid="reservationColumnsWithAlias"/>,
+            u.name AS user_name
         FROM rental_reservation r
         LEFT JOIN `user` u ON r.user_id = u.id AND u.deleted = 0
         WHERE r.id = #{id}
+          AND r.deleted = 0
     </select>
     <select id="findByIdWithUserName" resultMap="RentalReservationResultMap" databaseId="h2">
-        SELECT r.*, u.name AS user_name
+        SELECT
+            <include refid="reservationColumnsWithAlias"/>,
+            u.name AS user_name
         FROM rental_reservation r
         LEFT JOIN "user" u ON r.user_id = u.id AND u.deleted = 0
         WHERE r.id = #{id}
+          AND r.deleted = 0
     </select>
 
     <select id="findByUserId" resultMap="RentalReservationResultMap">
-        SELECT *
+        SELECT
+            <include refid="reservationColumns"/>
         FROM rental_reservation
         WHERE user_id = #{userId}
+          AND deleted = 0
         ORDER BY start_datetime DESC
     </select>
 
@@ -115,7 +161,9 @@
     </select>
 
     <select id="search" resultMap="RentalReservationResultMap" databaseId="mariadb">
-        SELECT r.*, u.name AS user_name
+        SELECT
+            <include refid="reservationColumnsWithAlias"/>,
+            u.name AS user_name
         FROM rental_reservation r
         LEFT JOIN `user` u ON r.user_id = u.id AND u.deleted = 0
         WHERE r.deleted = 0
@@ -137,7 +185,9 @@
         ORDER BY r.start_datetime DESC
     </select>
     <select id="search" resultMap="RentalReservationResultMap" databaseId="h2">
-        SELECT r.*, u.name AS user_name
+        SELECT
+            <include refid="reservationColumnsWithAlias"/>,
+            u.name AS user_name
         FROM rental_reservation r
         LEFT JOIN "user" u ON r.user_id = u.id AND u.deleted = 0
         WHERE r.deleted = 0
@@ -203,11 +253,16 @@
     </select>
 
     <select id="findOverlappingReservations" resultMap="RentalReservationResultMap">
-        SELECT *
+        <bind name="requestedStatus"
+              value="@com.nt.cms.rental.reservation.constant.RentalReservationStatus@REQUESTED"/>
+        <bind name="confirmedStatus"
+              value="@com.nt.cms.rental.reservation.constant.RentalReservationStatus@CONFIRMED"/>
+        SELECT
+            <include refid="reservationColumns"/>
         FROM rental_reservation
         WHERE room_id = #{roomId}
           AND deleted = 0
-          AND status IN ('REQUESTED', 'CONFIRMED')
+          AND status IN (#{requestedStatus}, #{confirmedStatus})
           AND (
               (start_datetime &lt; #{end} AND end_datetime &gt; #{start})
           )
@@ -215,14 +270,20 @@
 
     <!-- 사용자 취소용: VO 매핑 없이 바로 상태만 변경 -->
     <update id="cancelByUser">
+        <bind name="cancelledByUserStatus"
+              value="@com.nt.cms.rental.reservation.constant.RentalReservationStatus@CANCELLED_BY_USER"/>
+        <bind name="requestedStatus"
+              value="@com.nt.cms.rental.reservation.constant.RentalReservationStatus@REQUESTED"/>
+        <bind name="confirmedStatus"
+              value="@com.nt.cms.rental.reservation.constant.RentalReservationStatus@CONFIRMED"/>
         UPDATE rental_reservation
-        SET status = 'CANCELLED_BY_USER',
+        SET status = #{cancelledByUserStatus},
             updated_at = #{now},
             updated_by = #{userId}
         WHERE id = #{id}
           AND user_id = #{userId}
           AND deleted = 0
-          AND status IN ('REQUESTED','CONFIRMED')
+          AND status IN (#{requestedStatus}, #{confirmedStatus})
     </update>
 
 </mapper>

@@ -12,8 +12,9 @@
 
 | 구분 | Base URL | 인증 |
 |------|----------|------|
-| 공개 API | /api/v1/public/** | 불필요 |
+| 공개 API | /api/v1/public/** | 불필요 (단, `/api/v1/public/rentals/**` 제외) |
 | 인증 API | /api/v1/auth/** | JWT 또는 세션 |
+| 공개 대관 예약 API | /api/v1/public/rentals/** | 필요 (인증 사용자) |
 
 ---
 
@@ -99,6 +100,12 @@ const siteName = res.data?.siteName ?? 'CMS Core'
 |--------|----------|------|
 | GET | /api/v1/public/posts/latest | 여러 게시판의 최신글 조회 |
 
+### 2.8 대관 공개 API
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| GET | /api/v1/rental/search | 대관 캘린더 가용 슬롯 조회 (공개) |
+
 **Query 파라미터:**
 
 | 파라미터 | 타입 | 필수 | 기본값 | 설명 |
@@ -162,6 +169,15 @@ const popularRes = await fetch('/api/v1/public/posts/latest?boardIds=1,2&size=5&
 | POST | /site/auth/login | 로그인 처리 (세션 생성, redirect 파라미터 지원) |
 | POST | /site/auth/logout | 로그아웃 처리 |
 | - | (에러 시) site/error | 404, 500 등 /site/** 전용 에러 페이지 (status, message 표시) |
+
+### 3.1 인증 사용자 대관 예약 엔드포인트
+
+| Method | Endpoint | 설명 |
+|--------|----------|------|
+| POST | /api/v1/public/rentals/rooms/{roomId}/reservations | 예약 생성 |
+| GET | /api/v1/public/rentals/reservations/my | 내 예약 목록 조회 |
+| GET | /api/v1/public/rentals/reservations/{id} | 내 예약 상세 조회 |
+| DELETE | /api/v1/public/rentals/reservations/{id} | 내 예약 취소 |
 
 ---
 

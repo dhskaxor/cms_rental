@@ -1,13 +1,12 @@
 package com.nt.cms.rental.publicapi.controller;
 
 import com.nt.cms.auth.security.CustomUserDetails;
-import com.nt.cms.common.exception.BusinessException;
-import com.nt.cms.common.exception.ErrorCode;
 import com.nt.cms.common.response.ApiResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationRequest;
 import com.nt.cms.rental.reservation.dto.RentalReservationResponse;
 import com.nt.cms.rental.reservation.service.RentalReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +20,7 @@ public class PublicRentalReservationController {
     private final RentalReservationService rentalReservationService;
 
     @PostMapping("/rooms/{roomId}/reservations")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Long> createReservation(@PathVariable Long roomId,
                                                @RequestBody RentalReservationRequest request,
                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -30,26 +30,23 @@ public class PublicRentalReservationController {
     }
 
     @GetMapping("/reservations/my")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<List<RentalReservationResponse>> getMyReservations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
         return ApiResponse.success(rentalReservationService.getMyReservations(userDetails.getUserId()));
     }
 
     @GetMapping("/reservations/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<RentalReservationResponse> getReservation(@PathVariable Long id,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         return ApiResponse.success(rentalReservationService.getReservation(id, userDetails.getUserId()));
     }
 
     @DeleteMapping("/reservations/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ApiResponse<Void> cancelMyReservation(@PathVariable Long id,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        }
         rentalReservationService.cancelByUser(id, userDetails.getUserId());
         return ApiResponse.success();
     }

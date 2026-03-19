@@ -103,6 +103,9 @@ public class SecurityConfig {
                 
                 // URL별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        // 공개 대관 API 중 "예약 생성/내 예약 조회/상세/취소"만 인증 사용자 허용
+                        .requestMatchers("/api/v1/public/rentals/rooms/*/reservations").authenticated()
+                        .requestMatchers("/api/v1/public/rentals/reservations/**").authenticated()
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated()
                 )

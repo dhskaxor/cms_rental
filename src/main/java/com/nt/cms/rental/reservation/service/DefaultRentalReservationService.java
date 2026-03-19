@@ -2,6 +2,7 @@ package com.nt.cms.rental.reservation.service;
 
 import com.nt.cms.common.exception.BusinessException;
 import com.nt.cms.common.exception.ErrorCode;
+import com.nt.cms.rental.reservation.constant.RentalReservationStatus;
 import com.nt.cms.rental.reservation.dto.RentalReservationRequest;
 import com.nt.cms.rental.reservation.dto.RentalReservationResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationSearchRequest;
@@ -47,7 +48,7 @@ public class DefaultRentalReservationService implements RentalReservationService
                 .userId(userId)
                 .startDatetime(start)
                 .endDatetime(end)
-                .status("REQUESTED")
+                .status(RentalReservationStatus.REQUESTED)
                 .totalPrice(request.getTotalPrice() != null ? request.getTotalPrice() : 0L)
                 .memo(request.getMemo())
                 .createdAt(LocalDateTime.now())
@@ -90,7 +91,6 @@ public class DefaultRentalReservationService implements RentalReservationService
     @Override
     public RentalReservationSearchResponse searchReservations(RentalReservationSearchRequest request) {
         List<RentalReservationResponse> items = rentalReservationMapper.search(request).stream()
-                .filter(vo -> !Boolean.TRUE.equals(vo.getDeleted()))
                 .map(this::toResponse)
                 .collect(Collectors.toList());
         Long totalAmount = rentalReservationMapper.sumTotalPriceBySearch(request);
@@ -113,19 +113,19 @@ public class DefaultRentalReservationService implements RentalReservationService
     @Override
     @Transactional
     public void confirmByAdmin(Long id, Long actorId) {
-        updateStatusByAdmin(id, actorId, "CONFIRMED");
+        updateStatusByAdmin(id, actorId, RentalReservationStatus.CONFIRMED);
     }
 
     @Override
     @Transactional
     public void rejectByAdmin(Long id, Long actorId) {
-        updateStatusByAdmin(id, actorId, "REJECTED_BY_ADMIN");
+        updateStatusByAdmin(id, actorId, RentalReservationStatus.REJECTED_BY_ADMIN);
     }
 
     @Override
     @Transactional
     public void cancelByAdmin(Long id, Long actorId) {
-        updateStatusByAdmin(id, actorId, "CANCELLED_BY_ADMIN");
+        updateStatusByAdmin(id, actorId, RentalReservationStatus.CANCELLED_BY_ADMIN);
     }
 
     private void updateStatusByAdmin(Long id, Long actorId, String status) {

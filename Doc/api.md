@@ -239,6 +239,30 @@ Authorization: Bearer {access_token}
 - **URL**: `GET /api/v1/public/common-codes/{groupCode}`
 - **인증**: 불필요
 
+#### 7. 대관 캘린더 공개 조회
+
+- **URL**: `GET /api/v1/rental/search`
+- **인증**: 불필요
+- **설명**: roomId, yearMonth 기준으로 예약 가능 슬롯/일자 조회
+
+#### 8. 공개 경로 중 인증 필요 대관 예약 API
+
+- **URL**: `POST /api/v1/public/rentals/rooms/{roomId}/reservations`
+- **인증**: 필요 (로그인 사용자)
+- **설명**: 대관 예약 생성
+
+- **URL**: `GET /api/v1/public/rentals/reservations/my`
+- **인증**: 필요 (로그인 사용자)
+- **설명**: 로그인 사용자의 내 예약 목록 조회
+
+- **URL**: `GET /api/v1/public/rentals/reservations/{id}`
+- **인증**: 필요 (로그인 사용자)
+- **설명**: 로그인 사용자의 내 예약 상세 조회
+
+- **URL**: `DELETE /api/v1/public/rentals/reservations/{id}`
+- **인증**: 필요 (로그인 사용자)
+- **설명**: 로그인 사용자의 내 예약 취소
+
 ---
 
 ### Public Board API (게시판/게시글)

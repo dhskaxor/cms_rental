@@ -2,8 +2,6 @@ package com.nt.cms.publicapi.controller;
 
 import com.nt.cms.auth.dto.SessionUser;
 import com.nt.cms.common.constant.SessionConstants;
-import com.nt.cms.common.exception.BusinessException;
-import com.nt.cms.common.exception.ErrorCode;
 import com.nt.cms.common.response.ApiResponse;
 import com.nt.cms.commoncode.dto.CommonCodeResponse;
 import com.nt.cms.commoncode.service.CommonCodeService;
@@ -56,10 +54,7 @@ public class PublicSiteController {
     @GetMapping("/site/config")
     public ApiResponse<SiteConfigResponse> getSiteConfig() {
         SiteConfigService siteConfigService = siteConfigServiceProvider.getIfAvailable();
-        if (siteConfigService == null) {
-            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
-        }
-        return ApiResponse.success(siteConfigService.getForPublic());
+        return ApiResponse.success(siteConfigService != null ? siteConfigService.getForPublic() : null);
     }
 
     /**

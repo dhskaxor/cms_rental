@@ -33,6 +33,9 @@
 | 팝업 | `GET /api/v1/public/popups` |
 | 최신글 | `GET /api/v1/public/posts/latest` |
 | 대관 캘린더 조회 | `GET /api/v1/rental/search` |
+| 대관 예약 생성 | `POST /api/v1/public/rentals/rooms/{roomId}/reservations` (인증 필요) |
+| 내 대관 예약 목록 | `GET /api/v1/public/rentals/reservations/my` (인증 필요) |
+| 내 대관 예약 상세/취소 | `GET/DELETE /api/v1/public/rentals/reservations/{id}` (인증 필요) |
 
 ---
 
