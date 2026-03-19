@@ -5,6 +5,7 @@ import com.nt.cms.auth.security.AdminSessionAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
  * Spring Security 설정
@@ -32,6 +34,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AdminSessionAuthenticationFilter adminSessionAuthenticationFilter;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     /**
      * 인증 없이 접근 가능한 경로
@@ -90,6 +93,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // CORS 설정 적용 (브라우저 preflight OPTIONS 허용)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 // CSRF 비활성화 (REST API와 혼용)
                 .csrf(AbstractHttpConfigurer::disable)
                 
@@ -103,6 +108,8 @@ public class SecurityConfig {
                 
                 // URL별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        // preflight 요청은 인증 없이 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 공개 대관 API 중 "예약 생성/내 예약 조회/상세/취소"만 인증 사용자 허용
                         .requestMatchers("/api/v1/public/rentals/rooms/*/reservations").authenticated()
                         .requestMatchers("/api/v1/public/rentals/reservations/**").authenticated()

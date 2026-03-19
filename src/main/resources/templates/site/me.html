@@ -44,27 +44,12 @@
         <div class="site-form-card-section">
             <div class="site-page-section-head">
                 <h2 class="site-page-section-title">비밀번호 변경</h2>
-                <p class="site-page-section-desc">현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</p>
-            </div>
-
-            <div id="siteMePasswordAlert" class="site-alert site-alert-hidden"></div>
-
-            <div class="site-form-row">
-                <label class="site-form-label">현재 비밀번호 <span class="required">*</span></label>
-                <input type="password" id="siteMeCurrentPassword" placeholder="현재 비밀번호">
-            </div>
-            <div class="site-form-row">
-                <label class="site-form-label">새 비밀번호 <span class="required">*</span></label>
-                <input type="password" id="siteMeNewPassword" placeholder="새 비밀번호 (6~12자)">
-            </div>
-            <div class="site-form-row">
-                <label class="site-form-label">새 비밀번호 확인 <span class="required">*</span></label>
-                <input type="password" id="siteMeNewPasswordConfirm" placeholder="새 비밀번호 확인">
+                <p class="site-page-section-desc">팝업에서 현재 비밀번호를 확인한 뒤 새 비밀번호로 변경합니다.</p>
             </div>
 
             <div class="site-form-actions">
-                <button type="button" class="site-btn site-btn-secondary" id="siteMeChangePasswordBtn">
-                    <i class="bi bi-key"></i> 비밀번호 변경
+                <button type="button" class="site-btn site-btn-secondary" id="siteMeOpenPasswordModalBtn">
+                    <i class="bi bi-key"></i> 비밀번호 변경 열기
                 </button>
             </div>
         </div>
@@ -95,6 +80,36 @@
         </div>
     </div>
 
+    <div id="siteMePasswordModal" class="site-modal-backdrop hidden" aria-hidden="true">
+        <div class="site-modal-panel" role="dialog" aria-modal="true" aria-labelledby="siteMePasswordModalTitle">
+            <div class="site-modal-header">
+                <h3 id="siteMePasswordModalTitle" class="site-modal-title">비밀번호 변경</h3>
+                <button type="button" class="site-modal-close" id="siteMeClosePasswordModalBtn" aria-label="닫기">×</button>
+            </div>
+            <div class="site-modal-body">
+                <div id="siteMePasswordAlert" class="site-alert site-alert-hidden"></div>
+                <div class="site-form-row">
+                    <label class="site-form-label">현재 비밀번호 <span class="required">*</span></label>
+                    <input type="password" id="siteMeCurrentPassword" placeholder="현재 비밀번호">
+                </div>
+                <div class="site-form-row">
+                    <label class="site-form-label">새 비밀번호 <span class="required">*</span></label>
+                    <input type="password" id="siteMeNewPassword" placeholder="새 비밀번호 (6~12자)">
+                </div>
+                <div class="site-form-row">
+                    <label class="site-form-label">새 비밀번호 확인 <span class="required">*</span></label>
+                    <input type="password" id="siteMeNewPasswordConfirm" placeholder="새 비밀번호 확인">
+                </div>
+            </div>
+            <div class="site-modal-footer">
+                <button type="button" class="site-btn site-btn-ghost" id="siteMeCancelPasswordModalBtn">닫기</button>
+                <button type="button" class="site-btn site-btn-secondary" id="siteMeChangePasswordBtn">
+                    <i class="bi bi-key"></i> 변경
+                </button>
+            </div>
+        </div>
+    </div>
+
     <style>
         .hidden { display: none !important; }
         .site-page-section-head { margin-bottom: var(--spacing-4); }
@@ -107,6 +122,66 @@
         .site-empty { color: var(--color-text-muted); font-size: var(--font-size-sm); padding: var(--spacing-4) 0; }
         .site-board-table td .site-btn { padding: 0.35rem 0.6rem; }
         .site-form-row input[readonly] { opacity: 0.8; cursor: not-allowed; }
+        .site-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(2, 6, 23, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .site-modal-panel {
+            width: 100%;
+            max-width: 520px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            background: var(--color-bg-secondary);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+        }
+        .site-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-4) var(--spacing-5);
+            border-bottom: 1px solid var(--color-border);
+        }
+        .site-modal-title {
+            margin: 0;
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text);
+        }
+        .site-modal-close {
+            border: none;
+            background: transparent;
+            color: var(--color-text-muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+        .site-modal-body {
+            padding: var(--spacing-5);
+        }
+        .site-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-2);
+            padding: var(--spacing-4) var(--spacing-5);
+            border-top: 1px solid var(--color-border);
+        }
+        .site-btn-ghost {
+            background: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+        }
+        .site-btn-ghost:hover {
+            color: var(--color-text);
+            border-color: var(--color-border-light);
+        }
+        body.site-modal-open {
+            overflow: hidden;
+        }
     </style>
 
     <script>
@@ -132,7 +207,11 @@
             const newPwConfirmEl = document.getElementById('siteMeNewPasswordConfirm');
 
             const saveProfileBtn = document.getElementById('siteMeSaveProfileBtn');
+            const openPasswordModalBtn = document.getElementById('siteMeOpenPasswordModalBtn');
             const changePwBtn = document.getElementById('siteMeChangePasswordBtn');
+            const passwordModal = document.getElementById('siteMePasswordModal');
+            const closePasswordModalBtn = document.getElementById('siteMeClosePasswordModalBtn');
+            const cancelPasswordModalBtn = document.getElementById('siteMeCancelPasswordModalBtn');
 
             function showAlert(el, type, msg) {
                 if (!el) return;
@@ -145,6 +224,20 @@
                 el.classList.add('site-alert-hidden');
                 el.textContent = '';
                 el.classList.remove('is-error', 'is-success');
+            }
+
+            function openPasswordModal() {
+                hideAlert(passwordAlert);
+                currentPwEl.value = '';
+                newPwEl.value = '';
+                newPwConfirmEl.value = '';
+                passwordModal.classList.remove('hidden');
+                document.body.classList.add('site-modal-open');
+            }
+
+            function closePasswordModal() {
+                passwordModal.classList.add('hidden');
+                document.body.classList.remove('site-modal-open');
             }
 
             async function fetchJson(url, opts) {
@@ -248,10 +341,25 @@
                     currentPwEl.value = '';
                     newPwEl.value = '';
                     newPwConfirmEl.value = '';
+                    closePasswordModal();
                 } catch (err) {
                     showAlert(passwordAlert, 'error', '비밀번호 변경 중 오류가 발생했습니다.');
                 } finally {
                     changePwBtn.disabled = false;
+                }
+            });
+
+            openPasswordModalBtn.addEventListener('click', openPasswordModal);
+            closePasswordModalBtn.addEventListener('click', closePasswordModal);
+            cancelPasswordModalBtn.addEventListener('click', closePasswordModal);
+            passwordModal.addEventListener('click', function (e) {
+                if (e.target === passwordModal) {
+                    closePasswordModal();
+                }
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && !passwordModal.classList.contains('hidden')) {
+                    closePasswordModal();
                 }
             });
 

@@ -4,60 +4,328 @@
       layout:decorate="~{site/layout}">
 <head>
     <title>예약 달력</title>
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
 </head>
 <body>
 <div layout:fragment="content">
     <section class="site-section">
-        <div class="site-section-header">
+        <div class="site-section-header site-rental-header">
             <h1 class="site-section-title">예약 달력</h1>
+            <p class="site-section-desc">장소와 공간을 선택하고 예약 가능 일정을 확인하세요.</p>
         </div>
-        <div class="site-card">
-            <div class="site-card-header">
-                <div>
-                    <div class="flex flex-wrap items-center gap-2 text-xs site-rental-toolbar">
-                        <span>장소</span>
+
+        <div class="site-card site-rental-card">
+            <div class="site-rental-panel">
+                <div class="site-rental-panel-title">장소 / 공간 선택</div>
+                <div class="site-rental-filters">
+                    <div class="site-rental-field">
+                        <label for="siteRentalPlaceSelect">장소</label>
                         <select id="siteRentalPlaceSelect" class="form-select">
                             <option value="">장소를 선택하세요</option>
                         </select>
-                        <span>공간(룸)</span>
+                    </div>
+                    <div class="site-rental-field">
+                        <label for="siteRentalRoomSelect">공간(룸)</label>
                         <select id="siteRentalRoomSelect" class="form-select" disabled>
                             <option value="">먼저 장소를 선택하세요</option>
                         </select>
-                        <span id="siteRentalRoomRates" class="hidden"></span>
                     </div>
                 </div>
             </div>
-            <div class="site-card-body">
-                <div id="siteRentalCalendar"></div>
+
+            <div class="site-rental-panel">
+                <div class="site-rental-toolbar">
+                    <div class="site-rental-field site-rental-month">
+                        <label for="siteRentalYearMonthInput">조회 월</label>
+                        <div class="site-rental-month-controls">
+                            <button type="button" id="siteRentalPrevMonthBtn" class="site-rental-nav-btn" aria-label="이전 달">◀</button>
+                            <input id="siteRentalYearMonthInput" type="month" class="form-select">
+                            <button type="button" id="siteRentalNextMonthBtn" class="site-rental-nav-btn" aria-label="다음 달">▶</button>
+                        </div>
+                    </div>
+                    <div id="siteRentalRoomRates" class="site-rental-rates hidden"></div>
+                </div>
+            </div>
+
+            <div class="site-rental-panel">
+                <div id="siteRentalCalendarLoading" class="site-rental-feedback-muted">달력을 불러오는 중입니다...</div>
+                <div id="siteRentalCalendarError" class="site-rental-feedback-error hidden">예약 달력을 불러오지 못했습니다.</div>
+                <div id="siteRentalCalendarEmpty" class="site-rental-feedback-muted hidden">등록된 장소/공간이 없습니다.</div>
+
+                <div id="siteRentalCalendarWrap" class="site-rental-calendar hidden">
+                    <div class="site-rental-weekdays">
+                        <div>일</div>
+                        <div>월</div>
+                        <div>화</div>
+                        <div>수</div>
+                        <div>목</div>
+                        <div>금</div>
+                        <div>토</div>
+                    </div>
+                    <div id="siteRentalCalendarGrid" class="site-rental-grid"></div>
+                </div>
             </div>
         </div>
     </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <style>
+        .hidden { display: none !important; }
+        .site-rental-header {
+            margin-bottom: var(--spacing-4);
+        }
+        .site-rental-header .site-section-desc {
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+        }
+        .site-rental-card {
+            padding: var(--spacing-4);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-3);
+        }
+        .site-rental-panel {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            background: var(--color-bg-card);
+            padding: var(--spacing-3);
+        }
+        .site-rental-panel-title {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            margin-bottom: var(--spacing-3);
+        }
+        .site-rental-filters {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: var(--spacing-3);
+        }
+        .site-rental-field label {
+            display: block;
+            margin-bottom: var(--spacing-2);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+        .site-rental-toolbar {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-4);
+            flex-wrap: wrap;
+        }
+        .site-rental-month {
+            width: 220px;
+            max-width: 100%;
+        }
+        .site-rental-month-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+        }
+        .site-rental-month-controls .form-select {
+            min-width: 150px;
+        }
+        .site-rental-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            background: var(--color-bg-secondary);
+            color: var(--color-text-muted);
+            cursor: pointer;
+            line-height: 1;
+        }
+        .site-rental-nav-btn:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+        .site-rental-rates {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-bg-card);
+            padding: 0.4rem 0.6rem;
+        }
+        .site-rental-calendar {
+            overflow-x: auto;
+        }
+        .site-rental-weekdays,
+        .site-rental-grid {
+            min-width: 760px;
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: var(--spacing-2);
+        }
+        .site-rental-weekdays {
+            margin-bottom: var(--spacing-2);
+        }
+        .site-rental-weekdays > div {
+            text-align: center;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            background: var(--color-bg-card);
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            padding: 0.45rem 0.5rem;
+        }
+        .site-rental-day {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            background: var(--color-bg-secondary);
+            min-height: 134px;
+            padding: 0.55rem 0.6rem;
+            text-align: left;
+            color: var(--color-text);
+            cursor: pointer;
+            transition: border-color .2s ease, transform .2s ease;
+        }
+        .site-rental-day:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-1px);
+        }
+        .site-rental-day.is-outside {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+        .site-rental-day.is-closed {
+            border-color: rgba(245, 158, 11, .35);
+        }
+        .site-rental-day-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: .25rem;
+        }
+        .site-rental-day-num {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+        }
+        .site-rental-holiday {
+            font-size: .625rem;
+            color: #fbbf24;
+        }
+        .site-rental-day-price,
+        .site-rental-day-note {
+            font-size: .72rem;
+            color: var(--color-text-muted);
+            margin-bottom: .2rem;
+        }
+        .site-rental-day-reservation-row {
+            font-size: .72rem;
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: .15rem;
+        }
+        .site-rental-day-more {
+            font-size: .7rem;
+            color: var(--color-text-dim);
+        }
+        .site-rental-day-action {
+            margin-top: .35rem;
+            font-size: .75rem;
+            color: var(--color-primary);
+        }
+        .site-rental-status {
+            display: inline-flex;
+            align-items: center;
+            border-radius: var(--radius-sm);
+            padding: .06rem .3rem;
+            margin-left: .2rem;
+            font-size: .64rem;
+            vertical-align: middle;
+        }
+        .site-rental-status.is-requested { color: #c4b5fd; background: rgba(139, 92, 246, 0.15); }
+        .site-rental-status.is-confirmed { color: #67e8f9; background: rgba(34, 211, 238, 0.15); }
+        .site-rental-status.is-rejected { color: #fbbf24; background: rgba(245, 158, 11, 0.15); }
+        .site-rental-status.is-cancelled { color: #fca5a5; background: rgba(239, 68, 68, 0.15); }
+        @media (max-width: 768px) {
+            .site-rental-filters {
+                grid-template-columns: 1fr;
+            }
+            .site-rental-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .site-rental-month {
+                width: 100%;
+            }
+            .site-rental-month-controls .form-select {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+    </style>
+
     <script>
         (function () {
             let currentPlaceId = null;
             let currentRoomId = null;
             let currentYearMonth = null;
-            let calendarInstance = null;
             let calendarDaysMap = {};
             let isLoading = false;
 
             const placeSelect = document.getElementById('siteRentalPlaceSelect');
             const roomSelect = document.getElementById('siteRentalRoomSelect');
+            const monthInput = document.getElementById('siteRentalYearMonthInput');
+            const prevMonthBtn = document.getElementById('siteRentalPrevMonthBtn');
+            const nextMonthBtn = document.getElementById('siteRentalNextMonthBtn');
+            const loadingEl = document.getElementById('siteRentalCalendarLoading');
+            const errorEl = document.getElementById('siteRentalCalendarError');
+            const emptyEl = document.getElementById('siteRentalCalendarEmpty');
+            const calendarWrapEl = document.getElementById('siteRentalCalendarWrap');
+            const calendarGridEl = document.getElementById('siteRentalCalendarGrid');
 
-            function toYearMonth(date) {
-                const y = date.getFullYear();
-                const m = String(date.getMonth() + 1).padStart(2, '0');
-                return y + '-' + m;
+            function getCurrentYearMonth() {
+                const now = new Date();
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                return `${y}-${m}`;
+            }
+
+            function setLoading(loading) {
+                if (loading) {
+                    loadingEl.classList.remove('hidden');
+                    errorEl.classList.add('hidden');
+                    emptyEl.classList.add('hidden');
+                    calendarWrapEl.classList.add('hidden');
+                } else {
+                    loadingEl.classList.add('hidden');
+                }
+            }
+
+            function showError() {
+                errorEl.classList.remove('hidden');
+                emptyEl.classList.add('hidden');
+                calendarWrapEl.classList.add('hidden');
+            }
+
+            function showEmpty(message) {
+                if (message) {
+                    emptyEl.textContent = message;
+                }
+                emptyEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+                calendarWrapEl.classList.add('hidden');
+            }
+
+            function showCalendar() {
+                calendarWrapEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+                emptyEl.classList.add('hidden');
             }
 
             function loadPlaces() {
                 fetch('/api/v1/public/rentals/places')
                     .then(r => r.json())
                     .then(result => {
-                        if (!result.success) return;
+                        if (!result.success) {
+                            showError();
+                            return;
+                        }
                         const places = result.data || [];
                         placeSelect.innerHTML = '<option value=\"\">장소를 선택하세요</option>';
                         places.forEach(p => {
@@ -66,7 +334,10 @@
                             opt.textContent = p.name;
                             placeSelect.appendChild(opt);
                         });
-                        // 최초 진입 시: 첫 번째 장소 자동 선택 및 룸/달력 로딩
+                        if (!places.length) {
+                            showEmpty('등록된 장소가 없습니다.');
+                            return;
+                        }
                         if (places.length > 0 && !currentPlaceId) {
                             const firstPlace = places[0];
                             currentPlaceId = String(firstPlace.id);
@@ -74,7 +345,7 @@
                             loadRooms(currentPlaceId, true);
                         }
                     })
-                    .catch(() => {});
+                    .catch(() => showError());
             }
 
             function loadRooms(placeId, autoSelectFirstRoom) {
@@ -84,7 +355,10 @@
                 fetch(`/api/v1/public/rentals/places/${placeId}/rooms`)
                     .then(r => r.json())
                     .then(result => {
-                        if (!result.success) return;
+                        if (!result.success) {
+                            showError();
+                            return;
+                        }
                         const rooms = result.data || [];
                         roomSelect.innerHTML = '<option value=\"\">공간을 선택하세요</option>';
                         rooms.forEach(rm => {
@@ -94,20 +368,24 @@
                             roomSelect.appendChild(opt);
                         });
                         roomSelect.disabled = false;
-                        // 최초 진입 또는 장소 자동 선택 시: 첫 번째 룸과 달력을 자동으로 로딩
+                        if (!rooms.length) {
+                            showEmpty('등록된 공간이 없습니다.');
+                            return;
+                        }
                         if (autoSelectFirstRoom && rooms.length > 0) {
                             const firstRoom = rooms[0];
                             currentRoomId = String(firstRoom.id);
                             roomSelect.value = String(firstRoom.id);
-                            fetchCalendar(toYearMonth(new Date()));
+                            fetchCalendar(currentYearMonth);
                         }
                     })
-                    .catch(() => {});
+                    .catch(() => showError());
             }
 
             function fetchCalendar(yearMonth) {
                 if (!currentPlaceId || !currentRoomId || isLoading) return;
                 isLoading = true;
+                setLoading(true);
                 currentYearMonth = yearMonth;
                 const params = new URLSearchParams({
                     placeId: currentPlaceId,
@@ -117,14 +395,22 @@
                     .then(r => r.json())
                     .then(result => {
                         isLoading = false;
-                        if (!result.success) return;
+                        setLoading(false);
+                        if (!result.success) {
+                            showError();
+                            return;
+                        }
                         const days = result.data || [];
                         calendarDaysMap = {};
                         days.forEach(d => { calendarDaysMap[d.date] = d; });
                         updateRoomRates(days);
-                        renderCalendar(yearMonth + '-01');
+                        renderCalendar(yearMonth);
                     })
-                    .catch(() => { isLoading = false; });
+                    .catch(() => {
+                        isLoading = false;
+                        setLoading(false);
+                        showError();
+                    });
             }
 
             function updateRoomRates(days) {
@@ -184,121 +470,152 @@
                 return map[status] || 'is-cancelled';
             }
 
-            function buildDayContent(dateStr) {
-                const day = calendarDaysMap[dateStr];
-                if (!day) return '';
-                if (day.dayType === 'CLOSED') {
-                    const holidayName = day.holidayName;
-                    if (holidayName) {
-                        return `<div class="site-rental-day-note-holiday">공휴일 (${holidayName})</div>`;
-                    }
-                    return '<div class="site-rental-day-note-closed">휴관</div>';
-                }
-
-                const slots = day.slots || [];
-                const availableSlotPrices = slots
-                    .filter(s => s && s.available && s.price != null)
-                    .map(s => Number(s.price))
-                    .filter(p => !Number.isNaN(p) && p > 0);
-                const minPrice = availableSlotPrices.length ? Math.min(...availableSlotPrices) : null;
-                const priceLine = minPrice != null
-                    ? `<div class="site-rental-day-price">최저 ${minPrice.toLocaleString('ko-KR')}원/시간</div>`
-                    : '';
-                const reservations = day.reservations || [];
-                if (!reservations.length) {
-                    return priceLine;
-                }
-                let html = '<div class="space-y-0.5 mt-0.5">';
-                reservations.forEach(r => {
-                    const label = statusLabel(r.status);
-                    const badge = label
-                        ? `<span class="site-rental-status-badge ${statusClass(r.status)}">${label}</span>`
-                        : '';
-                    html += `<div class=\"site-rental-day-reservation-row truncate\">${r.startTime}~${r.endTime}${badge}</div>`;
-                });
-                html += '</div>';
-                return priceLine + html;
+            function toDateString(date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                const d = String(date.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
             }
 
-            function renderCalendar(initialDate) {
-                if (calendarInstance) {
-                    calendarInstance.destroy();
-                    calendarInstance = null;
-                }
-                const el = document.getElementById('siteRentalCalendar');
-                if (!el) return;
+            function shiftYearMonth(yearMonth, diffMonth) {
+                const parts = yearMonth.split('-');
+                const year = Number(parts[0]);
+                const month = Number(parts[1]);
+                if (!year || !month) return yearMonth;
+                const moved = new Date(year, month - 1 + diffMonth, 1);
+                const y = moved.getFullYear();
+                const m = String(moved.getMonth() + 1).padStart(2, '0');
+                return `${y}-${m}`;
+            }
 
-                let skipDatesSet = true;
-                calendarInstance = new FullCalendar.Calendar(el, {
-                    initialView: 'dayGridMonth',
-                    locale: 'ko',
-                    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
-                    height: 'auto',
-                    initialDate: initialDate,
-                    datesSet(arg) {
-                        if (skipDatesSet) {
-                            skipDatesSet = false;
-                            return;
+            function buildMonthCells(yearMonth) {
+                const parts = yearMonth.split('-');
+                const year = Number(parts[0]);
+                const month = Number(parts[1]);
+                if (!year || !month) return [];
+
+                const firstDate = new Date(year, month - 1, 1);
+                const lastDate = new Date(year, month, 0);
+                const startWeekday = firstDate.getDay();
+                const totalDays = lastDate.getDate();
+
+                const cells = [];
+                for (let i = 0; i < startWeekday; i += 1) {
+                    const d = new Date(year, month - 1, 1 - (startWeekday - i));
+                    cells.push({ date: toDateString(d), inCurrentMonth: false });
+                }
+
+                for (let day = 1; day <= totalDays; day += 1) {
+                    const d = new Date(year, month - 1, day);
+                    cells.push({ date: toDateString(d), inCurrentMonth: true });
+                }
+
+                let nextDay = 1;
+                while (cells.length % 7 !== 0) {
+                    const d = new Date(year, month - 1, totalDays + nextDay);
+                    cells.push({ date: toDateString(d), inCurrentMonth: false });
+                    nextDay += 1;
+                }
+                return cells;
+            }
+
+            function getMinPrice(slots) {
+                const values = (slots || [])
+                    .filter(s => s && s.available && s.price != null)
+                    .map(s => Number(s.price))
+                    .filter(v => !Number.isNaN(v) && v > 0);
+                if (!values.length) return null;
+                return Math.min.apply(null, values);
+            }
+
+            function renderCalendar(yearMonth) {
+                const cells = buildMonthCells(yearMonth);
+                if (!cells.length) {
+                    showEmpty('달력을 렌더링할 수 없습니다.');
+                    return;
+                }
+                calendarGridEl.innerHTML = '';
+                showCalendar();
+
+                cells.forEach((cell) => {
+                    const day = calendarDaysMap[cell.date];
+                    const reservations = (day && day.reservations) ? day.reservations : [];
+                    const closed = day && day.dayType === 'CLOSED';
+                    const holiday = day && day.holidayName;
+                    const minPrice = getMinPrice(day ? day.slots : []);
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'site-rental-day';
+                    if (!cell.inCurrentMonth) {
+                        btn.classList.add('is-outside');
+                        btn.disabled = true;
+                    }
+                    if (closed) {
+                        btn.classList.add('is-closed');
+                    }
+
+                    const content = [];
+                    content.push('<div class="site-rental-day-head">');
+                    content.push(`<span class="site-rental-day-num">${Number(cell.date.substring(8, 10))}</span>`);
+                    if (holiday) {
+                        content.push('<span class="site-rental-holiday">공휴일</span>');
+                    }
+                    content.push('</div>');
+
+                    if (closed) {
+                        content.push(`<div class="site-rental-day-note">${holiday ? `공휴일 (${holiday})` : '휴관'}</div>`);
+                    } else {
+                        if (minPrice != null) {
+                            content.push(`<div class="site-rental-day-price">최저 ${minPrice.toLocaleString('ko-KR')}원/시간</div>`);
                         }
-                        if (!currentPlaceId || !currentRoomId || isLoading) return;
-                        const title = arg.view.title;
-                        const match = title.match(/(\\d{4})년\\s+(\\d{1,2})월/);
-                        if (!match) return;
-                        const ym = match[1] + '-' + match[2].padStart(2, '0');
-                        if (ym === currentYearMonth) return;
-                        fetchCalendar(ym);
-                    },
-                    dayCellDidMount(arg) {
-                        const d = arg.date;
-                        const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-                        const dayData = calendarDaysMap[dateStr];
-                        const closed = dayData?.dayType === 'CLOSED';
-                        const holiday = dayData?.holidayName;
-                        if (closed) arg.el.classList.add('fc-day-closed');
-                        else if (holiday) arg.el.classList.add('fc-day-holiday');
-                        else {
-                            const dow = arg.date.getDay();
-                            if (dow === 6) arg.el.classList.add('fc-day-sat');
-                            else if (dow === 0) arg.el.classList.add('fc-day-sun');
+                        if (reservations.length > 0) {
+                            reservations.slice(0, 2).forEach((r) => {
+                                const label = statusLabel(r.status);
+                                const badge = label ? `<span class="site-rental-status ${statusClass(r.status)}">${label}</span>` : '';
+                                content.push(`<div class="site-rental-day-reservation-row">${r.startTime}~${r.endTime}${badge}</div>`);
+                            });
+                            if (reservations.length > 2) {
+                                content.push(`<div class="site-rental-day-more">외 ${reservations.length - 2}건</div>`);
+                            }
                         }
-                        const wrap = document.createElement('div');
-                        wrap.className = 'mt-6 px-1';
-                        wrap.innerHTML = buildDayContent(dateStr);
-                        const frame = arg.el.querySelector('.fc-daygrid-day-frame');
-                        if (frame) frame.appendChild(wrap);
-                    },
-                    dateClick(info) {
-                        if (!currentPlaceId || !currentRoomId) return;
-                        const dateStr = info.dateStr;
-                        // 오늘 포함 이전 날짜는 예약 불가 (최소 1일 전)
+                    }
+
+                    content.push('<div class="site-rental-day-action">예약하기 →</div>');
+                    btn.innerHTML = content.join('');
+
+                    btn.addEventListener('click', function () {
+                        if (!cell.inCurrentMonth || !currentPlaceId || !currentRoomId) return;
                         const today = new Date();
                         const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-                        const clicked = new Date(dateStr + 'T00:00:00');
+                        const clicked = new Date(cell.date + 'T00:00:00');
                         if (clicked < tomorrow) {
                             alert('예약은 최소 1일 전부터 가능합니다.');
+                            return;
+                        }
+                        if (closed) {
+                            alert(holiday ? `공휴일(${holiday})은 예약할 수 없습니다.` : '휴관일은 예약할 수 없습니다.');
                             return;
                         }
                         const params = new URLSearchParams({
                             placeId: currentPlaceId,
                             roomId: currentRoomId,
-                            date: dateStr
+                            date: cell.date
                         });
                         window.location.href = '/site/rental/reserve?' + params.toString();
-                    }
+                    });
+
+                    calendarGridEl.appendChild(btn);
                 });
-                calendarInstance.render();
             }
 
             placeSelect.addEventListener('change', function () {
                 currentPlaceId = this.value || null;
                 currentRoomId = null;
                 if (!currentPlaceId) {
-                    if (calendarInstance) {
-                        calendarInstance.destroy();
-                        calendarInstance = null;
-                    }
                     roomSelect.disabled = true;
                     roomSelect.innerHTML = '<option value=\"\">먼저 장소를 선택하세요</option>';
+                    showEmpty('장소를 선택해주세요.');
                     return;
                 }
                 loadRooms(currentPlaceId, false);
@@ -307,9 +624,35 @@
             roomSelect.addEventListener('change', function () {
                 currentRoomId = this.value || null;
                 if (!currentRoomId) return;
-                fetchCalendar(toYearMonth(new Date()));
+                fetchCalendar(currentYearMonth);
             });
 
+            monthInput.addEventListener('change', function () {
+                const ym = this.value || getCurrentYearMonth();
+                currentYearMonth = ym;
+                if (currentPlaceId && currentRoomId) {
+                    fetchCalendar(currentYearMonth);
+                }
+            });
+
+            prevMonthBtn.addEventListener('click', function () {
+                currentYearMonth = shiftYearMonth(currentYearMonth, -1);
+                monthInput.value = currentYearMonth;
+                if (currentPlaceId && currentRoomId) {
+                    fetchCalendar(currentYearMonth);
+                }
+            });
+
+            nextMonthBtn.addEventListener('click', function () {
+                currentYearMonth = shiftYearMonth(currentYearMonth, 1);
+                monthInput.value = currentYearMonth;
+                if (currentPlaceId && currentRoomId) {
+                    fetchCalendar(currentYearMonth);
+                }
+            });
+
+            currentYearMonth = getCurrentYearMonth();
+            monthInput.value = currentYearMonth;
             loadPlaces();
         })();
     </script>

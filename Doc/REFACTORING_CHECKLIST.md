@@ -10,6 +10,8 @@
 |------|------------|----------------|
 | 메인 | `/site/` | `/site` |
 | 도움말 | `/site/help` | `/site/help` |
+| 예약 달력 | `/site/rental` | `/site/rental` |
+| 예약 진행 | `/site/rental/reserve` | `/site/rental/reserve` (인증 필요) |
 | 정적 페이지 | `/site/page/{pageCode}` | `/site/page/:pageCode` |
 | 게시판 목록 | `/site/board/{boardCode}` | `/site/board/:boardId` (boardCode 지원) |
 | 게시글 상세 | `/site/board/{boardCode}/post/{postId}` | `/site/board/:boardId/post/:postId` |
@@ -32,7 +34,9 @@
 | Favicon | `GET /api/v1/public/site/favicon` |
 | 팝업 | `GET /api/v1/public/popups` |
 | 최신글 | `GET /api/v1/public/posts/latest` |
-| 대관 캘린더 조회 | `GET /api/v1/rental/search` |
+| 대관 장소 목록 | `GET /api/v1/public/rentals/places` |
+| 대관 공간 목록 | `GET /api/v1/public/rentals/places/{placeId}/rooms` |
+| 대관 캘린더 조회 | `GET /api/v1/public/rentals/rooms/{roomId}/calendar?placeId=&yearMonth=` |
 | 대관 예약 생성 | `POST /api/v1/public/rentals/rooms/{roomId}/reservations` (인증 필요) |
 | 내 대관 예약 목록 | `GET /api/v1/public/rentals/reservations/my` (인증 필요) |
 | 내 대관 예약 상세/취소 | `GET/DELETE /api/v1/public/rentals/reservations/{id}` (인증 필요) |
@@ -66,6 +70,9 @@ blockquote, pre, code, hr, table, thead, tbody, tr, th, td, img
 | 로그인/회원가입 | site/auth | LoginPage, RegisterPage |
 | 최신글 | SiteViewController.index, latestPosts 서버 렌더링 | LatestPosts |
 | 팝업 | SiteModelAttributeAdvice sitePopups, layout HTML | PopupContainer |
+| 예약 달력 | site/rental/calendar (Thymeleaf) | RentalCalendarPage |
+| 예약 진행 | site/rental/reserve (Thymeleaf) | RentalReservePage |
+| 내 예약 | site/me 내 나의 예약 섹션 | MyPage 내 나의 예약 섹션 |
 
 ---
 

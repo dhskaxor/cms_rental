@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$CONTENT_TITLE - CMS 관리자">CMS 관리자</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/admin/css/admin-compact.css">
     <style>
         .header-gradient {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6d28d9 100%);
@@ -39,7 +40,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen admin-compact">
     <!-- 상단 헤더: 좌측 제목 / 우측 로그인 사용자 (3-1~3-5) -->
     <header class="header-gradient h-16 flex items-center justify-between px-6">
         <div class="flex items-center gap-8">
@@ -75,7 +76,7 @@
 
     <div class="flex">
         <!-- 좌측 메뉴 (4단계: 아이콘, 18.2 순서, 호버, 활성 하이라이트) -->
-        <aside class="w-60 bg-white border-r border-gray-200 min-h-[calc(100vh-3.5rem)] py-5 shadow-sm">
+        <aside class="w-56 bg-white border-r border-gray-200 min-h-[calc(100vh-3.5rem)] py-4 shadow-sm">
             <nav class="space-y-0.5 px-3">
                 <!-- 18.2 메뉴 순서 -->
                 <a th:href="@{/admin}" th:classappend="${currentMenu == 'dashboard'} ? 'active' : ''"
@@ -190,7 +191,7 @@
         </aside>
 
         <!-- 메인 컨텐츠 -->
-        <main class="flex-1 p-6">
+        <main class="flex-1 p-4">
             <div layout:fragment="content">
                 <!-- 페이지별 컨텐츠가 여기에 삽입됨 -->
             </div>

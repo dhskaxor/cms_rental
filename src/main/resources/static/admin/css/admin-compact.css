@@ -1,0 +1,61 @@
+/* ============================================================================
+   Admin Compact Density
+   - 관리자 전체 페이지 정보 밀도 향상(여백/폰트/폭 축소)
+============================================================================ */
+
+.admin-compact main {
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+/* 공통 페이지 래퍼 폭 제한 완화 */
+.admin-compact main .max-w-7xl,
+.admin-compact main .max-w-6xl,
+.admin-compact main .max-w-5xl,
+.admin-compact main .max-w-4xl,
+.admin-compact main .max-w-3xl,
+.admin-compact main .max-w-2xl,
+.admin-compact main .max-w-xl {
+    max-width: none !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* 타이포그래피 밀도 */
+.admin-compact main .text-2xl { font-size: 1.3rem !important; line-height: 1.35 !important; }
+.admin-compact main .text-xl { font-size: 1.14rem !important; line-height: 1.35 !important; }
+.admin-compact main .text-lg { font-size: 1.02rem !important; line-height: 1.35 !important; }
+.admin-compact main .text-base { font-size: 0.9rem !important; }
+.admin-compact main .text-sm { font-size: 0.8rem !important; }
+.admin-compact main .text-xs { font-size: 0.72rem !important; }
+
+/* 공통 spacing 유틸 압축 */
+.admin-compact main .p-6 { padding: 1rem !important; }
+.admin-compact main .p-5 { padding: 0.875rem !important; }
+.admin-compact main .p-4 { padding: 0.75rem !important; }
+.admin-compact main .px-6 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.admin-compact main .px-5 { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
+.admin-compact main .px-4 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+.admin-compact main .py-4 { padding-top: 0.6rem !important; padding-bottom: 0.6rem !important; }
+.admin-compact main .py-3 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+
+.admin-compact main .mb-8 { margin-bottom: 1.2rem !important; }
+.admin-compact main .mb-6 { margin-bottom: 0.95rem !important; }
+.admin-compact main .mb-5 { margin-bottom: 0.8rem !important; }
+.admin-compact main .mb-4 { margin-bottom: 0.7rem !important; }
+.admin-compact main .mt-6 { margin-top: 0.95rem !important; }
+.admin-compact main .mt-4 { margin-top: 0.7rem !important; }
+
+.admin-compact main .gap-6 { gap: 1rem !important; }
+.admin-compact main .gap-5 { gap: 0.85rem !important; }
+.admin-compact main .gap-4 { gap: 0.75rem !important; }
+
+/* 사이드 메뉴도 약간 압축 */
+.admin-compact .menu-item {
+    font-size: 0.88rem;
+}
+
+.admin-compact aside nav {
+    font-size: 0.88rem;
+}
