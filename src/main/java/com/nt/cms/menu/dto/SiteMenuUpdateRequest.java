@@ -30,9 +30,9 @@ public class SiteMenuUpdateRequest {
     private String menuName;
 
     /**
-     * 메뉴 유형 (PAGE, BOARD, LINK)
+     * 메뉴 유형 (PAGE, BOARD, LINK, CUSTOM)
      */
-    @Pattern(regexp = "^(PAGE|BOARD|LINK)$", message = "메뉴 유형은 PAGE, BOARD, LINK 중 하나여야 합니다.")
+    @Pattern(regexp = "^(PAGE|BOARD|LINK|CUSTOM)$", message = "메뉴 유형은 PAGE, BOARD, LINK, CUSTOM 중 하나여야 합니다.")
     private String menuType;
 
     /**

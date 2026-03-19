@@ -96,6 +96,24 @@
         ORDER BY start_datetime DESC
     </select>
 
+    <!-- 내 예약 조회용: VO 매핑 대신 DTO로 직접 매핑 (status 문자열 문제 회피) -->
+    <select id="findMyReservations" resultType="com.nt.cms.rental.reservation.dto.RentalReservationResponse">
+        SELECT
+            id,
+            room_id    AS roomId,
+            user_id    AS userId,
+            NULL       AS userName,
+            start_datetime AS start,
+            end_datetime   AS end,
+            status,
+            total_price AS totalPrice,
+            memo
+        FROM rental_reservation
+        WHERE user_id = #{userId}
+          AND deleted = 0
+        ORDER BY start_datetime DESC
+    </select>
+
     <select id="search" resultMap="RentalReservationResultMap" databaseId="mariadb">
         SELECT r.*, u.name AS user_name
         FROM rental_reservation r
@@ -194,6 +212,18 @@
               (start_datetime &lt; #{end} AND end_datetime &gt; #{start})
           )
     </select>
+
+    <!-- 사용자 취소용: VO 매핑 없이 바로 상태만 변경 -->
+    <update id="cancelByUser">
+        UPDATE rental_reservation
+        SET status = 'CANCELLED_BY_USER',
+            updated_at = #{now},
+            updated_by = #{userId}
+        WHERE id = #{id}
+          AND user_id = #{userId}
+          AND deleted = 0
+          AND status IN ('REQUESTED','CONFIRMED')
+    </update>
 
 </mapper>
 

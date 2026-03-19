@@ -9,5 +9,6 @@ public class RentalReservationRequest {
     private String start; // ISO-8601 datetime
     private String end;   // ISO-8601 datetime
     private String memo;
+    private Long totalPrice;
 }
 

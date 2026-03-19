@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title>예약 달력</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <style>
+        .fc .fc-daygrid-day.fc-day-sat { background-color: #020617; }
+        .fc .fc-daygrid-day.fc-day-sun { background-color: #111827; }
+        .fc .fc-daygrid-day.fc-day-holiday { background-color: #111827; }
+        .fc .fc-daygrid-day.fc-day-closed { background-color: #022c22; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <section class="site-section">
+        <div class="site-section-header">
+            <h1 class="site-section-title">예약 달력</h1>
+        </div>
+        <div class="site-card">
+            <div class="site-card-header">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                        <span>장소</span>
+                        <select id="siteRentalPlaceSelect" class="form-select">
+                            <option value="">장소를 선택하세요</option>
+                        </select>
+                        <span>공간(룸)</span>
+                        <select id="siteRentalRoomSelect" class="form-select" disabled>
+                            <option value="">먼저 장소를 선택하세요</option>
+                        </select>
+                        <span id="siteRentalRoomRates" class="hidden"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="site-card-body">
+                <div id="siteRentalCalendar"></div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script>
+        (function () {
+            let currentPlaceId = null;
+            let currentRoomId = null;
+            let currentYearMonth = null;
+            let calendarInstance = null;
+            let calendarDaysMap = {};
+            let isLoading = false;
+
+            const placeSelect = document.getElementById('siteRentalPlaceSelect');
+            const roomSelect = document.getElementById('siteRentalRoomSelect');
+
+            function toYearMonth(date) {
+                const y = date.getFullYear();
+                const m = String(date.getMonth() + 1).padStart(2, '0');
+                return y + '-' + m;
+            }
+
+            function loadPlaces() {
+                fetch('/api/v1/public/rentals/places')
+                    .then(r => r.json())
+                    .then(result => {
+                        if (!result.success) return;
+                        const places = result.data || [];
+                        placeSelect.innerHTML = '<option value=\"\">장소를 선택하세요</option>';
+                        places.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.name;
+                            placeSelect.appendChild(opt);
+                        });
+                        // 최초 진입 시: 첫 번째 장소 자동 선택 및 룸/달력 로딩
+                        if (places.length > 0 && !currentPlaceId) {
+                            const firstPlace = places[0];
+                            currentPlaceId = String(firstPlace.id);
+                            placeSelect.value = String(firstPlace.id);
+                            loadRooms(currentPlaceId, true);
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            function loadRooms(placeId, autoSelectFirstRoom) {
+                roomSelect.disabled = true;
+                roomSelect.innerHTML = '<option value=\"\">공간을 선택하세요</option>';
+                if (!placeId) return;
+                fetch(`/api/v1/public/rentals/places/${placeId}/rooms`)
+                    .then(r => r.json())
+                    .then(result => {
+                        if (!result.success) return;
+                        const rooms = result.data || [];
+                        roomSelect.innerHTML = '<option value=\"\">공간을 선택하세요</option>';
+                        rooms.forEach(rm => {
+                            const opt = document.createElement('option');
+                            opt.value = rm.id;
+                            opt.textContent = rm.name;
+                            roomSelect.appendChild(opt);
+                        });
+                        roomSelect.disabled = false;
+                        // 최초 진입 또는 장소 자동 선택 시: 첫 번째 룸과 달력을 자동으로 로딩
+                        if (autoSelectFirstRoom && rooms.length > 0) {
+                            const firstRoom = rooms[0];
+                            currentRoomId = String(firstRoom.id);
+                            roomSelect.value = String(firstRoom.id);
+                            fetchCalendar(toYearMonth(new Date()));
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            function fetchCalendar(yearMonth) {
+                if (!currentPlaceId || !currentRoomId || isLoading) return;
+                isLoading = true;
+                currentYearMonth = yearMonth;
+                const params = new URLSearchParams({
+                    placeId: currentPlaceId,
+                    yearMonth: yearMonth
+                });
+                fetch(`/api/v1/public/rentals/rooms/${currentRoomId}/calendar?` + params.toString())
+                    .then(r => r.json())
+                    .then(result => {
+                        isLoading = false;
+                        if (!result.success) return;
+                        const days = result.data || [];
+                        calendarDaysMap = {};
+                        days.forEach(d => { calendarDaysMap[d.date] = d; });
+                        updateRoomRates(days);
+                        renderCalendar(yearMonth + '-01');
+                    })
+                    .catch(() => { isLoading = false; });
+            }
+
+            function updateRoomRates(days) {
+                const ratesEl = document.getElementById('siteRentalRoomRates');
+                if (!ratesEl) return;
+
+                const findFirstSlotPrice = (predicate) => {
+                    for (const day of (days || [])) {
+                        if (!day || day.dayType === 'CLOSED') continue;
+                        const slots = day.slots || [];
+                        for (const slot of slots) {
+                            if (!slot || slot.price == null) continue;
+                            if (predicate(slot, day)) {
+                                return slot.price;
+                            }
+                        }
+                    }
+                    return null;
+                };
+
+                const basePrice = findFirstSlotPrice((slot) => slot.priceSource === 'BASE');
+                const weekendHolidayPrice = findFirstSlotPrice((slot) => slot.priceSource === 'WEEKEND_HOLIDAY');
+
+                if (basePrice == null && weekendHolidayPrice == null) {
+                    ratesEl.classList.add('hidden');
+                    ratesEl.textContent = '';
+                    return;
+                }
+
+                const parts = [];
+                if (basePrice != null) parts.push(`기본: ${Number(basePrice).toLocaleString('ko-KR')}원/시간`);
+                if (weekendHolidayPrice != null) parts.push(`주말: ${Number(weekendHolidayPrice).toLocaleString('ko-KR')}원/시간`);
+                // 상단 라인에 금액만 표시 (장소/공간은 셀렉트박스로 표시)
+                ratesEl.textContent = parts.join(' · ');
+                ratesEl.classList.remove('hidden');
+            }
+
+            function statusLabel(status) {
+                const map = {
+                    'REQUESTED': '예약요청',
+                    'CONFIRMED': '예약확정',
+                    'CANCELLED_BY_USER': '사용자취소',
+                    'REJECTED_BY_ADMIN': '관리자반려',
+                    'CANCELLED_BY_ADMIN': '관리자취소'
+                };
+                return map[status] || status || '';
+            }
+
+            function buildDayContent(dateStr) {
+                const day = calendarDaysMap[dateStr];
+                if (!day) return '';
+                if (day.dayType === 'CLOSED') {
+                    const holidayName = day.holidayName;
+                    if (holidayName) {
+                        return `<div class="text-[10px] text-red-600">공휴일 (${holidayName})</div>`;
+                    }
+                    return '<div class="text-[10px] text-gray-500">휴관</div>';
+                }
+
+                const slots = day.slots || [];
+                const availableSlotPrices = slots
+                    .filter(s => s && s.available && s.price != null)
+                    .map(s => Number(s.price))
+                    .filter(p => !Number.isNaN(p) && p > 0);
+                const minPrice = availableSlotPrices.length ? Math.min(...availableSlotPrices) : null;
+                const priceLine = minPrice != null
+                    ? `<div class="text-[10px] text-gray-500">최저 ${minPrice.toLocaleString('ko-KR')}원/시간</div>`
+                    : '';
+                const reservations = day.reservations || [];
+                if (!reservations.length) {
+                    return priceLine;
+                }
+                let html = '<div class="space-y-0.5 mt-0.5">';
+                reservations.forEach(r => {
+                    const label = statusLabel(r.status);
+                    html += `<div class=\"text-[10px] text-indigo-700 truncate\">${r.startTime}~${r.endTime}${label ? '(' + label + ')' : ''}</div>`;
+                });
+                html += '</div>';
+                return priceLine + html;
+            }
+
+            function renderCalendar(initialDate) {
+                if (calendarInstance) {
+                    calendarInstance.destroy();
+                    calendarInstance = null;
+                }
+                const el = document.getElementById('siteRentalCalendar');
+                if (!el) return;
+
+                let skipDatesSet = true;
+                calendarInstance = new FullCalendar.Calendar(el, {
+                    initialView: 'dayGridMonth',
+                    locale: 'ko',
+                    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+                    height: 'auto',
+                    initialDate: initialDate,
+                    datesSet(arg) {
+                        if (skipDatesSet) {
+                            skipDatesSet = false;
+                            return;
+                        }
+                        if (!currentPlaceId || !currentRoomId || isLoading) return;
+                        const title = arg.view.title;
+                        const match = title.match(/(\\d{4})년\\s+(\\d{1,2})월/);
+                        if (!match) return;
+                        const ym = match[1] + '-' + match[2].padStart(2, '0');
+                        if (ym === currentYearMonth) return;
+                        fetchCalendar(ym);
+                    },
+                    dayCellDidMount(arg) {
+                        const d = arg.date;
+                        const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        const dayData = calendarDaysMap[dateStr];
+                        const closed = dayData?.dayType === 'CLOSED';
+                        const holiday = dayData?.holidayName;
+                        if (closed) arg.el.classList.add('fc-day-closed');
+                        else if (holiday) arg.el.classList.add('fc-day-holiday');
+                        else {
+                            const dow = arg.date.getDay();
+                            if (dow === 6) arg.el.classList.add('fc-day-sat');
+                            else if (dow === 0) arg.el.classList.add('fc-day-sun');
+                        }
+                        const wrap = document.createElement('div');
+                        wrap.className = 'mt-6 px-1';
+                        wrap.innerHTML = buildDayContent(dateStr);
+                        const frame = arg.el.querySelector('.fc-daygrid-day-frame');
+                        if (frame) frame.appendChild(wrap);
+                    },
+                    dateClick(info) {
+                        if (!currentPlaceId || !currentRoomId) return;
+                        const dateStr = info.dateStr;
+                        // 오늘 포함 이전 날짜는 예약 불가 (최소 1일 전)
+                        const today = new Date();
+                        const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                        const clicked = new Date(dateStr + 'T00:00:00');
+                        if (clicked < tomorrow) {
+                            alert('예약은 최소 1일 전부터 가능합니다.');
+                            return;
+                        }
+                        const params = new URLSearchParams({
+                            placeId: currentPlaceId,
+                            roomId: currentRoomId,
+                            date: dateStr
+                        });
+                        window.location.href = '/site/rental/reserve?' + params.toString();
+                    }
+                });
+                calendarInstance.render();
+            }
+
+            placeSelect.addEventListener('change', function () {
+                currentPlaceId = this.value || null;
+                currentRoomId = null;
+                if (!currentPlaceId) {
+                    if (calendarInstance) {
+                        calendarInstance.destroy();
+                        calendarInstance = null;
+                    }
+                    roomSelect.disabled = true;
+                    roomSelect.innerHTML = '<option value=\"\">먼저 장소를 선택하세요</option>';
+                    return;
+                }
+                loadRooms(currentPlaceId, false);
+            });
+
+            roomSelect.addEventListener('change', function () {
+                currentRoomId = this.value || null;
+                if (!currentRoomId) return;
+                fetchCalendar(toYearMonth(new Date()));
+            });
+
+            loadPlaces();
+        })();
+    </script>
+</div>
+</body>
+</html>
+

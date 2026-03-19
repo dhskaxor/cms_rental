@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$CONTENT_TITLE - ${siteConfig?.siteName ?: 'CMS Core'}">${siteConfig?.siteName ?: 'CMS Core'}</title>
+    <!-- layout:title-pattern은 단순 문자열만 지원하므로 EL을 제거하고, 실제 사이트명은 title 텍스트에서만 동적으로 표시 -->
+    <title layout:title-pattern="$CONTENT_TITLE - CMS Core"
+            th:text="${siteConfig?.siteName ?: 'CMS Core'}">CMS Core</title>
     <meta name="description" th:content="${siteConfig?.seoDescription}">
     <meta name="keywords" th:content="${siteConfig?.seoKeywords}">
     <link rel="icon" th:href="@{/api/v1/public/site/favicon}" th:if="${siteConfig?.faviconUrl != null}">

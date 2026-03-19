@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -29,12 +30,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectProvider<JwtTokenProvider> jwtTokenProviderProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, 
                                     HttpServletResponse response, 
                                     FilterChain filterChain) throws ServletException, IOException {
+        // 테스트(WebMvcTest) 슬라이스에서는 JwtTokenProvider가 없을 수 있으므로
+        // 빈이 없는 경우 JWT 인증 단계를 건너뛰고 다음 필터로 진행한다.
+        JwtTokenProvider jwtTokenProvider = jwtTokenProviderProvider.getIfAvailable();
+        if (jwtTokenProvider == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         
         try {
             String token = resolveToken(request);

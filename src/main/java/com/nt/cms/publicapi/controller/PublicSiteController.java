@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,8 +46,8 @@ public class PublicSiteController {
     private final SitePageService sitePageService;
     private final PopupService popupService;
     private final CommonCodeService commonCodeService;
-    private final SiteConfigService siteConfigService;
-    private final FileService fileService;
+    private final ObjectProvider<SiteConfigService> siteConfigServiceProvider;
+    private final ObjectProvider<FileService> fileServiceProvider;
 
     /**
      * 사이트 설정 조회 (공개)
@@ -54,6 +55,10 @@ public class PublicSiteController {
     @Operation(summary = "사이트 설정 조회", description = "사이트명, favicon, SEO, 회사정보를 조회합니다. 인증 불필요.")
     @GetMapping("/site/config")
     public ApiResponse<SiteConfigResponse> getSiteConfig() {
+        SiteConfigService siteConfigService = siteConfigServiceProvider.getIfAvailable();
+        if (siteConfigService == null) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
+        }
         return ApiResponse.success(siteConfigService.getForPublic());
     }
 
@@ -124,6 +129,11 @@ public class PublicSiteController {
     @Operation(summary = "Favicon", description = "설정된 favicon 파일을 반환합니다.")
     @GetMapping("/site/favicon")
     public ResponseEntity<byte[]> getFavicon() {
+        SiteConfigService siteConfigService = siteConfigServiceProvider.getIfAvailable();
+        FileService fileService = fileServiceProvider.getIfAvailable();
+        if (siteConfigService == null || fileService == null) {
+            return ResponseEntity.noContent().build();
+        }
         var config = siteConfigService.getOrCreate();
         if (config.getFaviconFileId() == null) {
             return ResponseEntity.noContent().build();

@@ -90,10 +90,19 @@
             </form>
 
             <!-- 메인으로 돌아가기 -->
-            <div class="mt-6 text-center">
-                <a th:href="@{/site/}" class="text-sm text-cyan-600 hover:text-cyan-800 transition">
-                    메인으로 돌아가기
-                </a>
+            <div class="mt-6 text-center space-y-2">
+                <div>
+                    <a th:href="@{/site/}" class="text-sm text-cyan-600 hover:text-cyan-800 transition">
+                        메인으로 돌아가기
+                    </a>
+                </div>
+                <div class="text-sm text-gray-600">
+                    계정이 없으신가요?
+                    <a th:href="@{/site/auth/register(redirect=${redirect})}"
+                       class="font-semibold text-cyan-700 hover:text-cyan-900 transition">
+                        회원가입
+                    </a>
+                </div>
             </div>
         </div>
 

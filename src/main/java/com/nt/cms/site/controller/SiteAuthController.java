@@ -7,7 +7,11 @@ import com.nt.cms.common.constant.SessionConstants;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,6 +68,21 @@ public class SiteAuthController {
         model.addAttribute("redirect", (redirect != null && !redirect.isEmpty()) ? redirect : null);
 
         return "site/auth/login";
+    }
+
+    /**
+     * 사용자 사이트 회원가입 페이지
+     */
+    @GetMapping("/register")
+    public String registerPage(
+            @RequestParam(value = "redirect", required = false) String redirect,
+            HttpSession session,
+            Model model) {
+        if (session.getAttribute(SessionConstants.SITE_CURRENT_USER) != null) {
+            return isValidRedirect(redirect) ? "redirect:" + redirect : "redirect:/site/";
+        }
+        model.addAttribute("redirect", (redirect != null && !redirect.isEmpty()) ? redirect : "/site/");
+        return "site/auth/register";
     }
 
     /**
@@ -126,6 +145,13 @@ public class SiteAuthController {
             session.setAttribute(SessionConstants.SITE_CURRENT_USER, sessionUser);
             session.setMaxInactiveInterval(3600); // 1시간
 
+            // Spring Security 인증 주체도 세션에 연동 (@AuthenticationPrincipal 사용)
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(new UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.getAuthorities()));
+            SecurityContextHolder.setContext(context);
+            session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
             log.info("사용자 사이트 로그인 성공: {}", username);
             return isValidRedirect(redirect) ? "redirect:" + redirect : "redirect:/site/";
 
@@ -151,6 +177,8 @@ public class SiteAuthController {
         }
 
         session.removeAttribute(SessionConstants.SITE_CURRENT_USER);
+        session.removeAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+        SecurityContextHolder.clearContext();
         redirectAttributes.addFlashAttribute("logout", true);
         return "redirect:/site/auth/login";
     }

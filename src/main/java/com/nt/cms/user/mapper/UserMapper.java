@@ -135,4 +135,12 @@ public interface UserMapper {
      * @return 사용자 수
      */
     long countByRoleId(@Param("roleId") Long roleId);
+
+    /**
+     * 역할 코드로 역할 ID 조회
+     *
+     * @param roleCode 역할 코드
+     * @return 역할 ID (없으면 null)
+     */
+    Long findRoleIdByCode(@Param("roleCode") String roleCode);
 }

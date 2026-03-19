@@ -115,6 +115,7 @@
             #{pageTitle},
             #{content},
             #{isPublished},
+            #{templateCode},
             #{createdAt},
             #{createdBy},
             false

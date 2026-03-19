@@ -1,5 +1,6 @@
 package com.nt.cms.rental.reservation.mapper;
 
+import com.nt.cms.rental.reservation.dto.RentalReservationResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationSearchRequest;
 import com.nt.cms.rental.reservation.vo.RentalReservationVO;
 import org.apache.ibatis.annotations.Mapper;
@@ -21,6 +22,8 @@ public interface RentalReservationMapper {
 
     List<RentalReservationVO> findByUserId(@Param("userId") Long userId);
 
+    List<RentalReservationResponse> findMyReservations(@Param("userId") Long userId);
+
     List<RentalReservationVO> search(@Param("request") RentalReservationSearchRequest request);
 
     List<RentalReservationVO> findOverlappingReservations(@Param("roomId") Long roomId,
@@ -28,5 +31,9 @@ public interface RentalReservationMapper {
                                                           @Param("end") LocalDateTime end);
 
     Long sumTotalPriceBySearch(@Param("request") RentalReservationSearchRequest request);
+
+    int cancelByUser(@Param("id") Long id,
+                     @Param("userId") Long userId,
+                     @Param("now") LocalDateTime now);
 }
 

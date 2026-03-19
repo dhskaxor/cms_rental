@@ -32,6 +32,7 @@
 | Favicon | `GET /api/v1/public/site/favicon` |
 | 팝업 | `GET /api/v1/public/popups` |
 | 최신글 | `GET /api/v1/public/posts/latest` |
+| 대관 캘린더 조회 | `GET /api/v1/rental/search` |
 
 ---
 

@@ -111,6 +111,37 @@ public class SiteViewController {
     }
 
     /**
+     * 예약 달력 (사용자용)
+     */
+    @GetMapping("/rental")
+    public String rentalCalendar() {
+        return "site/rental/calendar";
+    }
+
+    /**
+     * 예약 진행 페이지 (일자 선택 후 시간대 선택)
+     */
+    @GetMapping("/rental/reserve")
+    public String rentalReserve() {
+        return "site/rental/reserve";
+    }
+
+    /**
+     * 내 정보 (프로필/비밀번호/내 예약)
+     */
+    @GetMapping("/me")
+    public String me(HttpSession session, Model model,
+                     @RequestParam(value = "redirect", required = false) String redirect) {
+        SessionUser user = session != null ? (SessionUser) session.getAttribute(SessionConstants.SITE_CURRENT_USER) : null;
+        if (user == null) {
+            String target = (redirect != null && !redirect.isBlank()) ? redirect : "/site/me";
+            return "redirect:/site/auth/login?redirect=" + java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
+        }
+        model.addAttribute("me", user);
+        return "site/me";
+    }
+
+    /**
      * 연락처 페이지 (사이트 설정 기반)
      */
     @GetMapping("/contact")

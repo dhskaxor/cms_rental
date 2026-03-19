@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class AdminSessionAuthenticationFilter extends OncePerRequestFilter {
 
-    private final CustomUserDetailsService userDetailsService;
+    private final ObjectProvider<CustomUserDetailsService> userDetailsServiceProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -69,6 +70,12 @@ public class AdminSessionAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if (!StringUtils.hasText(sessionUser.getUsername())) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            CustomUserDetailsService userDetailsService = userDetailsServiceProvider.getIfAvailable();
+            if (userDetailsService == null) {
                 filterChain.doFilter(request, response);
                 return;
             }

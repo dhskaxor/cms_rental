@@ -72,6 +72,12 @@
                                        onchange="toggleMenuType()" class="mr-2">
                                 <span>외부 링크</span>
                             </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="menuType" value="CUSTOM" 
+                                       th:checked="${menu?.menuType == 'CUSTOM'}"
+                                       onchange="toggleMenuType()" class="mr-2">
+                                <span>커스텀</span>
+                            </label>
                         </div>
                     </div>
 
@@ -110,7 +116,7 @@
                     </div>
 
                     <!-- URL 경로 -->
-                    <div>
+                    <div id="urlPathSection">
                         <label class="block text-sm font-medium text-gray-700 mb-2">URL 경로</label>
                         <input type="text" id="urlPath" th:value="${menu?.urlPath}"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -183,12 +189,24 @@
         const urlPathInput = document.getElementById('urlPath');
         const pageSelect = document.getElementById('pageId');
         const boardSelect = document.getElementById('boardId');
+        const urlPathSection = document.getElementById('urlPathSection');
 
         function toggleMenuType() {
             const menuType = document.querySelector('input[name="menuType"]:checked').value;
-            document.getElementById('pageSection').classList.toggle('hidden', menuType !== 'PAGE');
-            document.getElementById('boardSection').classList.toggle('hidden', menuType !== 'BOARD');
-            document.getElementById('linkSection').classList.toggle('hidden', menuType !== 'LINK');
+
+            const isPage = menuType === 'PAGE';
+            const isBoard = menuType === 'BOARD';
+            const isLink = menuType === 'LINK';
+            const isCustom = menuType === 'CUSTOM';
+
+            document.getElementById('pageSection').classList.toggle('hidden', !isPage);
+            document.getElementById('boardSection').classList.toggle('hidden', !isBoard);
+            document.getElementById('linkSection').classList.toggle('hidden', !isLink);
+
+            if (urlPathSection) {
+                // PAGE, BOARD, CUSTOM 에서는 URL 경로 노출, LINK 에서는 숨김
+                urlPathSection.classList.toggle('hidden', isLink);
+            }
 
             updateUrlForContentMenu();
         }
@@ -212,7 +230,11 @@
                 const boardCode = selected ? selected.dataset.boardCode : '';
                 urlPathInput.value = boardCode ? BOARD_URL_PREFIX + boardCode : BOARD_URL_PREFIX;
                 urlPathInput.readOnly = true;
+            } else if (menuType === 'CUSTOM') {
+                // 커스텀 타입은 URL 경로를 직접 입력
+                urlPathInput.readOnly = false;
             } else {
+                // LINK 등 기타 타입은 URL 경로를 자동으로 사용하지 않음
                 urlPathInput.readOnly = false;
             }
         }

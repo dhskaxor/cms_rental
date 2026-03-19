@@ -46,6 +46,16 @@ public interface UserService {
     UserResponse updateUser(Long id, UserUpdateRequest request, Long updatedBy);
 
     /**
+     * 내 정보 수정 (사용자)
+     *
+     * @param id 사용자 ID
+     * @param request 수정 요청 (이름/이메일)
+     * @param updatedBy 수정자 ID
+     * @return 수정된 사용자 정보
+     */
+    UserResponse updateMyInfo(Long id, UserMyUpdateRequest request, Long updatedBy);
+
+    /**
      * 사용자 삭제
      * 
      * @param id 사용자 ID

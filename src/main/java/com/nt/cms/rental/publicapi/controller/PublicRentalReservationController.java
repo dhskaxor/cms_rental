@@ -1,6 +1,8 @@
 package com.nt.cms.rental.publicapi.controller;
 
 import com.nt.cms.auth.security.CustomUserDetails;
+import com.nt.cms.common.exception.BusinessException;
+import com.nt.cms.common.exception.ErrorCode;
 import com.nt.cms.common.response.ApiResponse;
 import com.nt.cms.rental.reservation.dto.RentalReservationRequest;
 import com.nt.cms.rental.reservation.dto.RentalReservationResponse;
@@ -30,6 +32,9 @@ public class PublicRentalReservationController {
     @GetMapping("/reservations/my")
     public ApiResponse<List<RentalReservationResponse>> getMyReservations(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
         return ApiResponse.success(rentalReservationService.getMyReservations(userDetails.getUserId()));
     }
 
@@ -42,6 +47,9 @@ public class PublicRentalReservationController {
     @DeleteMapping("/reservations/{id}")
     public ApiResponse<Void> cancelMyReservation(@PathVariable Long id,
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED);
+        }
         rentalReservationService.cancelByUser(id, userDetails.getUserId());
         return ApiResponse.success();
     }

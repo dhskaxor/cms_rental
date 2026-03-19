@@ -251,4 +251,13 @@
           AND deleted = 0
     </select>
 
+    <!-- 역할 코드로 역할 ID 조회 -->
+    <select id="findRoleIdByCode" resultType="long">
+        SELECT r.id
+        FROM role r
+        WHERE r.role_code = #{roleCode}
+          AND r.deleted = 0
+        LIMIT 1
+    </select>
+
 </mapper>

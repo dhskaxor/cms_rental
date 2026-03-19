@@ -536,8 +536,9 @@ class DefaultUserServiceTest {
             // then
             assertThat(response).isNotNull();
             assertThat(response.getUsername()).isEqualTo("newmember");
-            verify(userMapper).insert(argThat(user -> 
-                    user.getRoleId().equals(3L) && user.getStatus().equals("ACTIVE")));
+            verify(userMapper).findRoleIdByCode("USER");
+            verify(userMapper).insert(argThat(user ->
+                    user.getRoleId() != null && user.getStatus().equals("ACTIVE")));
         }
 
         @Test

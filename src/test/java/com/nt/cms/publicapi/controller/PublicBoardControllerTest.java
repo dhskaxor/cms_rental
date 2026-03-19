@@ -3,7 +3,6 @@ package com.nt.cms.publicapi.controller;
 import com.nt.cms.auth.jwt.JwtAuthenticationFilter;
 import com.nt.cms.auth.jwt.JwtTokenProvider;
 import com.nt.cms.auth.security.AdminSessionAuthenticationFilter;
-import com.nt.cms.board.dto.BoardGroupResponse;
 import com.nt.cms.board.dto.BoardResponse;
 import com.nt.cms.board.dto.CommentResponse;
 import com.nt.cms.board.dto.PostResponse;
@@ -184,20 +183,14 @@ class PublicBoardControllerTest {
         @Test
         @DisplayName("비밀글 익명 조회 시 SECRET_POST_ACCESS_DENIED 예외 발생")
         void getPost_secretPost_anonymous_throwsException() throws Exception {
-            // 비밀글 조회 시 BusinessException 발생을 검증
             when(postService.getPost(eq(1L), any(), any()))
                     .thenThrow(new com.nt.cms.common.exception.BusinessException(
                             com.nt.cms.common.exception.ErrorCode.SECRET_POST_ACCESS_DENIED));
 
-            // 예외가 발생하여 ServletException으로 래핑되는지 확인
-            try {
-                mockMvc.perform(get("/api/v1/public/boards/1/posts/1"));
-            } catch (jakarta.servlet.ServletException e) {
-                org.junit.jupiter.api.Assertions.assertTrue(
-                        e.getCause() instanceof com.nt.cms.common.exception.BusinessException);
-                return;
-            }
-            org.junit.jupiter.api.Assertions.fail("BusinessException 예외가 발생해야 합니다.");
+            mockMvc.perform(get("/api/v1/public/boards/1/posts/1"))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.error.code").value("POST_4102"));
         }
     }
 

@@ -21,7 +21,7 @@ import static com.nt.cms.common.constant.SiteConstant.SITE_ERROR_VIEW;
  * @author CMS Team
  */
 @Slf4j
-@ControllerAdvice
+@ControllerAdvice(basePackages = "com.nt.cms.site.controller")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class SiteExceptionHandler {
 

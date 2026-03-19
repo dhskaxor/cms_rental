@@ -33,10 +33,11 @@ import java.util.stream.Collectors;
 public class DefaultUserService implements UserService {
 
     /**
-     * 기본 사용자 역할 ID (USER)
-     * TODO: Doc/REFACTORING_CHECKLIST 참조. cms-config.yml 등 설정 기반 조회로 변경 권장.
+     * 기본 사용자 역할 ID fallback 값 (USER)
+     * 역할 코드 조회 실패 시 기존 동작 호환을 위해 사용한다.
      */
     private static final Long DEFAULT_ROLE_ID = 3L;
+    private static final String DEFAULT_ROLE_CODE = "USER";
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
@@ -158,6 +159,38 @@ public class DefaultUserService implements UserService {
                 .build();
         recordAuditLog("UPDATE", "USER", id, existingUser, afterState, updatedBy);
 
+        return getUser(id);
+    }
+
+    @Override
+    @Transactional
+    public UserResponse updateMyInfo(Long id, UserMyUpdateRequest request, Long updatedBy) {
+        log.info("내 정보 수정: id={}", id);
+
+        UserVO existingUser = userMapper.findById(id);
+        if (existingUser == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 이메일 중복 확인 (자기 자신 제외)
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            UserVO userByEmail = userMapper.findByEmail(request.getEmail());
+            if (userByEmail != null && !userByEmail.getId().equals(id)) {
+                throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+            }
+        }
+
+        UserVO user = UserVO.builder()
+                .id(id)
+                .name(request.getName())
+                .email(request.getEmail())
+                .roleId(existingUser.getRoleId())
+                .status(existingUser.getStatus())
+                .updatedBy(updatedBy)
+                .build();
+
+        userMapper.update(user);
+        recordAuditLog("UPDATE_MY_INFO", "USER", id, existingUser, user, updatedBy);
         return getUser(id);
     }
 
@@ -290,12 +323,13 @@ public class DefaultUserService implements UserService {
         }
 
         // 사용자 생성 (기본 역할: USER)
+        Long defaultRoleId = resolveDefaultRoleId();
         UserVO user = UserVO.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
                 .email(request.getEmail())
-                .roleId(DEFAULT_ROLE_ID)
+                .roleId(defaultRoleId)
                 .status("ACTIVE")
                 .build();
 
@@ -340,5 +374,14 @@ public class DefaultUserService implements UserService {
         map.put("roleId", user.getRoleId());
         map.put("status", user.getStatus());
         return map;
+    }
+
+    /**
+     * 기본 사용자 역할(USER) ID를 조회한다.
+     * role 테이블 기준으로 동적으로 조회하고, 실패 시 fallback 값을 사용한다.
+     */
+    private Long resolveDefaultRoleId() {
+        Long roleId = userMapper.findRoleIdByCode(DEFAULT_ROLE_CODE);
+        return roleId != null ? roleId : DEFAULT_ROLE_ID;
     }
 }

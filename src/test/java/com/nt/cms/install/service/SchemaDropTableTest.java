@@ -33,11 +33,20 @@ class SchemaDropTableTest {
             "board_comment",
             "file",
             "audit_log",
+            "site_config",
             "site_menu",
             "site_page",
             "common_code_group",
             "common_code",
-            "site_popup"
+            "site_popup",
+            "rental_place",
+            "rental_room",
+            "rental_place_closed_rule",
+            "rental_room_unavailable_slot",
+            "rental_room_pricing_base",
+            "rental_room_pricing_weekend_holiday",
+            "rental_room_pricing_special",
+            "rental_reservation"
     );
 
     @Test
@@ -73,7 +82,11 @@ class SchemaDropTableTest {
         List<String> h2Tables = Arrays.asList(
                 "role", "permission", "role_permission", "user", "jwt_refresh_token",
                 "board_group", "board", "board_permission", "board_post", "board_comment",
-                "file", "audit_log", "common_code_group", "common_code", "site_popup"
+                "file", "audit_log", "site_config", "common_code_group", "common_code", "site_popup",
+                "rental_place", "rental_room", "rental_place_closed_rule",
+                "rental_room_unavailable_slot", "rental_room_pricing_base",
+                "rental_room_pricing_weekend_holiday", "rental_room_pricing_special",
+                "rental_reservation"
         );
 
         String schema = loadSchema("schema/schema-h2.sql");

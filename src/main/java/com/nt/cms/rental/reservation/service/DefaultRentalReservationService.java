@@ -48,7 +48,7 @@ public class DefaultRentalReservationService implements RentalReservationService
                 .startDatetime(start)
                 .endDatetime(end)
                 .status("REQUESTED")
-                .totalPrice(0L) // 실제 가격 계산은 캘린더/요금 로직 연동 후 적용
+                .totalPrice(request.getTotalPrice() != null ? request.getTotalPrice() : 0L)
                 .memo(request.getMemo())
                 .createdAt(LocalDateTime.now())
                 .createdBy(userId)
@@ -84,10 +84,7 @@ public class DefaultRentalReservationService implements RentalReservationService
 
     @Override
     public List<RentalReservationResponse> getMyReservations(Long userId) {
-        return rentalReservationMapper.findByUserId(userId).stream()
-                .filter(vo -> !Boolean.TRUE.equals(vo.getDeleted()))
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        return rentalReservationMapper.findMyReservations(userId);
     }
 
     @Override
@@ -106,17 +103,11 @@ public class DefaultRentalReservationService implements RentalReservationService
     @Override
     @Transactional
     public void cancelByUser(Long id, Long userId) {
-        RentalReservationVO vo = rentalReservationMapper.findById(id);
-        if (vo == null || Boolean.TRUE.equals(vo.getDeleted())) {
+        int updated = rentalReservationMapper.cancelByUser(id, userId, LocalDateTime.now());
+        if (updated == 0) {
+            // 내 예약이 아니거나, 이미 삭제/취소된 경우
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND);
         }
-        if (!vo.getUserId().equals(userId)) {
-            throw new BusinessException(ErrorCode.ACCESS_DENIED);
-        }
-        vo.setStatus("CANCELLED_BY_USER");
-        vo.setUpdatedAt(LocalDateTime.now());
-        vo.setUpdatedBy(userId);
-        rentalReservationMapper.update(vo);
     }
 
     @Override

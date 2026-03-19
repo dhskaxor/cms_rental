@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -30,9 +31,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SiteModelAttributeAdvice {
 
-    private final SiteMenuService siteMenuService;
-    private final PopupService popupService;
-    private final SiteConfigService siteConfigService;
+    private final ObjectProvider<SiteMenuService> siteMenuServiceProvider;
+    private final ObjectProvider<PopupService> popupServiceProvider;
+    private final ObjectProvider<SiteConfigService> siteConfigServiceProvider;
 
     /**
      * 사이트 설정 (헤더·푸터·SEO용)
@@ -42,7 +43,8 @@ public class SiteModelAttributeAdvice {
         if (!request.getRequestURI().startsWith("/site")) {
             return null;
         }
-        return siteConfigService.getForPublic();
+        SiteConfigService siteConfigService = siteConfigServiceProvider.getIfAvailable();
+        return siteConfigService != null ? siteConfigService.getForPublic() : null;
     }
 
     /**
@@ -65,7 +67,8 @@ public class SiteModelAttributeAdvice {
         if (!request.getRequestURI().startsWith("/site")) {
             return List.of();
         }
-        return siteMenuService.findVisibleMenus(true);
+        SiteMenuService siteMenuService = siteMenuServiceProvider.getIfAvailable();
+        return siteMenuService != null ? siteMenuService.findVisibleMenus(true) : List.of();
     }
 
     /**
@@ -74,6 +77,10 @@ public class SiteModelAttributeAdvice {
     @ModelAttribute("sitePopups")
     public List<PopupResponse> addSitePopups(HttpServletRequest request) {
         if (!request.getRequestURI().startsWith("/site")) {
+            return List.of();
+        }
+        PopupService popupService = popupServiceProvider.getIfAvailable();
+        if (popupService == null) {
             return List.of();
         }
         String deviceType = isMobileUserAgent(request) ? "MOBILE" : "PC";

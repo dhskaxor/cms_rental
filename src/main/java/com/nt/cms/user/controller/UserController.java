@@ -156,9 +156,9 @@ public class UserController {
     @PutMapping("/me")
     @Operation(summary = "내 정보 수정", description = "로그인한 사용자의 정보를 수정합니다.")
     public ApiResponse<UserResponse> updateMyInfo(
-            @Valid @RequestBody UserUpdateRequest request,
+            @Valid @RequestBody UserMyUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        UserResponse response = userService.updateUser(
+        UserResponse response = userService.updateMyInfo(
                 userDetails.getUserId(), request, userDetails.getUserId());
         return ApiResponse.success(response);
     }

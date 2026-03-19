@@ -57,6 +57,9 @@ public class SecurityConfig {
             "/api/v1/popups/display",
             // 사용자단 공개 API (메뉴, 페이지, 게시판/게시글 조회 등)
             "/api/v1/public/**",
+            // 사용자단 예약 캘린더 공개 조회
+            "/api/v1/rental/search",
+            "/api/v1/rental/search/**",
             // 관리자 페이지 (세션 기반 인증으로 별도 처리)
             "/admin/**",
             // 사용자 사이트 (세션 기반 인증으로 별도 처리)

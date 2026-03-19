@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{site/layout}">
+<head>
+    <title>예약 진행</title>
+    <style>
+        /* 상단 여백 축소 (예약 진행 페이지 전용) */
+        .site-section {
+            padding-top: 1.25rem;
+        }
+        .site-section-header {
+            margin-bottom: 0.75rem;
+        }
+        .site-section-header .site-section-title {
+            margin-bottom: 0.35rem;
+        }
+        .site-section-header p {
+            margin-bottom: 0.15rem;
+        }
+        /* 예약 슬롯 박스 기본 스타일 */
+        .site-reservation-slot {
+            border: 1px solid #1f2937;
+            border-radius: 0.75rem;
+            padding: 0.45rem 0.75rem;
+            margin-bottom: 0.35rem;
+            background-color: #020617;
+            font-size: 0.875rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .site-reservation-slot-available:hover {
+            border-color: #6366f1;
+            background-color: #020617;
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4);
+            cursor: pointer;
+        }
+        .site-reservation-slot-disabled {
+            background-color: #111827;
+            color: #6b7280;
+            border-color: #1f2937;
+            cursor: not-allowed;
+        }
+        .site-reservation-slot-time {
+            font-weight: 600;
+            color: #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+        .site-reservation-slot-meta {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+        .site-reservation-slot-price {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .site-reservation-slot-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.1rem 0.4rem;
+            border-radius: 9999px;
+            font-size: 11px;
+            background-color: #111827;
+            color: #9ca3af;
+        }
+        .site-reservation-slot-selected {
+            border-color: #4f46e5 !important;
+            background-color: #111827 !important;
+            box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
+        }
+        .site-reservation-slots-wrap {
+            border: 1px solid #1f2937;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+            background-color: #020617;
+        }
+        .site-reservation-legend-dot {
+            display: inline-block;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 0.2rem;
+            background-color: #e0e7ff;
+            border: 1px solid #4f46e5;
+            vertical-align: middle;
+            margin-right: 0.25rem;
+        }
+        .site-reservation-layout {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+        .site-reservation-column-main {
+            flex: 2 1 0%;
+            min-width: 0;
+        }
+        .site-reservation-column-side {
+            flex: 1 1 0%;
+            min-width: 0;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <section class="site-section">
+        <div class="site-section-header">
+            <h1 class="site-section-title">예약 진행</h1>
+            <p class="site-section-desc">선택한 날짜에 대해 예약 가능 시간대를 드래그하여 선택한 뒤, 예약을 진행하세요.</p>
+        </div>
+        <div class="site-reservation-layout">
+            <div class="site-card site-reservation-column-main">
+                <div class="flex items-center justify-between gap-4 mb-2">
+                    <h2 class="site-card-title mb-0">예약 시간 선택</h2>
+                    <div class="flex items-center gap-3 text-xs text-gray-300">
+                        <span id="siteRentalReserveSummary" class="whitespace-nowrap">
+                            장소/공간/날짜 정보를 불러오는 중입니다...
+                        </span>
+                        <label for="siteRentalDatePicker" class="whitespace-nowrap">예약 날짜</label>
+                        <input id="siteRentalDatePicker" type="date"
+                               class="px-2 py-1 rounded-md bg-slate-900 border border-slate-600 text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                <div class="site-card-body">
+                    <div id="siteRentalSlots" class="site-reservation-slots-wrap">
+                        <div class="px-4 py-3 text-gray-500">시간대를 불러오는 중입니다...</div>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">
+                        <span class="site-reservation-legend-dot"></span>
+                        보라색 박스는 현재 선택된 예약 가능 시간대를 나타냅니다. 마우스로 연속 구간을 드래그해 선택하세요.
+                    </p>
+                </div>
+            </div>
+            <div class="site-card site-reservation-column-side">
+                <h2 class="site-card-title">선택 요약</h2>
+                <div class="site-card-body text-sm text-gray-200 space-y-1">
+                    <p id="siteRentalSelection">선택된 시간대가 없습니다.</p>
+                    <button type="button" id="siteRentalReserveButton"
+                            class="site-btn site-btn-primary w-full mt-2" disabled>
+                        이 시간으로 예약 요청
+                    </button>
+                    <p class="text-xs text-gray-500">
+                        실제 예약 확정은 관리자 승인 후 완료됩니다. 로그인 상태에서만 예약이 가능하며,
+                        예약 요청 후 마이페이지에서 내 예약 내역을 확인할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const placeId = params.get('placeId');
+            const roomId = params.get('roomId');
+            let dateStr = params.get('date');
+
+            const summaryEl = document.getElementById('siteRentalReserveSummary');
+            const slotsContainer = document.getElementById('siteRentalSlots');
+            const selectionEl = document.getElementById('siteRentalSelection');
+            const reserveBtn = document.getElementById('siteRentalReserveButton');
+
+            let slots = [];
+            let slotMeta = [];
+            let dragState = { active: false, startIndex: null, endIndex: null };
+            let selectedRanges = [];
+            let openingMinutes = null;
+            let closingMinutes = null;
+            let placeName = null;
+            let roomName = null;
+
+            function formatTime(iso) {
+                if (!iso) return '';
+                const t = iso.substring(11, 16);
+                return t;
+            }
+
+            function formatDateLabel(d) {
+                if (!d) return '';
+                const [y, m, day] = d.split('-');
+                return `${y}년 ${parseInt(m, 10)}월 ${parseInt(day, 10)}일`;
+            }
+
+            function updateSummary() {
+                if (placeName && roomName && dateStr) {
+                    summaryEl.textContent = `${placeName} / ${roomName}`;
+                } else if (placeId && roomId && dateStr) {
+                    summaryEl.textContent = `장소 #${placeId}, 공간 #${roomId}`;
+                } else {
+                    summaryEl.textContent = '장소/공간/날짜 정보를 불러오는 중입니다...';
+                }
+            }
+
+            function parseTimeToMinutes(t) {
+                if (!t || t.length < 5) return null;
+                const parts = t.split(':');
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                if (Number.isNaN(h) || Number.isNaN(m)) return null;
+                return h * 60 + m;
+            }
+
+            function loadSlots() {
+                if (!placeId || !roomId || !dateStr) {
+                    slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-red-500\">잘못된 접근입니다. 장소/공간/날짜 정보를 다시 선택해주세요.</div>';
+                    return;
+                }
+                // 날짜 입력 요소와 동기화
+                const dateInput = document.getElementById('siteRentalDatePicker');
+                if (dateInput && !dateInput.value) {
+                    dateInput.value = dateStr;
+                }
+                // 먼저 장소의 오픈/마감 시간을 조회
+                fetch('/api/v1/public/rentals/places')
+                    .then(r => r.json())
+                    .then(result => {
+                        if (result && result.success && Array.isArray(result.data)) {
+                            const place = result.data.find(p => String(p.id) === String(placeId));
+                            if (place) {
+                                placeName = place.name || null;
+                                openingMinutes = parseTimeToMinutes(place.openingTime);
+                                closingMinutes = parseTimeToMinutes(place.closingTime);
+                            }
+                        }
+                    })
+                    .catch(() => {
+                        openingMinutes = null;
+                        closingMinutes = null;
+                    })
+                    .finally(() => {
+                        // 룸 정보 조회 (이름 표시용)
+                        fetch(`/api/v1/public/rentals/places/${placeId}/rooms`)
+                            .then(r => r.json())
+                            .then(result => {
+                                if (result && result.success && Array.isArray(result.data)) {
+                                    const room = result.data.find(rm => String(rm.id) === String(roomId));
+                                    if (room) {
+                                        roomName = room.name || null;
+                                    }
+                                }
+                            })
+                            .catch(() => {
+                                roomName = null;
+                            })
+                            .finally(() => {
+                                updateSummary();
+                            });
+
+                        loadSlotsFromCalendar();
+                    });
+            }
+
+            function loadSlotsFromCalendar() {
+                // 로딩 상태 표시 및 기존 선택 초기화
+                slotsContainer.innerHTML = '<div class="px-4 py-3 text-gray-500">시간대를 불러오는 중입니다...</div>';
+                selectedRanges = [];
+                applySelectedRanges();
+                updateSelectionSummary();
+
+                const ym = dateStr.substring(0, 7);
+                const qs = new URLSearchParams({ placeId: placeId, yearMonth: ym });
+                fetch(`/api/v1/public/rentals/rooms/${roomId}/calendar?` + qs.toString())
+                    .then(r => r.json())
+                    .then(result => {
+                        if (!result.success) {
+                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-red-500\">시간대 정보를 불러오지 못했습니다.</div>';
+                            return;
+                        }
+                        const days = result.data || [];
+                        const day = days.find(d => d.date === dateStr);
+                        if (!day || !day.slots || !day.slots.length) {
+                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-gray-500\">표시할 시간대가 없습니다.</div>';
+                            return;
+                        }
+                        let daySlots = day.slots;
+                        // 장소 오픈/마감 시간 기준으로 필터링
+                        if (openingMinutes != null && closingMinutes != null) {
+                            daySlots = daySlots.filter(s => {
+                                const startLabel = formatTime(s.start);
+                                const endLabel = formatTime(s.end);
+                                const startMin = parseTimeToMinutes(startLabel);
+                                let endMin = parseTimeToMinutes(endLabel);
+                                // 23:00 ~ 00:00 같이 자정을 넘는 슬롯은 종료 시간을 24:00으로 간주
+                                if (endLabel === '00:00') {
+                                    endMin = 24 * 60;
+                                }
+                                if (startMin == null || endMin == null) return false;
+                                return startMin >= openingMinutes && endMin <= closingMinutes;
+                            });
+                        }
+                        if (!daySlots.length) {
+                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-gray-500\">해당 장소의 운영 시간 내에 표시할 시간대가 없습니다.</div>';
+                            return;
+                        }
+                        slots = daySlots;
+                        renderSlots();
+                    })
+                    .catch(() => {
+                        slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-red-500\">시간대 정보를 불러오지 못했습니다.</div>';
+                    });
+            }
+
+            function renderSlots() {
+                slotsContainer.innerHTML = '';
+                slotMeta = [];
+                selectedRanges = [];
+                updateSelectionSummary();
+                slots.forEach((s, idx) => {
+                    const startLabel = formatTime(s.start);
+                    const endLabel = formatTime(s.end);
+                    const row = document.createElement('div');
+                    row.className = 'site-reservation-slot';
+                    const available = s.available;
+                    row.dataset.index = String(idx);
+                    row.dataset.available = available ? '1' : '0';
+
+                    const timeLine = document.createElement('div');
+                    timeLine.className = 'site-reservation-slot-time';
+
+                    const time = document.createElement('span');
+                    time.className = 'font-medium';
+                    time.textContent = `${startLabel} ~ ${endLabel}`;
+                    timeLine.appendChild(time);
+
+                    const right = document.createElement('div');
+                    right.className = 'site-reservation-slot-meta';
+
+                    const priceSpan = document.createElement('span');
+                    priceSpan.className = 'site-reservation-slot-price';
+                    const priceValue = s.price != null ? s.price : 0;
+                    if (priceValue > 0) {
+                        priceSpan.textContent = `${priceValue.toLocaleString('ko-KR')}원`;
+                    } else {
+                        priceSpan.textContent = '-';
+                    }
+                    right.appendChild(priceSpan);
+
+                    if (!available) {
+                        const badge = document.createElement('span');
+                        badge.className = 'site-reservation-slot-badge';
+                        badge.textContent = s.reason === 'RESERVED' ? '예약됨' : '예약 불가';
+                        right.appendChild(badge);
+                    }
+
+                    timeLine.appendChild(right);
+                    row.appendChild(timeLine);
+
+                    if (available) {
+                        row.classList.add('site-reservation-slot-available');
+                    } else {
+                        row.classList.add('site-reservation-slot-disabled');
+                    }
+
+                    row.addEventListener('mousedown', onSlotMouseDown);
+                    row.addEventListener('mouseenter', onSlotMouseEnter);
+                    row.addEventListener('mouseup', onSlotMouseUp);
+                    row.addEventListener('click', onSlotClick);
+
+                    slotsContainer.appendChild(row);
+                    slotMeta.push({ el: row, available, price: priceValue });
+                });
+
+                document.addEventListener('mouseup', () => {
+                    if (dragState.active) {
+                        dragState.active = false;
+                        finalizeCurrentRange();
+                    }
+                });
+            }
+
+            function clearSelectionVisual() {
+                slotMeta.forEach(m => m.el.classList.remove('site-reservation-slot-selected'));
+            }
+
+            function applySelectedRanges() {
+                clearSelectionVisual();
+                selectedRanges.forEach(range => {
+                    const [s, e] = range;
+                    for (let i = s; i <= e; i++) {
+                        if (slotMeta[i] && slotMeta[i].available) {
+                            slotMeta[i].el.classList.add('site-reservation-slot-selected');
+                        }
+                    }
+                });
+            }
+
+            function applySelection(start, end) {
+                if (start == null || end == null) return;
+                const [s, e] = start <= end ? [start, end] : [end, start];
+                for (let i = s; i <= e; i++) {
+                    if (!slotMeta[i] || !slotMeta[i].available) return;
+                }
+                // 먼저 기존 확정 선택을 다시 그린 뒤, 현재 드래그 범위를 덧입힌다.
+                applySelectedRanges();
+                for (let i = s; i <= e; i++) {
+                    const meta = slotMeta[i];
+                    meta.el.classList.add('site-reservation-slot-selected');
+                }
+            }
+
+            function onSlotMouseDown(e) {
+                const idx = parseInt(e.currentTarget.dataset.index, 10);
+                const meta = slotMeta[idx];
+                if (!meta || !meta.available) return;
+                dragState.active = true;
+                dragState.startIndex = idx;
+                dragState.endIndex = idx;
+                applySelection(idx, idx);
+            }
+
+            function onSlotMouseEnter(e) {
+                if (!dragState.active) return;
+                const idx = parseInt(e.currentTarget.dataset.index, 10);
+                dragState.endIndex = idx;
+                applySelection(dragState.startIndex, dragState.endIndex);
+            }
+
+            function finalizeCurrentRange() {
+                const startIdx = dragState.startIndex;
+                const endIdx = dragState.endIndex;
+                if (startIdx == null || endIdx == null) return;
+                const [s, e] = startIdx <= endIdx ? [startIdx, endIdx] : [endIdx, startIdx];
+                for (let i = s; i <= e; i++) {
+                    if (!slotMeta[i] || !slotMeta[i].available) {
+                        return;
+                    }
+                }
+                // 추가 선택: 기존 선택과 겹치는 구간은 합치기
+                let newRanges = [];
+                let mergedStart = s;
+                let mergedEnd = e;
+                selectedRanges.forEach(([rs, re]) => {
+                    if (re < mergedStart - 1 || rs > mergedEnd + 1) {
+                        newRanges.push([rs, re]);
+                    } else {
+                        mergedStart = Math.min(mergedStart, rs);
+                        mergedEnd = Math.max(mergedEnd, re);
+                    }
+                });
+                newRanges.push([mergedStart, mergedEnd]);
+                selectedRanges = newRanges.sort((a, b) => a[0] - b[0]);
+                applySelectedRanges();
+                updateSelectionSummary();
+            }
+
+            function onSlotMouseUp(e) {
+                if (!dragState.active) return;
+                dragState.active = false;
+                const idx = parseInt(e.currentTarget.dataset.index, 10);
+                dragState.endIndex = idx;
+                applySelection(dragState.startIndex, dragState.endIndex);
+                finalizeCurrentRange();
+            }
+
+            function onSlotClick(e) {
+                const idx = parseInt(e.currentTarget.dataset.index, 10);
+                const meta = slotMeta[idx];
+                if (!meta || !meta.available) return;
+
+                // 클릭한 슬롯이 이미 선택된 구간에 포함되어 있으면 해당 슬롯을 선택 해제(토글)
+                let newRanges = [];
+                let changed = false;
+
+                selectedRanges.forEach(([s, e]) => {
+                    if (idx < s || idx > e) {
+                        // 클릭한 인덱스를 포함하지 않는 구간은 그대로 유지
+                        newRanges.push([s, e]);
+                        return;
+                    }
+                    // 포함하는 경우 토글 처리
+                    changed = true;
+                    if (s === e && s === idx) {
+                        // 단일 슬롯 구간이면 전체 제거 (아무 것도 추가하지 않음)
+                        return;
+                    }
+                    if (idx === s) {
+                        // 앞쪽 한 칸 잘라내기
+                        newRanges.push([s + 1, e]);
+                        return;
+                    }
+                    if (idx === e) {
+                        // 뒤쪽 한 칸 잘라내기
+                        newRanges.push([s, e - 1]);
+                        return;
+                    }
+                    // 중간에 끼어 있으면 두 구간으로 분리
+                    newRanges.push([s, idx - 1]);
+                    newRanges.push([idx + 1, e]);
+                });
+
+                if (!changed) {
+                    // 기존 선택에 포함되지 않은 슬롯을 클릭한 경우: 단일 슬롯 추가 선택
+                    newRanges = selectedRanges.slice();
+                    newRanges.push([idx, idx]);
+                }
+
+                selectedRanges = newRanges.sort((a, b) => a[0] - b[0]);
+                applySelectedRanges();
+                updateSelectionSummary();
+            }
+
+            function updateSelectionSummary() {
+                if (!selectedRanges.length) {
+                    selectionEl.textContent = '선택된 시간대가 없습니다.';
+                    reserveBtn.disabled = true;
+                    reserveBtn.onclick = null;
+                    return;
+                }
+
+                let lines = [];
+                let grandTotalPrice = 0;
+                selectedRanges.forEach(([s, e], idx) => {
+                    const startSlot = slots[s];
+                    const endSlot = slots[e];
+                    if (!startSlot || !endSlot) return;
+                    const startLabel = formatTime(startSlot.start);
+                    const endLabel = formatTime(endSlot.end);
+                    const count = e - s + 1;
+                    let totalPrice = 0;
+                    for (let i = s; i <= e; i++) {
+                        const p = slotMeta[i]?.price ?? 0;
+                        totalPrice += p;
+                    }
+                    grandTotalPrice += totalPrice;
+                    const priceLabel = totalPrice > 0 ? `${totalPrice.toLocaleString('ko-KR')}원` : '-';
+                    lines.push(`선택 ${idx + 1}: ${startLabel} ~ ${endLabel} (예상 요금: ${priceLabel})`);
+                });
+
+                const grandLabel = grandTotalPrice > 0 ? `${grandTotalPrice.toLocaleString('ko-KR')}원` : '-';
+                const dateLine = formatDateLabel(dateStr);
+                const html = [
+                    `<div>${dateLine}</div>`,
+                    ...lines.map(l => `<div>${l}</div>`),
+                    `<div>총 예상 요금: ${grandLabel}</div>`
+                ].join('');
+
+                selectionEl.innerHTML = html;
+                reserveBtn.disabled = false;
+
+                reserveBtn.onclick = function () {
+                    if (!selectedRanges.length) return;
+                    if (!window.__siteUser) {
+                        alert('로그인 후 예약 하실 수 있습니다.');
+                        const returnUrl = `/site/rental/reserve?placeId=${encodeURIComponent(String(placeId))}&roomId=${encodeURIComponent(String(roomId))}&date=${encodeURIComponent(String(dateStr))}`;
+                        window.location.href = '/site/auth/login?redirect=' + encodeURIComponent(returnUrl);
+                        return;
+                    }
+                    const requests = [];
+                    selectedRanges.forEach(([s, e]) => {
+                        const startSlot = slots[s];
+                        const endSlot = slots[e];
+                        if (!startSlot || !endSlot) return;
+                        let totalPrice = 0;
+                        for (let i = s; i <= e; i++) {
+                            const p = slotMeta[i]?.price ?? 0;
+                            totalPrice += p;
+                        }
+                        const body = {
+                            start: startSlot.start,
+                            end: endSlot.end,
+                            memo: null,
+                            totalPrice: totalPrice
+                        };
+                        requests.push(
+                            fetch(`/api/v1/public/rentals/rooms/${roomId}/reservations`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'same-origin',
+                                body: JSON.stringify(body)
+                            }).then(r => r.json())
+                        );
+                    });
+
+                    Promise.all(requests)
+                        .then(results => {
+                            const allSuccess = results.every(r => r && r.success);
+                            if (allSuccess) {
+                                alert('선택한 시간대에 대한 예약 요청이 모두 접수되었습니다.');
+                                //window.location.href = '/site/';
+                            } else {
+                                alert('일부 예약 요청이 실패했습니다. 로그인 상태 또는 예약 가능 시간을 다시 확인해주세요.');
+                            }
+                        })
+                        .catch(() => alert('예약 요청 중 오류가 발생했습니다.'));
+                };
+            }
+
+            const dateInputEl = document.getElementById('siteRentalDatePicker');
+            if (dateInputEl) {
+                // 초기 값 및 최소 날짜(내일부터) 설정
+                const today = new Date();
+                const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+                const toInputDate = d => {
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                };
+                dateInputEl.min = toInputDate(tomorrow);
+                if (dateStr) {
+                    dateInputEl.value = dateStr;
+                    // 오늘 날짜가 선택되어 있으면 자동으로 내일로 보정
+                    if (dateStr <= dateInputEl.min) {
+                        dateStr = dateInputEl.min;
+                        dateInputEl.value = dateStr;
+                    }
+                } else {
+                    dateStr = dateInputEl.min;
+                    dateInputEl.value = dateStr;
+                }
+
+                dateInputEl.addEventListener('change', function () {
+                    const v = this.value;
+                    if (!v) return;
+                    if (v <= this.min) {
+                        this.value = this.min;
+                        dateStr = this.min;
+                    } else {
+                        dateStr = v;
+                    }
+                    // 날짜가 변경되면 현재 선택 초기화 후 해당 날짜 기준으로 다시 조회
+                    selectedRanges = [];
+                    updateSummary();
+                    loadSlotsFromCalendar();
+                });
+            }
+
+            loadSlots();
+        })();
+    </script>
+</div>
+</body>
+</html>
+
