@@ -44,4 +44,7 @@ public class SiteConfigUpdateRequest {
 
     @Size(max = 200)
     private String adminEmail;
+
+    @Size(max = 50)
+    private String siteTheme;
 }

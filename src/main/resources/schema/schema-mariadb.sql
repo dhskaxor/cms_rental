@@ -295,6 +295,7 @@ CREATE TABLE IF NOT EXISTS site_config (
     company_address VARCHAR(500) COMMENT '회사 주소',
     company_phone VARCHAR(50) COMMENT '회사 전화번호',
     admin_email VARCHAR(200) COMMENT '관리자 이메일',
+    site_theme VARCHAR(50) NOT NULL DEFAULT 'dark' COMMENT '사용자 사이트 기본 테마',
     created_at DATETIME NOT NULL COMMENT '생성 일시',
     created_by BIGINT COMMENT '생성자 ID',
     updated_at DATETIME COMMENT '수정 일시',

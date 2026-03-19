@@ -12,6 +12,7 @@
         <result property="companyAddress" column="company_address"/>
         <result property="companyPhone" column="company_phone"/>
         <result property="adminEmail" column="admin_email"/>
+        <result property="siteTheme" column="site_theme"/>
         <result property="createdAt" column="created_at"/>
         <result property="createdBy" column="created_by"/>
         <result property="updatedAt" column="updated_at"/>
@@ -31,6 +32,7 @@
             company_address,
             company_phone,
             admin_email,
+            site_theme,
             created_at,
             created_by,
             updated_at,
@@ -52,6 +54,7 @@
             company_address = #{companyAddress},
             company_phone = #{companyPhone},
             admin_email = #{adminEmail},
+            site_theme = #{siteTheme},
             updated_at = #{updatedAt},
             updated_by = #{updatedBy}
         WHERE id = #{id}
@@ -69,6 +72,7 @@
             company_address,
             company_phone,
             admin_email,
+            site_theme,
             created_at,
             created_by,
             updated_at,
@@ -84,6 +88,7 @@
             #{companyAddress},
             #{companyPhone},
             #{adminEmail},
+            #{siteTheme},
             #{createdAt},
             #{createdBy},
             #{updatedAt},

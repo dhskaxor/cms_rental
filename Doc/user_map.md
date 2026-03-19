@@ -32,9 +32,9 @@
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| GET | /api/v1/public/site/config | 사이트명, favicon, SEO, 회사정보 조회 |
+| GET | /api/v1/public/site/config | 사이트명, favicon, SEO, 회사정보, 기본 테마 조회 |
 
-**Response:** `{ id, siteName, faviconUrl, seoTitle, seoDescription, seoKeywords, companyAddress, companyPhone, adminEmail }`
+**Response:** `{ id, siteName, faviconUrl, seoTitle, seoDescription, seoKeywords, companyAddress, companyPhone, adminEmail, siteTheme }`
 
 **Fetch 예시 (cms_user_react):**
 ```ts
@@ -216,7 +216,7 @@ const popupRes = await fetch('/api/v1/public/popups?positionType=MAIN&deviceType
 
 ## 5. 사용자 사이트 스타일 커스터마이징 (Phase 6)
 
-사용자 사이트(`/site/**`) 스타일은 `site.css`의 CSS 변수로 테마를 오버라이드할 수 있다.
+사용자 사이트(`/site/**`)는 `site.css`의 다중 테마 토큰을 사용한다. 기본 테마는 관리자 화면(사이트 관리)에서 선택하며, `html[data-theme="<theme>"]` 기준으로 전체 색상 토큰이 전환된다.
 
 ### 5.1 CSS 디자인 시스템
 
@@ -226,16 +226,16 @@ CMS Core 사용자 사이트는 React (`cms_user_react`)와 동일한 CSS 변수
 
 | 변수명 | 기본값 | 설명 |
 |--------|--------|------|
-| `--color-primary` | #00d4ff | 주요 브랜드 색상 |
-| `--color-primary-dark` | #00a8cc | 호버/활성 상태 |
-| `--color-primary-light` | rgba(0,212,255,0.15) | 배경 하이라이트 |
-| `--color-secondary` | #8b5cf6 | 보조 강조 색상 (보라) |
-| `--color-bg` | #0a0a0f | 배경색 (다크 테마) |
-| `--color-bg-secondary` | #12121a | 보조 배경색 |
-| `--color-bg-card` | #1a1a24 | 카드 배경색 |
-| `--color-text` | #f1f5f9 | 기본 텍스트 |
-| `--color-text-muted` | #94a3b8 | 보조 텍스트 |
-| `--color-border` | #2a2a3a | 테두리 |
+| `--color-primary` | theme별 상이 | 주요 브랜드 색상 |
+| `--color-primary-dark` | theme별 상이 | 호버/활성 상태 |
+| `--color-primary-light` | theme별 상이 | 배경 하이라이트 |
+| `--color-secondary` | theme별 상이 | 보조 강조 색상 |
+| `--color-bg` | theme별 상이 | 기본 배경 |
+| `--color-bg-secondary` | theme별 상이 | 보조 배경 |
+| `--color-bg-card` | theme별 상이 | 카드 배경 |
+| `--color-text` | theme별 상이 | 기본 텍스트 |
+| `--color-text-muted` | theme별 상이 | 보조 텍스트 |
+| `--color-border` | theme별 상이 | 테두리 |
 
 #### 타이포그래피 (Typography)
 
@@ -254,7 +254,14 @@ CMS Core 사용자 사이트는 React (`cms_user_react`)와 동일한 CSS 변수
 | `--max-width` | 1200px |
 | `--radius-sm/md/lg/xl/2xl` | 0.25rem ~ 1.5rem |
 
-### 5.2 테마 오버라이드 예시
+### 5.2 내장 테마셋
+
+- `dark`: 어두운 기본 테마 (폴백)
+- `light`: 화이트 기반 고대비 테마
+- `sky`: 밝은 하늘색 기반 테마
+- `classic`: 기업형 뉴트럴 테마
+
+### 5.3 테마 오버라이드 예시
 
 프로젝트별 `site-custom.css` 등을 추가하고 `site.css` 이후 로드하여 덮어쓸 수 있다.
 
@@ -264,8 +271,8 @@ CMS Core 사용자 사이트는 React (`cms_user_react`)와 동일한 CSS 변수
 ```
 
 ```css
-/* site-custom.css - 라이트 테마 예시 */
-:root {
+/* site-custom.css - 라이트 계열 커스텀 예시 */
+html[data-theme="light"] {
     --color-primary: #2563eb;
     --color-bg: #ffffff;
     --color-bg-secondary: #f8fafc;

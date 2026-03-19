@@ -29,4 +29,5 @@ public class SiteConfigResponse {
     private String companyAddress;
     private String companyPhone;
     private String adminEmail;
+    private String siteTheme;
 }

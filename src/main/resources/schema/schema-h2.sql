@@ -294,6 +294,7 @@ CREATE TABLE IF NOT EXISTS site_config (
     company_address VARCHAR(500),
     company_phone VARCHAR(50),
     admin_email VARCHAR(200),
+    site_theme VARCHAR(50) DEFAULT 'dark' NOT NULL,
     created_at DATETIME NOT NULL,
     created_by BIGINT,
     updated_at DATETIME,

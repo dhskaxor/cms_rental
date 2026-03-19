@@ -191,9 +191,10 @@ Authorization: Bearer {access_token}
 
 - **URL**: `GET /api/v1/public/site/config`
 - **인증**: 불필요
-- **설명**: 관리자 사이트 관리에서 설정한 사이트명, favicon, SEO, 회사정보를 조회
-- **Response**: `id`, `siteName`, `faviconUrl`, `seoTitle`, `seoDescription`, `seoKeywords`, `companyAddress`, `companyPhone`, `adminEmail`
+- **설명**: 관리자 사이트 관리에서 설정한 사이트명, favicon, SEO, 회사정보, 기본 테마를 조회
+- **Response**: `id`, `siteName`, `faviconUrl`, `seoTitle`, `seoDescription`, `seoKeywords`, `companyAddress`, `companyPhone`, `adminEmail`, `siteTheme`
 - **비고**: faviconUrl은 설정된 favicon이 있을 때 `/api/v1/public/site/favicon` 경로
+  - `siteTheme` 지원값: `dark`, `light`, `sky`, `classic` (미설정/잘못된 값은 `dark` 폴백)
 
 #### 2. Favicon
 

@@ -124,5 +124,5 @@ WHERE r.role_code = 'USER'
   );
 
 -- 사이트 설정 초기 행 (id=1)
-INSERT INTO site_config (id, site_name, created_at, deleted)
-VALUES (1, 'CMS Core', NOW(), 0);
+INSERT INTO site_config (id, site_name, site_theme, created_at, deleted)
+VALUES (1, 'CMS Core', 'dark', NOW(), 0);

@@ -4,111 +4,6 @@
       layout:decorate="~{site/layout}">
 <head>
     <title>예약 진행</title>
-    <style>
-        /* 상단 여백 축소 (예약 진행 페이지 전용) */
-        .site-section {
-            padding-top: 1.25rem;
-        }
-        .site-section-header {
-            margin-bottom: 0.75rem;
-        }
-        .site-section-header .site-section-title {
-            margin-bottom: 0.35rem;
-        }
-        .site-section-header p {
-            margin-bottom: 0.15rem;
-        }
-        /* 예약 슬롯 박스 기본 스타일 */
-        .site-reservation-slot {
-            border: 1px solid #1f2937;
-            border-radius: 0.75rem;
-            padding: 0.45rem 0.75rem;
-            margin-bottom: 0.35rem;
-            background-color: #020617;
-            font-size: 0.875rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-        }
-        .site-reservation-slot-available:hover {
-            border-color: #6366f1;
-            background-color: #020617;
-            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.4);
-            cursor: pointer;
-        }
-        .site-reservation-slot-disabled {
-            background-color: #111827;
-            color: #6b7280;
-            border-color: #1f2937;
-            cursor: not-allowed;
-        }
-        .site-reservation-slot-time {
-            font-weight: 600;
-            color: #e5e7eb;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.82rem;
-        }
-        .site-reservation-slot-meta {
-            display: flex;
-            gap: 0.25rem;
-            align-items: center;
-        }
-        .site-reservation-slot-price {
-            font-size: 11px;
-            color: #9ca3af;
-        }
-        .site-reservation-slot-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.1rem 0.4rem;
-            border-radius: 9999px;
-            font-size: 11px;
-            background-color: #111827;
-            color: #9ca3af;
-        }
-        .site-reservation-slot-selected {
-            border-color: #4f46e5 !important;
-            background-color: #111827 !important;
-            box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
-        }
-        .site-reservation-slots-wrap {
-            border: 1px solid #1f2937;
-            border-radius: 0.75rem;
-            font-size: 0.875rem;
-            padding: 0.5rem;
-            background-color: #020617;
-        }
-        .site-reservation-legend-dot {
-            display: inline-block;
-            width: 0.75rem;
-            height: 0.75rem;
-            border-radius: 0.2rem;
-            background-color: #e0e7ff;
-            border: 1px solid #4f46e5;
-            vertical-align: middle;
-            margin-right: 0.25rem;
-        }
-        .site-reservation-layout {
-            display: flex;
-            gap: 1.5rem;
-            align-items: flex-start;
-        }
-        .site-reservation-column-main {
-            flex: 2 1 0%;
-            min-width: 0;
-        }
-        .site-reservation-column-side {
-            flex: 1 1 0%;
-            min-width: 0;
-        }
-    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -121,20 +16,20 @@
             <div class="site-card site-reservation-column-main">
                 <div class="flex items-center justify-between gap-4 mb-2">
                     <h2 class="site-card-title mb-0">예약 시간 선택</h2>
-                    <div class="flex items-center gap-3 text-xs text-gray-300">
+                    <div class="flex items-center gap-3 text-xs site-rental-summary-row">
                         <span id="siteRentalReserveSummary" class="whitespace-nowrap">
                             장소/공간/날짜 정보를 불러오는 중입니다...
                         </span>
                         <label for="siteRentalDatePicker" class="whitespace-nowrap">예약 날짜</label>
                         <input id="siteRentalDatePicker" type="date"
-                               class="px-2 py-1 rounded-md bg-slate-900 border border-slate-600 text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                               class="text-xs">
                     </div>
                 </div>
                 <div class="site-card-body">
                     <div id="siteRentalSlots" class="site-reservation-slots-wrap">
-                        <div class="px-4 py-3 text-gray-500">시간대를 불러오는 중입니다...</div>
+                        <div class="px-4 py-3 site-rental-feedback-muted">시간대를 불러오는 중입니다...</div>
                     </div>
-                    <p class="mt-2 text-xs text-gray-500">
+                    <p class="mt-2 text-xs site-rental-feedback-muted">
                         <span class="site-reservation-legend-dot"></span>
                         보라색 박스는 현재 선택된 예약 가능 시간대를 나타냅니다. 마우스로 연속 구간을 드래그해 선택하세요.
                     </p>
@@ -142,13 +37,13 @@
             </div>
             <div class="site-card site-reservation-column-side">
                 <h2 class="site-card-title">선택 요약</h2>
-                <div class="site-card-body text-sm text-gray-200 space-y-1">
+                <div class="site-card-body text-sm site-rental-selection-body space-y-1">
                     <p id="siteRentalSelection">선택된 시간대가 없습니다.</p>
                     <button type="button" id="siteRentalReserveButton"
                             class="site-btn site-btn-primary w-full mt-2" disabled>
                         이 시간으로 예약 요청
                     </button>
-                    <p class="text-xs text-gray-500">
+                    <p class="text-xs site-rental-feedback-muted">
                         실제 예약 확정은 관리자 승인 후 완료됩니다. 로그인 상태에서만 예약이 가능하며,
                         예약 요청 후 마이페이지에서 내 예약 내역을 확인할 수 있습니다.
                     </p>
@@ -211,7 +106,7 @@
 
             function loadSlots() {
                 if (!placeId || !roomId || !dateStr) {
-                    slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-red-500\">잘못된 접근입니다. 장소/공간/날짜 정보를 다시 선택해주세요.</div>';
+                    slotsContainer.innerHTML = '<div class=\"px-4 py-3 site-rental-feedback-error\">잘못된 접근입니다. 장소/공간/날짜 정보를 다시 선택해주세요.</div>';
                     return;
                 }
                 // 날짜 입력 요소와 동기화
@@ -261,7 +156,7 @@
 
             function loadSlotsFromCalendar() {
                 // 로딩 상태 표시 및 기존 선택 초기화
-                slotsContainer.innerHTML = '<div class="px-4 py-3 text-gray-500">시간대를 불러오는 중입니다...</div>';
+                slotsContainer.innerHTML = '<div class="px-4 py-3 site-rental-feedback-muted">시간대를 불러오는 중입니다...</div>';
                 selectedRanges = [];
                 applySelectedRanges();
                 updateSelectionSummary();
@@ -272,13 +167,13 @@
                     .then(r => r.json())
                     .then(result => {
                         if (!result.success) {
-                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-red-500\">시간대 정보를 불러오지 못했습니다.</div>';
+                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 site-rental-feedback-error\">시간대 정보를 불러오지 못했습니다.</div>';
                             return;
                         }
                         const days = result.data || [];
                         const day = days.find(d => d.date === dateStr);
                         if (!day || !day.slots || !day.slots.length) {
-                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-gray-500\">표시할 시간대가 없습니다.</div>';
+                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 site-rental-feedback-muted\">표시할 시간대가 없습니다.</div>';
                             return;
                         }
                         let daySlots = day.slots;
@@ -298,14 +193,14 @@
                             });
                         }
                         if (!daySlots.length) {
-                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-gray-500\">해당 장소의 운영 시간 내에 표시할 시간대가 없습니다.</div>';
+                            slotsContainer.innerHTML = '<div class=\"px-4 py-3 site-rental-feedback-muted\">해당 장소의 운영 시간 내에 표시할 시간대가 없습니다.</div>';
                             return;
                         }
                         slots = daySlots;
                         renderSlots();
                     })
                     .catch(() => {
-                        slotsContainer.innerHTML = '<div class=\"px-4 py-3 text-red-500\">시간대 정보를 불러오지 못했습니다.</div>';
+                        slotsContainer.innerHTML = '<div class=\"px-4 py-3 site-rental-feedback-error\">시간대 정보를 불러오지 못했습니다.</div>';
                     });
             }
 
@@ -346,8 +241,9 @@
 
                     if (!available) {
                         const badge = document.createElement('span');
-                        badge.className = 'site-reservation-slot-badge';
-                        badge.textContent = s.reason === 'RESERVED' ? '예약됨' : '예약 불가';
+                        const isReserved = s.reason === 'RESERVED';
+                        badge.className = 'site-reservation-slot-badge ' + (isReserved ? 'is-reserved' : 'is-unavailable');
+                        badge.textContent = isReserved ? '예약됨' : '예약 불가';
                         right.appendChild(badge);
                     }
 

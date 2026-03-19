@@ -60,4 +60,9 @@ public class SiteConfigVO extends BaseVO {
      * 관리자 이메일
      */
     private String adminEmail;
+
+    /**
+     * 사용자 사이트 기본 테마 키 (dark, light, sky, classic)
+     */
+    private String siteTheme;
 }

@@ -1,7 +1,7 @@
 package com.nt.cms.siteconfig.service;
 
 import com.nt.cms.audit.service.AuditLogService;
-import com.nt.cms.file.service.FileService;
+import com.nt.cms.siteconfig.constant.SiteTheme;
 import com.nt.cms.siteconfig.dto.SiteConfigResponse;
 import com.nt.cms.siteconfig.dto.SiteConfigUpdateRequest;
 import com.nt.cms.siteconfig.mapper.SiteConfigMapper;
@@ -26,7 +26,6 @@ public class DefaultSiteConfigService implements SiteConfigService {
     private static final Long SITE_CONFIG_ID = 1L;
 
     private final SiteConfigMapper siteConfigMapper;
-    private final FileService fileService;
     private final AuditLogService auditLogService;
 
     @Override
@@ -58,6 +57,7 @@ public class DefaultSiteConfigService implements SiteConfigService {
                 .companyAddress(vo.getCompanyAddress())
                 .companyPhone(vo.getCompanyPhone())
                 .adminEmail(vo.getAdminEmail())
+                .siteTheme(SiteTheme.normalize(vo.getSiteTheme()))
                 .build();
     }
 
@@ -75,6 +75,7 @@ public class DefaultSiteConfigService implements SiteConfigService {
                 .companyAddress(request.getCompanyAddress())
                 .companyPhone(request.getCompanyPhone())
                 .adminEmail(request.getAdminEmail())
+                .siteTheme(resolveSiteTheme(request.getSiteTheme(), existing.getSiteTheme()))
                 .updatedAt(LocalDateTime.now())
                 .updatedBy(userId)
                 .build();
@@ -91,6 +92,7 @@ public class DefaultSiteConfigService implements SiteConfigService {
         SiteConfigVO vo = SiteConfigVO.builder()
                 .id(SITE_CONFIG_ID)
                 .siteName("CMS Core")
+                .siteTheme(SiteTheme.DARK)
                 .createdAt(LocalDateTime.now())
                 .deleted(false)
                 .build();
@@ -98,5 +100,12 @@ public class DefaultSiteConfigService implements SiteConfigService {
         siteConfigMapper.insert(vo);
         log.info("사이트 설정 초기 행 생성: id=1");
         return vo;
+    }
+
+    private String resolveSiteTheme(String requestedTheme, String existingTheme) {
+        if (requestedTheme != null) {
+            return SiteTheme.normalize(requestedTheme);
+        }
+        return SiteTheme.normalize(existingTheme);
     }
 }

@@ -5,12 +5,6 @@
 <head>
     <title>예약 달력</title>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
-    <style>
-        .fc .fc-daygrid-day.fc-day-sat { background-color: #020617; }
-        .fc .fc-daygrid-day.fc-day-sun { background-color: #111827; }
-        .fc .fc-daygrid-day.fc-day-holiday { background-color: #111827; }
-        .fc .fc-daygrid-day.fc-day-closed { background-color: #022c22; }
-    </style>
 </head>
 <body>
 <div layout:fragment="content">
@@ -21,7 +15,7 @@
         <div class="site-card">
             <div class="site-card-header">
                 <div>
-                    <div class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                    <div class="flex flex-wrap items-center gap-2 text-xs site-rental-toolbar">
                         <span>장소</span>
                         <select id="siteRentalPlaceSelect" class="form-select">
                             <option value="">장소를 선택하세요</option>
@@ -179,15 +173,26 @@
                 return map[status] || status || '';
             }
 
+            function statusClass(status) {
+                const map = {
+                    'REQUESTED': 'is-requested',
+                    'CONFIRMED': 'is-confirmed',
+                    'CANCELLED_BY_USER': 'is-cancelled',
+                    'REJECTED_BY_ADMIN': 'is-rejected',
+                    'CANCELLED_BY_ADMIN': 'is-cancelled'
+                };
+                return map[status] || 'is-cancelled';
+            }
+
             function buildDayContent(dateStr) {
                 const day = calendarDaysMap[dateStr];
                 if (!day) return '';
                 if (day.dayType === 'CLOSED') {
                     const holidayName = day.holidayName;
                     if (holidayName) {
-                        return `<div class="text-[10px] text-red-600">공휴일 (${holidayName})</div>`;
+                        return `<div class="site-rental-day-note-holiday">공휴일 (${holidayName})</div>`;
                     }
-                    return '<div class="text-[10px] text-gray-500">휴관</div>';
+                    return '<div class="site-rental-day-note-closed">휴관</div>';
                 }
 
                 const slots = day.slots || [];
@@ -197,7 +202,7 @@
                     .filter(p => !Number.isNaN(p) && p > 0);
                 const minPrice = availableSlotPrices.length ? Math.min(...availableSlotPrices) : null;
                 const priceLine = minPrice != null
-                    ? `<div class="text-[10px] text-gray-500">최저 ${minPrice.toLocaleString('ko-KR')}원/시간</div>`
+                    ? `<div class="site-rental-day-price">최저 ${minPrice.toLocaleString('ko-KR')}원/시간</div>`
                     : '';
                 const reservations = day.reservations || [];
                 if (!reservations.length) {
@@ -206,7 +211,10 @@
                 let html = '<div class="space-y-0.5 mt-0.5">';
                 reservations.forEach(r => {
                     const label = statusLabel(r.status);
-                    html += `<div class=\"text-[10px] text-indigo-700 truncate\">${r.startTime}~${r.endTime}${label ? '(' + label + ')' : ''}</div>`;
+                    const badge = label
+                        ? `<span class="site-rental-status-badge ${statusClass(r.status)}">${label}</span>`
+                        : '';
+                    html += `<div class=\"site-rental-day-reservation-row truncate\">${r.startTime}~${r.endTime}${badge}</div>`;
                 });
                 html += '</div>';
                 return priceLine + html;

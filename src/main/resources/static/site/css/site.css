@@ -51,18 +51,18 @@
        - color-primary-dark: 호버/활성 상태
        - color-primary-light: 배경 하이라이트
     ───────────────────────────────────────────────────────────────────────── */
-    --color-primary: #00d4ff;
-    --color-primary-dark: #00a8cc;
-    --color-primary-light: rgba(0, 212, 255, 0.15);
-    --color-primary-rgb: 0, 212, 255;
+    --color-primary: #38bdf8;
+    --color-primary-dark: #0ea5e9;
+    --color-primary-light: rgba(56, 189, 248, 0.2);
+    --color-primary-rgb: 56, 189, 248;
 
     /* ─────────────────────────────────────────────────────────────────────────
        보조 강조 색상 (Secondary Colors)
        - 그라데이션, 배지, 특별 강조에 사용
     ───────────────────────────────────────────────────────────────────────── */
-    --color-secondary: #8b5cf6;
-    --color-secondary-dark: #7c3aed;
-    --color-secondary-light: rgba(139, 92, 246, 0.15);
+    --color-secondary: #a78bfa;
+    --color-secondary-dark: #8b5cf6;
+    --color-secondary-light: rgba(167, 139, 250, 0.18);
 
     /* ─────────────────────────────────────────────────────────────────────────
        시맨틱 색상 (Semantic Colors)
@@ -78,26 +78,299 @@
        - 다크 테마 기준
        - 라이트 테마로 변경 시 밝은 색상으로 교체
     ───────────────────────────────────────────────────────────────────────── */
-    --color-bg: #0a0a0f;
-    --color-bg-secondary: #12121a;
-    --color-bg-card: #1a1a24;
-    --color-bg-elevated: #22222e;
-    --color-bg-input: #12121a;
+    --color-bg: #111827;
+    --color-bg-secondary: #1b2533;
+    --color-bg-card: #223043;
+    --color-bg-elevated: #2a3a50;
+    --color-bg-input: #1c2736;
 
     /* ─────────────────────────────────────────────────────────────────────────
        텍스트 색상 (Text Colors)
     ───────────────────────────────────────────────────────────────────────── */
-    --color-text: #f1f5f9;
+    --color-text: #f8fafc;
     --color-text-secondary: #e2e8f0;
-    --color-text-muted: #94a3b8;
-    --color-text-dim: #64748b;
+    --color-text-muted: #b6c2d1;
+    --color-text-dim: #8ea0b5;
 
     /* ─────────────────────────────────────────────────────────────────────────
        테두리 색상 (Border Colors)
     ───────────────────────────────────────────────────────────────────────── */
-    --color-border: #2a2a3a;
-    --color-border-light: #3a3a4a;
+    --color-border: #36465d;
+    --color-border-light: #465a74;
     --color-border-focus: var(--color-primary);
+
+    /* ─────────────────────────────────────────────────────────────────────────
+       테마별 확장 색상 (Theme Utility Colors)
+       - 하드코딩 색상 제거를 위한 보조 토큰
+    ───────────────────────────────────────────────────────────────────────── */
+    --color-header-overlay: rgba(17, 24, 39, 0.9);
+    --color-mobile-nav-overlay: rgba(17, 24, 39, 0.94);
+    --color-danger-border-soft: rgba(239, 68, 68, 0.3);
+    --color-danger-bg-soft: rgba(239, 68, 68, 0.1);
+    --color-secondary-border-soft: rgba(167, 139, 250, 0.3);
+    --color-secondary-bg-soft: rgba(167, 139, 250, 0.12);
+    --color-surface-highlight-strong: rgba(255, 255, 255, 0.04);
+    --color-surface-highlight-soft: rgba(255, 255, 255, 0.015);
+    --color-input-inset: rgba(255, 255, 255, 0.02);
+    --color-violet: #8b5cf6;
+    --color-feature-cyan-start: #06b6d4;
+    --color-feature-cyan-end: #3b82f6;
+    --color-feature-green-start: #10b981;
+    --color-feature-green-end: #059669;
+    --color-feature-violet-start: #8b5cf6;
+    --color-feature-violet-end: #7c3aed;
+    --color-feature-orange-start: #f59e0b;
+    --color-feature-orange-end: #ef4444;
+    --color-feature-pink-start: #ec4899;
+    --color-feature-pink-end: #f43f5e;
+    --color-feature-yellow-start: #eab308;
+    --color-feature-yellow-end: #f59e0b;
+
+    /* ─────────────────────────────────────────────────────────────────────────
+       예약/달력 전용 토큰 (Rental Theme Tokens)
+    ───────────────────────────────────────────────────────────────────────── */
+    --color-rental-calendar-sat-bg: #020617;
+    --color-rental-calendar-sun-bg: #111827;
+    --color-rental-calendar-holiday-bg: #111827;
+    --color-rental-calendar-closed-bg: #022c22;
+    --color-rental-day-note-holiday: #f87171;
+    --color-rental-day-note-closed: var(--color-text-dim);
+    --color-rental-day-price: var(--color-text-dim);
+    --color-rental-day-reservation: var(--color-violet);
+    --color-rental-slot-bg: #020617;
+    --color-rental-slot-border: #1f2937;
+    --color-rental-slot-hover-border: #6366f1;
+    --color-rental-slot-hover-ring: rgba(99, 102, 241, 0.4);
+    --color-rental-slot-disabled-bg: #111827;
+    --color-rental-slot-disabled-text: #6b7280;
+    --color-rental-slot-time-text: #e5e7eb;
+    --color-rental-slot-price-text: #9ca3af;
+    --color-rental-slot-badge-bg: #111827;
+    --color-rental-slot-badge-text: #9ca3af;
+    --color-rental-slot-selected-border: #4f46e5;
+    --color-rental-slot-selected-bg: #111827;
+    --color-rental-slot-selected-ring: rgba(79, 70, 229, 0.4);
+    --color-rental-legend-dot-bg: #e0e7ff;
+    --color-rental-legend-dot-border: #4f46e5;
+    --color-rental-input-bg: #0f172a;
+    --color-rental-input-border: #475569;
+    --color-rental-input-text: #e2e8f0;
+    --color-rental-status-requested-bg: rgba(245, 158, 11, 0.18);
+    --color-rental-status-requested-text: #fbbf24;
+    --color-rental-status-requested-border: rgba(245, 158, 11, 0.35);
+    --color-rental-status-confirmed-bg: rgba(16, 185, 129, 0.18);
+    --color-rental-status-confirmed-text: #34d399;
+    --color-rental-status-confirmed-border: rgba(16, 185, 129, 0.35);
+    --color-rental-status-rejected-bg: rgba(239, 68, 68, 0.15);
+    --color-rental-status-rejected-text: #f87171;
+    --color-rental-status-rejected-border: rgba(239, 68, 68, 0.32);
+    --color-rental-status-cancelled-bg: rgba(148, 163, 184, 0.16);
+    --color-rental-status-cancelled-text: #cbd5e1;
+    --color-rental-status-cancelled-border: rgba(148, 163, 184, 0.32);
+    --color-rental-status-unavailable-bg: rgba(148, 163, 184, 0.16);
+    --color-rental-status-unavailable-text: #9ca3af;
+    --color-rental-status-unavailable-border: rgba(148, 163, 184, 0.3);
+}
+
+/* 다크 테마 (기본값과 동일) */
+:root[data-theme="dark"] {
+    --color-header-overlay: rgba(17, 24, 39, 0.9);
+    --color-mobile-nav-overlay: rgba(17, 24, 39, 0.94);
+}
+
+/* 라이트 테마 */
+:root[data-theme="light"] {
+    --color-primary: #2563eb;
+    --color-primary-dark: #1d4ed8;
+    --color-primary-light: rgba(37, 99, 235, 0.16);
+    --color-primary-rgb: 37, 99, 235;
+    --color-secondary: #7c3aed;
+    --color-secondary-dark: #6d28d9;
+    --color-secondary-light: rgba(124, 58, 237, 0.15);
+    --color-bg: #f8fafc;
+    --color-bg-secondary: #eef2f7;
+    --color-bg-card: #ffffff;
+    --color-bg-elevated: #e2e8f0;
+    --color-bg-input: #ffffff;
+    --color-text: #0f172a;
+    --color-text-secondary: #1e293b;
+    --color-text-muted: #475569;
+    --color-text-dim: #64748b;
+    --color-border: #cbd5e1;
+    --color-border-light: #b6c3d4;
+    --color-header-overlay: rgba(248, 250, 252, 0.92);
+    --color-mobile-nav-overlay: rgba(248, 250, 252, 0.96);
+    --color-surface-highlight-strong: rgba(15, 23, 42, 0.045);
+    --color-surface-highlight-soft: rgba(15, 23, 42, 0.02);
+    --color-input-inset: rgba(15, 23, 42, 0.02);
+    --color-rental-calendar-sat-bg: #eff6ff;
+    --color-rental-calendar-sun-bg: #f8fafc;
+    --color-rental-calendar-holiday-bg: #fff1f2;
+    --color-rental-calendar-closed-bg: #ecfdf3;
+    --color-rental-day-note-holiday: #dc2626;
+    --color-rental-slot-bg: #ffffff;
+    --color-rental-slot-border: #cbd5e1;
+    --color-rental-slot-hover-border: var(--color-primary);
+    --color-rental-slot-hover-ring: rgba(var(--color-primary-rgb), 0.24);
+    --color-rental-slot-disabled-bg: #f1f5f9;
+    --color-rental-slot-disabled-text: #64748b;
+    --color-rental-slot-time-text: var(--color-text-secondary);
+    --color-rental-slot-price-text: var(--color-text-dim);
+    --color-rental-slot-badge-bg: #e2e8f0;
+    --color-rental-slot-badge-text: #475569;
+    --color-rental-slot-selected-border: var(--color-primary-dark);
+    --color-rental-slot-selected-bg: #dbeafe;
+    --color-rental-slot-selected-ring: rgba(var(--color-primary-rgb), 0.26);
+    --color-rental-legend-dot-bg: #dbeafe;
+    --color-rental-legend-dot-border: var(--color-primary-dark);
+    --color-rental-input-bg: #ffffff;
+    --color-rental-input-border: var(--color-border);
+    --color-rental-input-text: var(--color-text-secondary);
+    --color-rental-status-requested-bg: #fef3c7;
+    --color-rental-status-requested-text: #92400e;
+    --color-rental-status-requested-border: #fcd34d;
+    --color-rental-status-confirmed-bg: #dcfce7;
+    --color-rental-status-confirmed-text: #166534;
+    --color-rental-status-confirmed-border: #86efac;
+    --color-rental-status-rejected-bg: #fee2e2;
+    --color-rental-status-rejected-text: #991b1b;
+    --color-rental-status-rejected-border: #fca5a5;
+    --color-rental-status-cancelled-bg: #e2e8f0;
+    --color-rental-status-cancelled-text: #334155;
+    --color-rental-status-cancelled-border: #cbd5e1;
+    --color-rental-status-unavailable-bg: #e2e8f0;
+    --color-rental-status-unavailable-text: #475569;
+    --color-rental-status-unavailable-border: #cbd5e1;
+}
+
+/* 스카이 테마 */
+:root[data-theme="sky"] {
+    --color-primary: #0284c7;
+    --color-primary-dark: #0369a1;
+    --color-primary-light: rgba(2, 132, 199, 0.2);
+    --color-primary-rgb: 2, 132, 199;
+    --color-secondary: #6366f1;
+    --color-secondary-dark: #4f46e5;
+    --color-secondary-light: rgba(99, 102, 241, 0.18);
+    --color-bg: #ecf7ff;
+    --color-bg-secondary: #dff0ff;
+    --color-bg-card: #f6fbff;
+    --color-bg-elevated: #cfe7fb;
+    --color-bg-input: #ffffff;
+    --color-text: #0b2742;
+    --color-text-secondary: #183651;
+    --color-text-muted: #34556f;
+    --color-text-dim: #52728a;
+    --color-border: #a6c9e6;
+    --color-border-light: #8eb8da;
+    --color-header-overlay: rgba(236, 247, 255, 0.9);
+    --color-mobile-nav-overlay: rgba(236, 247, 255, 0.96);
+    --color-surface-highlight-strong: rgba(2, 132, 199, 0.08);
+    --color-surface-highlight-soft: rgba(2, 132, 199, 0.04);
+    --color-input-inset: rgba(2, 132, 199, 0.03);
+    --color-rental-calendar-sat-bg: #e6f4ff;
+    --color-rental-calendar-sun-bg: #eef8ff;
+    --color-rental-calendar-holiday-bg: #fef2f2;
+    --color-rental-calendar-closed-bg: #e8faf3;
+    --color-rental-day-note-holiday: #dc2626;
+    --color-rental-slot-bg: #ffffff;
+    --color-rental-slot-border: #a6c9e6;
+    --color-rental-slot-hover-border: var(--color-primary);
+    --color-rental-slot-hover-ring: rgba(var(--color-primary-rgb), 0.24);
+    --color-rental-slot-disabled-bg: #eaf4fd;
+    --color-rental-slot-disabled-text: #52728a;
+    --color-rental-slot-time-text: var(--color-text-secondary);
+    --color-rental-slot-price-text: var(--color-text-dim);
+    --color-rental-slot-badge-bg: #dff0ff;
+    --color-rental-slot-badge-text: #34556f;
+    --color-rental-slot-selected-border: var(--color-primary-dark);
+    --color-rental-slot-selected-bg: #d9f0ff;
+    --color-rental-slot-selected-ring: rgba(var(--color-primary-rgb), 0.3);
+    --color-rental-legend-dot-bg: #d9f0ff;
+    --color-rental-legend-dot-border: var(--color-primary-dark);
+    --color-rental-input-bg: #ffffff;
+    --color-rental-input-border: var(--color-border);
+    --color-rental-input-text: var(--color-text-secondary);
+    --color-rental-status-requested-bg: #fef3c7;
+    --color-rental-status-requested-text: #92400e;
+    --color-rental-status-requested-border: #fcd34d;
+    --color-rental-status-confirmed-bg: #dcfce7;
+    --color-rental-status-confirmed-text: #166534;
+    --color-rental-status-confirmed-border: #86efac;
+    --color-rental-status-rejected-bg: #fee2e2;
+    --color-rental-status-rejected-text: #991b1b;
+    --color-rental-status-rejected-border: #fca5a5;
+    --color-rental-status-cancelled-bg: #e2e8f0;
+    --color-rental-status-cancelled-text: #334155;
+    --color-rental-status-cancelled-border: #cbd5e1;
+    --color-rental-status-unavailable-bg: #e2e8f0;
+    --color-rental-status-unavailable-text: #475569;
+    --color-rental-status-unavailable-border: #cbd5e1;
+}
+
+/* 클래식 테마 (범용 기업형 톤) */
+:root[data-theme="classic"] {
+    --color-primary: #2563eb;
+    --color-primary-dark: #1e40af;
+    --color-primary-light: rgba(37, 99, 235, 0.18);
+    --color-primary-rgb: 37, 99, 235;
+    --color-secondary: #334155;
+    --color-secondary-dark: #1f2937;
+    --color-secondary-light: rgba(51, 65, 85, 0.14);
+    --color-bg: #f5f7fb;
+    --color-bg-secondary: #e9eef5;
+    --color-bg-card: #ffffff;
+    --color-bg-elevated: #d9e2ec;
+    --color-bg-input: #ffffff;
+    --color-text: #111827;
+    --color-text-secondary: #1f2937;
+    --color-text-muted: #4b5563;
+    --color-text-dim: #6b7280;
+    --color-border: #cdd5df;
+    --color-border-light: #b8c4d4;
+    --color-header-overlay: rgba(245, 247, 251, 0.94);
+    --color-mobile-nav-overlay: rgba(245, 247, 251, 0.97);
+    --color-surface-highlight-strong: rgba(17, 24, 39, 0.05);
+    --color-surface-highlight-soft: rgba(17, 24, 39, 0.02);
+    --color-input-inset: rgba(17, 24, 39, 0.02);
+    --color-rental-calendar-sat-bg: #f0f4f8;
+    --color-rental-calendar-sun-bg: #f7fafc;
+    --color-rental-calendar-holiday-bg: #fff1f2;
+    --color-rental-calendar-closed-bg: #eef6f1;
+    --color-rental-day-note-holiday: #dc2626;
+    --color-rental-slot-bg: #ffffff;
+    --color-rental-slot-border: #cdd5df;
+    --color-rental-slot-hover-border: var(--color-primary);
+    --color-rental-slot-hover-ring: rgba(var(--color-primary-rgb), 0.22);
+    --color-rental-slot-disabled-bg: #eef2f6;
+    --color-rental-slot-disabled-text: #6b7280;
+    --color-rental-slot-time-text: var(--color-text-secondary);
+    --color-rental-slot-price-text: var(--color-text-dim);
+    --color-rental-slot-badge-bg: #e5eaf0;
+    --color-rental-slot-badge-text: #4b5563;
+    --color-rental-slot-selected-border: var(--color-primary-dark);
+    --color-rental-slot-selected-bg: #dbeafe;
+    --color-rental-slot-selected-ring: rgba(var(--color-primary-rgb), 0.24);
+    --color-rental-legend-dot-bg: #dbeafe;
+    --color-rental-legend-dot-border: var(--color-primary-dark);
+    --color-rental-input-bg: #ffffff;
+    --color-rental-input-border: var(--color-border);
+    --color-rental-input-text: var(--color-text-secondary);
+    --color-rental-status-requested-bg: #fef3c7;
+    --color-rental-status-requested-text: #92400e;
+    --color-rental-status-requested-border: #fcd34d;
+    --color-rental-status-confirmed-bg: #dcfce7;
+    --color-rental-status-confirmed-text: #166534;
+    --color-rental-status-confirmed-border: #86efac;
+    --color-rental-status-rejected-bg: #fee2e2;
+    --color-rental-status-rejected-text: #991b1b;
+    --color-rental-status-rejected-border: #fca5a5;
+    --color-rental-status-cancelled-bg: #e2e8f0;
+    --color-rental-status-cancelled-text: #334155;
+    --color-rental-status-cancelled-border: #cbd5e1;
+    --color-rental-status-unavailable-bg: #e2e8f0;
+    --color-rental-status-unavailable-text: #475569;
+    --color-rental-status-unavailable-border: #cbd5e1;
 }
 
 /* =============================================================================
@@ -186,15 +459,32 @@
     /* ─────────────────────────────────────────────────────────────────────────
        그림자 (Box Shadows)
     ───────────────────────────────────────────────────────────────────────── */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 2px 0 rgba(2, 6, 23, 0.22);
+    --shadow-md: 0 4px 10px -2px rgba(2, 6, 23, 0.28);
+    --shadow-lg: 0 14px 28px -8px rgba(2, 6, 23, 0.38);
 
     /* ─────────────────────────────────────────────────────────────────────────
        글로우 효과 (Glow Effects)
     ───────────────────────────────────────────────────────────────────────── */
-    --glow-primary: 0 0 20px rgba(var(--color-primary-rgb), 0.3);
-    --glow-primary-strong: 0 0 30px rgba(var(--color-primary-rgb), 0.5);
+    --glow-primary: 0 0 16px rgba(var(--color-primary-rgb), 0.22);
+    --glow-primary-strong: 0 0 24px rgba(var(--color-primary-rgb), 0.32);
+}
+
+:root[data-theme="light"],
+:root[data-theme="classic"] {
+    --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 6px 14px -4px rgba(15, 23, 42, 0.12);
+    --shadow-lg: 0 18px 30px -10px rgba(15, 23, 42, 0.18);
+    --glow-primary: 0 0 14px rgba(var(--color-primary-rgb), 0.16);
+    --glow-primary-strong: 0 0 20px rgba(var(--color-primary-rgb), 0.24);
+}
+
+:root[data-theme="sky"] {
+    --shadow-sm: 0 1px 3px 0 rgba(2, 24, 43, 0.1);
+    --shadow-md: 0 8px 16px -5px rgba(2, 24, 43, 0.14);
+    --shadow-lg: 0 20px 32px -12px rgba(2, 24, 43, 0.2);
+    --glow-primary: 0 0 16px rgba(var(--color-primary-rgb), 0.2);
+    --glow-primary-strong: 0 0 24px rgba(var(--color-primary-rgb), 0.28);
 }
 
 /* =============================================================================
@@ -223,8 +513,8 @@ body {
     color: var(--color-text);
     background-color: var(--color-bg);
     background-image:
-        linear-gradient(rgba(var(--color-primary-rgb), 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.03) 1px, transparent 1px);
+        linear-gradient(rgba(var(--color-primary-rgb), 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.045) 1px, transparent 1px);
     background-size: 50px 50px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -281,7 +571,7 @@ a:hover {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgba(10, 10, 15, 0.95);
+    background: var(--color-header-overlay);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
@@ -386,7 +676,7 @@ a:hover {
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-normal);
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     text-decoration: none;
     white-space: nowrap;
     border-radius: var(--radius-md);
@@ -458,7 +748,7 @@ a:hover {
 
 /* 일반 네비게이션 링크 - React와 동일한 스타일 */
 .site-nav-link {
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     text-decoration: none;
     font-size: var(--font-size-sm);
     display: inline-flex;
@@ -506,7 +796,7 @@ a:hover {
 /* 로그아웃 버튼 - React와 동일한 hover 스타일 */
 .site-nav-logout {
     font-size: var(--font-size-sm);
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     background: none;
     border: none;
     cursor: pointer;
@@ -536,7 +826,7 @@ a:hover {
     background: transparent;
     padding: 0;
     cursor: pointer;
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     transition: all var(--transition-normal);
 }
 
@@ -557,7 +847,7 @@ a:hover {
     top: 100%;
     display: none;
     z-index: 50;
-    background: rgba(10, 10, 15, 0.98);
+    background: var(--color-mobile-nav-overlay);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--color-border);
@@ -603,7 +893,7 @@ a:hover {
 .site-menu-mobile-link {
     flex: 1;
     text-decoration: none;
-    color: #cbd5e1;
+    color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
     display: flex;
     align-items: center;
@@ -828,11 +1118,11 @@ a:hover {
 .site-btn-danger {
     background: transparent;
     color: var(--color-danger);
-    border-color: rgba(239, 68, 68, 0.3);
+    border-color: var(--color-danger-border-soft);
 }
 
 .site-btn-danger:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: var(--color-danger-bg-soft);
     border-color: var(--color-danger);
 }
 
@@ -845,6 +1135,7 @@ a:hover {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: var(--spacing-8);
+    box-shadow: var(--shadow-sm);
 }
 
 .site-page-title {
@@ -964,6 +1255,11 @@ a:hover {
 }
 
 .site-form-row input[type="text"],
+.site-form-row input[type="password"],
+.site-form-row input[type="email"],
+.site-form-row input[type="number"],
+.site-form-row input[type="date"],
+.site-form-row select,
 .site-form-row textarea {
     width: 100%;
     padding: var(--spacing-3) var(--spacing-4);
@@ -974,9 +1270,15 @@ a:hover {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     transition: all var(--transition-normal);
+    box-shadow: inset 0 1px 0 var(--color-input-inset);
 }
 
 .site-form-row input[type="text"]:focus,
+.site-form-row input[type="password"]:focus,
+.site-form-row input[type="email"]:focus,
+.site-form-row input[type="number"]:focus,
+.site-form-row input[type="date"]:focus,
+.site-form-row select:focus,
 .site-form-row textarea:focus {
     outline: none;
     border-color: var(--color-primary);
@@ -984,6 +1286,10 @@ a:hover {
 }
 
 .site-form-row input[type="text"]::placeholder,
+.site-form-row input[type="password"]::placeholder,
+.site-form-row input[type="email"]::placeholder,
+.site-form-row input[type="number"]::placeholder,
+.site-form-row input[type="date"]::placeholder,
 .site-form-row textarea::placeholder {
     color: var(--color-text-dim);
 }
@@ -1020,6 +1326,7 @@ a:hover {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-bg-card);
+    box-shadow: var(--shadow-sm);
 }
 
 .site-form-file-item {
@@ -1057,7 +1364,7 @@ a:hover {
     font-size: var(--font-size-xs);
     color: var(--color-danger);
     background: transparent;
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid var(--color-danger-border-soft);
     border-radius: var(--radius-sm);
     cursor: pointer;
     display: inline-flex;
@@ -1067,7 +1374,7 @@ a:hover {
 }
 
 .site-form-file-remove:hover {
-    background: rgba(239, 68, 68, 0.1);
+    background: var(--color-danger-bg-soft);
     border-color: var(--color-danger);
 }
 
@@ -1081,6 +1388,7 @@ a:hover {
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .site-board-table {
@@ -1094,12 +1402,21 @@ a:hover {
     padding: var(--spacing-3) var(--spacing-4);
     text-align: left;
     border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
 }
 
 .site-board-table th {
-    background: var(--color-bg-card);
+    background: linear-gradient(
+        180deg,
+        var(--color-surface-highlight-strong) 0%,
+        var(--color-bg-card) 100%
+    );
     font-weight: var(--font-weight-semibold);
-    color: var(--color-text-muted);
+    color: var(--color-text-secondary);
+}
+
+.site-board-table td {
+    color: var(--color-text-secondary);
 }
 
 .site-board-table tbody tr:last-child td {
@@ -1107,11 +1424,15 @@ a:hover {
 }
 
 .site-board-table tbody tr {
-    transition: background var(--transition-fast);
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.site-board-table tbody tr:nth-child(even) {
+    background: var(--color-surface-highlight-soft);
 }
 
 .site-board-table tbody tr:hover {
-    background: var(--color-bg-card);
+    background: rgba(var(--color-primary-rgb), 0.08);
 }
 
 .site-board-cell-title a {
@@ -1385,6 +1706,7 @@ a:hover {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .site-form-card-section {
@@ -1829,27 +2151,27 @@ a:hover {
 }
 
 .feature-icon-cyan {
-    background: linear-gradient(135deg, #00d4ff 0%, #3b82f6 100%);
+    background: linear-gradient(135deg, var(--color-feature-cyan-start) 0%, var(--color-feature-cyan-end) 100%);
 }
 
 .feature-icon-green {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, var(--color-feature-green-start) 0%, var(--color-feature-green-end) 100%);
 }
 
 .feature-icon-violet {
-    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, var(--color-feature-violet-start) 0%, var(--color-feature-violet-end) 100%);
 }
 
 .feature-icon-orange {
-    background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    background: linear-gradient(135deg, var(--color-feature-orange-start) 0%, var(--color-feature-orange-end) 100%);
 }
 
 .feature-icon-pink {
-    background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+    background: linear-gradient(135deg, var(--color-feature-pink-start) 0%, var(--color-feature-pink-end) 100%);
 }
 
 .feature-icon-yellow {
-    background: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+    background: linear-gradient(135deg, var(--color-feature-yellow-start) 0%, var(--color-feature-yellow-end) 100%);
 }
 
 .feature-card h3 {
@@ -2012,7 +2334,7 @@ a:hover {
 }
 
 .board-link-item:hover {
-    border-color: rgba(139, 92, 246, 0.3);
+    border-color: var(--color-secondary-border-soft);
     background: var(--color-bg-card);
 }
 
@@ -2022,13 +2344,13 @@ a:hover {
     justify-content: center;
     width: 2.5rem;
     height: 2.5rem;
-    background: rgba(139, 92, 246, 0.1);
+    background: var(--color-secondary-bg-soft);
     border-radius: var(--radius-lg);
 }
 
 .board-link-icon i {
     font-size: 1.25rem;
-    color: #8b5cf6;
+    color: var(--color-violet);
 }
 
 .board-link-info {
@@ -2392,6 +2714,7 @@ a:hover {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
     padding: var(--spacing-6);
+    box-shadow: var(--shadow-sm);
 }
 
 .site-form-card-section {
@@ -2411,27 +2734,42 @@ a:hover {
 }
 
 .site-form-card input[type="text"],
+.site-form-card input[type="password"],
+.site-form-card input[type="email"],
+.site-form-card input[type="number"],
+.site-form-card input[type="date"],
+.site-form-card select,
 .site-form-card textarea {
     width: 100%;
     padding: var(--spacing-3) var(--spacing-4);
     font-size: var(--font-size-base);
     font-family: inherit;
-    background: var(--color-bg);
+    background: var(--color-bg-input);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     color: var(--color-text);
     transition: all var(--transition-normal);
     box-sizing: border-box;
+    box-shadow: inset 0 1px 0 var(--color-input-inset);
 }
 
 .site-form-card input[type="text"]:focus,
+.site-form-card input[type="password"]:focus,
+.site-form-card input[type="email"]:focus,
+.site-form-card input[type="number"]:focus,
+.site-form-card input[type="date"]:focus,
+.site-form-card select:focus,
 .site-form-card textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .site-form-card input[type="text"]::placeholder,
+.site-form-card input[type="password"]::placeholder,
+.site-form-card input[type="email"]::placeholder,
+.site-form-card input[type="number"]::placeholder,
+.site-form-card input[type="date"]::placeholder,
 .site-form-card textarea::placeholder {
     color: var(--color-text-dim);
 }
@@ -2446,7 +2784,7 @@ a:hover {
     flex-wrap: wrap;
     gap: var(--spacing-4);
     padding: var(--spacing-4);
-    background: var(--color-bg);
+    background: var(--color-bg-card);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
 }
@@ -2508,13 +2846,14 @@ a:hover {
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .site-search-select {
     padding: var(--spacing-2) var(--spacing-3);
     font-size: var(--font-size-sm);
     font-family: inherit;
-    background: var(--color-bg);
+    background: var(--color-bg-input);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     color: var(--color-text);
@@ -2524,12 +2863,13 @@ a:hover {
 .site-search-select:focus {
     outline: none;
     border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .site-search-input-wrap {
     flex: 1;
     display: flex;
-    background: var(--color-bg);
+    background: var(--color-bg-input);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -2538,6 +2878,7 @@ a:hover {
 
 .site-search-input-wrap:focus-within {
     border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .site-search-input {
@@ -2600,7 +2941,286 @@ a:hover {
 }
 
 /* =============================================================================
-   32. UTILITIES (유틸리티)
+   32. RENTAL - Calendar & Reservation (대관 달력/예약)
+============================================================================= */
+
+#siteRentalCalendar {
+    color: var(--color-text);
+}
+
+#siteRentalCalendar .fc {
+    color: var(--color-text);
+}
+
+#siteRentalCalendar .fc .fc-toolbar-title {
+    color: var(--color-text);
+}
+
+#siteRentalCalendar .fc .fc-button {
+    background: var(--color-bg-card);
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+#siteRentalCalendar .fc .fc-button:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+#siteRentalCalendar .fc .fc-button-primary:not(:disabled).fc-button-active,
+#siteRentalCalendar .fc .fc-button-primary:not(:disabled):active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-bg);
+}
+
+#siteRentalCalendar .fc .fc-scrollgrid,
+#siteRentalCalendar .fc .fc-theme-standard td,
+#siteRentalCalendar .fc .fc-theme-standard th {
+    border-color: var(--color-border);
+}
+
+#siteRentalCalendar .fc .fc-col-header-cell {
+    background: var(--color-bg-card);
+}
+
+#siteRentalCalendar .fc .fc-col-header-cell-cushion,
+#siteRentalCalendar .fc .fc-daygrid-day-number {
+    color: var(--color-text-secondary);
+}
+
+#siteRentalCalendar .fc .fc-daygrid-day.fc-day-sat {
+    background-color: var(--color-rental-calendar-sat-bg);
+}
+
+#siteRentalCalendar .fc .fc-daygrid-day.fc-day-sun {
+    background-color: var(--color-rental-calendar-sun-bg);
+}
+
+#siteRentalCalendar .fc .fc-daygrid-day.fc-day-holiday {
+    background-color: var(--color-rental-calendar-holiday-bg);
+}
+
+#siteRentalCalendar .fc .fc-daygrid-day.fc-day-closed {
+    background-color: var(--color-rental-calendar-closed-bg);
+}
+
+.site-rental-day-note-holiday {
+    font-size: 10px;
+    color: var(--color-rental-day-note-holiday);
+}
+
+.site-rental-day-note-closed {
+    font-size: 10px;
+    color: var(--color-rental-day-note-closed);
+}
+
+.site-rental-day-price {
+    font-size: 10px;
+    color: var(--color-rental-day-price);
+}
+
+.site-rental-day-reservation-row {
+    font-size: 10px;
+    color: var(--color-rental-day-reservation);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.site-rental-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: var(--radius-full);
+    border: 1px solid transparent;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.site-rental-status-badge.is-requested {
+    background: var(--color-rental-status-requested-bg);
+    color: var(--color-rental-status-requested-text);
+    border-color: var(--color-rental-status-requested-border);
+}
+
+.site-rental-status-badge.is-confirmed {
+    background: var(--color-rental-status-confirmed-bg);
+    color: var(--color-rental-status-confirmed-text);
+    border-color: var(--color-rental-status-confirmed-border);
+}
+
+.site-rental-status-badge.is-rejected {
+    background: var(--color-rental-status-rejected-bg);
+    color: var(--color-rental-status-rejected-text);
+    border-color: var(--color-rental-status-rejected-border);
+}
+
+.site-rental-status-badge.is-cancelled {
+    background: var(--color-rental-status-cancelled-bg);
+    color: var(--color-rental-status-cancelled-text);
+    border-color: var(--color-rental-status-cancelled-border);
+}
+
+#siteRentalPlaceSelect,
+#siteRentalRoomSelect {
+    background: var(--color-bg-input);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-2) var(--spacing-3);
+}
+
+#siteRentalPlaceSelect:focus,
+#siteRentalRoomSelect:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.site-rental-toolbar,
+.site-rental-feedback-muted {
+    color: var(--color-text-dim);
+}
+
+.site-rental-feedback-error {
+    color: var(--color-danger);
+}
+
+.site-rental-summary-row,
+.site-rental-selection-body {
+    color: var(--color-text-secondary);
+}
+
+.site-reservation-slot {
+    border: 1px solid var(--color-rental-slot-border);
+    border-radius: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    margin-bottom: 0.35rem;
+    background-color: var(--color-rental-slot-bg);
+    font-size: 0.875rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    user-select: none;
+}
+
+.site-reservation-slot-available:hover {
+    border-color: var(--color-rental-slot-hover-border);
+    background-color: var(--color-rental-slot-bg);
+    box-shadow: 0 0 0 1px var(--color-rental-slot-hover-ring);
+    cursor: pointer;
+}
+
+.site-reservation-slot-disabled {
+    background-color: var(--color-rental-slot-disabled-bg);
+    color: var(--color-rental-slot-disabled-text);
+    border-color: var(--color-rental-slot-border);
+    cursor: not-allowed;
+}
+
+.site-reservation-slot-time {
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-rental-slot-time-text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+}
+
+.site-reservation-slot-meta {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.site-reservation-slot-price {
+    font-size: 11px;
+    color: var(--color-rental-slot-price-text);
+}
+
+.site-reservation-slot-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    background-color: var(--color-rental-slot-badge-bg);
+    color: var(--color-rental-slot-badge-text);
+    border: 1px solid var(--color-rental-status-unavailable-border);
+}
+
+.site-reservation-slot-badge.is-reserved {
+    background: var(--color-rental-status-confirmed-bg);
+    color: var(--color-rental-status-confirmed-text);
+    border-color: var(--color-rental-status-confirmed-border);
+}
+
+.site-reservation-slot-badge.is-unavailable {
+    background: var(--color-rental-status-unavailable-bg);
+    color: var(--color-rental-status-unavailable-text);
+    border-color: var(--color-rental-status-unavailable-border);
+}
+
+.site-reservation-slot-selected {
+    border-color: var(--color-rental-slot-selected-border) !important;
+    background-color: var(--color-rental-slot-selected-bg) !important;
+    box-shadow: 0 0 0 1px var(--color-rental-slot-selected-ring);
+}
+
+.site-reservation-slots-wrap {
+    border: 1px solid var(--color-rental-slot-border);
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    background-color: var(--color-rental-slot-bg);
+}
+
+.site-reservation-legend-dot {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.2rem;
+    background-color: var(--color-rental-legend-dot-bg);
+    border: 1px solid var(--color-rental-legend-dot-border);
+    vertical-align: middle;
+    margin-right: 0.25rem;
+}
+
+.site-reservation-layout {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.site-reservation-column-main {
+    flex: 2 1 0%;
+    min-width: 0;
+}
+
+.site-reservation-column-side {
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+#siteRentalDatePicker {
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius-md);
+    background: var(--color-rental-input-bg);
+    border: 1px solid var(--color-rental-input-border);
+    color: var(--color-rental-input-text);
+    font-size: var(--font-size-sm);
+}
+
+#siteRentalDatePicker:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+/* =============================================================================
+   33. UTILITIES (유틸리티)
 ============================================================================= */
 
 .text-gradient {
@@ -2615,7 +3235,7 @@ a:hover {
 }
 
 .text-violet {
-    color: #8b5cf6;
+    color: var(--color-violet);
 }
 
 .text-danger {
