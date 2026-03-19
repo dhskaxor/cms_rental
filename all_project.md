@@ -419,6 +419,8 @@ com.nt.cms
 | **페이지 매퍼 수정** | SitePageMapper 테이블명 cms_user → user | SitePageMapper.xml |
 | **check/code API 통일** | ApiResponse<Boolean>, URL /check/code, Permission enum 사용 | SiteMenuController, SitePageController |
 | **Permission 하드코딩 수정** | MENU_CREATE → Permission.MENU_CREATE.value | SiteMenuController |
+| **UX 통합 동기화** | 사용자 사이트 아이콘 체계를 Lucide로 통일, auth 페이지를 site.css 테마 시스템으로 통합 | templates/site/layout.html, templates/site/auth/*.html, static/site/css/site.css |
+| **React UI 동기화** | 컴팩트 폰트(0.9rem base), 1200px 레이아웃, CSS 변수 색상 체계로 cms_user_react와 시각 동기화 | cms_user_react/src/index.css, layouts, pages |
 
 ---
 

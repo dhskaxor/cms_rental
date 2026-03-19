@@ -1,144 +1,246 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:attr="data-theme=${siteConfig?.siteTheme ?: 'dark'}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원가입 - CMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/site/css/site.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <style>
-        .login-bg { background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%); }
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-4);
+            background: var(--color-bg);
+        }
+        .auth-container { width: 100%; max-width: 420px; }
+        .auth-header { text-align: center; margin-bottom: var(--spacing-6); }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-3);
+        }
+        .auth-logo .lucide { width: 1.5rem; height: 1.5rem; color: white; }
+        .auth-title {
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 var(--spacing-1);
+        }
+        .auth-subtitle { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+        .auth-card {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-6);
+            box-shadow: var(--shadow-lg);
+        }
+        .auth-form-group { margin-bottom: var(--spacing-4); }
+        .auth-form-group:last-of-type { margin-bottom: var(--spacing-5); }
+        .auth-label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--spacing-2);
+        }
+        .auth-input {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            background: var(--color-bg-input);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            color: var(--color-text);
+            font-size: var(--font-size-base);
+            transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+            outline: none;
+            box-sizing: border-box;
+        }
+        .auth-input::placeholder { color: var(--color-text-dim); }
+        .auth-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.25);
+        }
+        .auth-submit {
+            width: 100%;
+            padding: 0.65rem 1rem;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+            color: white;
+            font-weight: var(--font-weight-semibold);
+            font-size: var(--font-size-base);
+            border: none;
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: opacity var(--transition-fast);
+        }
+        .auth-submit:hover { opacity: 0.9; }
+        .auth-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .auth-links {
+            margin-top: var(--spacing-5);
+            text-align: center;
+        }
+        .auth-links a {
+            color: var(--color-primary);
+            font-size: var(--font-size-sm);
+            text-decoration: none;
+        }
+        .auth-links a:hover { text-decoration: underline; }
+        .auth-links p {
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+            margin: var(--spacing-2) 0 0;
+        }
+        .auth-footer {
+            margin-top: var(--spacing-6);
+            text-align: center;
+            color: var(--color-text-dim);
+            font-size: var(--font-size-xs);
+        }
+        .auth-alert {
+            padding: var(--spacing-3) var(--spacing-4);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-4);
+            font-size: var(--font-size-sm);
+        }
+        .auth-alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--color-danger);
+        }
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="login-bg min-h-screen flex items-center justify-center p-4">
-<div class="w-full max-w-md">
-    <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-white mb-2">CMS</h1>
-        <p class="text-white/80">사용자 사이트 회원가입</p>
-    </div>
+<body>
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="auth-logo"><i data-lucide="cpu"></i></div>
+                <h1 class="auth-title">CMS Core</h1>
+                <p class="auth-subtitle">사용자 사이트 회원가입</p>
+            </div>
 
-    <div class="bg-white rounded-2xl shadow-2xl p-8">
-        <div id="registerError" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div class="flex items-center">
-                <span class="text-red-700 text-sm" id="registerErrorText">회원가입에 실패했습니다.</span>
+            <div class="auth-card">
+                <div id="registerError" class="auth-alert auth-alert-error hidden">
+                    <span id="registerErrorText">회원가입에 실패했습니다.</span>
+                </div>
+
+                <form id="registerForm">
+                    <input type="hidden" id="redirectInput" name="redirect" th:value="${redirect}">
+
+                    <div class="auth-form-group">
+                        <label for="username" class="auth-label">아이디</label>
+                        <input type="text" id="username" name="username" required
+                               class="auth-input" placeholder="아이디를 입력하세요">
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="password" class="auth-label">비밀번호</label>
+                        <input type="password" id="password" name="password" required
+                               class="auth-input" placeholder="비밀번호를 입력하세요">
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="passwordConfirm" class="auth-label">비밀번호 확인</label>
+                        <input type="password" id="passwordConfirm" name="passwordConfirm" required
+                               class="auth-input" placeholder="비밀번호를 다시 입력하세요">
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="name" class="auth-label">이름</label>
+                        <input type="text" id="name" name="name" required
+                               class="auth-input" placeholder="이름을 입력하세요">
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="email" class="auth-label">이메일</label>
+                        <input type="email" id="email" name="email" required
+                               class="auth-input" placeholder="example@email.com">
+                    </div>
+
+                    <button type="submit" id="registerBtn" class="auth-submit">회원가입</button>
+                </form>
+
+                <div class="auth-links">
+                    <p>이미 계정이 있으신가요?
+                        <a th:href="@{/site/auth/login(redirect=${redirect})}" style="font-weight:600;">로그인</a>
+                    </p>
+                </div>
+            </div>
+
+            <div class="auth-footer">
+                &copy; 2026 CMS Core Platform. All rights reserved.
             </div>
         </div>
-
-        <form id="registerForm">
-            <input type="hidden" id="redirectInput" name="redirect" th:value="${redirect}">
-
-            <div class="mb-4">
-                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">아이디</label>
-                <input type="text" id="username" name="username" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                       placeholder="아이디를 입력하세요">
-            </div>
-
-            <div class="mb-4">
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
-                <input type="password" id="password" name="password" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                       placeholder="비밀번호를 입력하세요">
-            </div>
-
-            <div class="mb-4">
-                <label for="passwordConfirm" class="block text-sm font-medium text-gray-700 mb-2">비밀번호 확인</label>
-                <input type="password" id="passwordConfirm" name="passwordConfirm" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                       placeholder="비밀번호를 다시 입력하세요">
-            </div>
-
-            <div class="mb-4">
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">이름</label>
-                <input type="text" id="name" name="name" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                       placeholder="이름을 입력하세요">
-            </div>
-
-            <div class="mb-6">
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">이메일</label>
-                <input type="email" id="email" name="email" required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                       placeholder="example@email.com">
-            </div>
-
-            <button type="submit" id="registerBtn"
-                    class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
-                회원가입
-            </button>
-        </form>
-
-        <div class="mt-6 text-center text-sm text-gray-600">
-            이미 계정이 있으신가요?
-            <a th:href="@{/site/auth/login(redirect=${redirect})}" class="font-semibold text-cyan-700 hover:text-cyan-900 transition">
-                로그인
-            </a>
-        </div>
     </div>
 
-    <div class="mt-8 text-center text-white/60 text-sm">
-        &copy; 2026 CMS Core Platform. All rights reserved.
-    </div>
-</div>
+    <script>
+        if(window.lucide){lucide.createIcons();}
 
-<script>
-    (function () {
-        const form = document.getElementById('registerForm');
-        const btn = document.getElementById('registerBtn');
-        const errBox = document.getElementById('registerError');
-        const errText = document.getElementById('registerErrorText');
+        (function () {
+            var form = document.getElementById('registerForm');
+            var btn = document.getElementById('registerBtn');
+            var errBox = document.getElementById('registerError');
+            var errText = document.getElementById('registerErrorText');
 
-        function showError(msg) {
-            errText.textContent = msg || '회원가입에 실패했습니다.';
-            errBox.classList.remove('hidden');
-        }
-
-        form.addEventListener('submit', async function (e) {
-            e.preventDefault();
-            errBox.classList.add('hidden');
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const passwordConfirm = document.getElementById('passwordConfirm').value;
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const redirect = document.getElementById('redirectInput').value || '/site/';
-
-            if (password !== passwordConfirm) {
-                showError('비밀번호가 일치하지 않습니다.');
-                return;
+            function showError(msg) {
+                errText.textContent = msg || '회원가입에 실패했습니다.';
+                errBox.classList.remove('hidden');
             }
 
-            btn.disabled = true;
-            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                errBox.classList.add('hidden');
 
-            try {
-                const res = await fetch('/api/v1/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ username, password, passwordConfirm, name, email })
-                });
-                const result = await res.json();
-                if (!result || !result.success) {
-                    const code = result?.error?.code;
-                    if (code === 'USER_3004') {
-                        showError('이미 사용중인 아이디 입니다. 다른 아이디를 사용하여 주세요.');
-                        return;
-                    }
-                    showError(result?.error?.message || '회원가입에 실패했습니다.');
+                var username = document.getElementById('username').value.trim();
+                var password = document.getElementById('password').value;
+                var passwordConfirm = document.getElementById('passwordConfirm').value;
+                var name = document.getElementById('name').value.trim();
+                var email = document.getElementById('email').value.trim();
+                var redirect = document.getElementById('redirectInput').value || '/site/';
+
+                if (password !== passwordConfirm) {
+                    showError('비밀번호가 일치하지 않습니다.');
                     return;
                 }
-                const loginUrl = '/site/auth/login?redirect=' + encodeURIComponent(redirect);
-                window.location.href = loginUrl;
-            } catch (err) {
-                showError('회원가입 처리 중 오류가 발생했습니다.');
-            } finally {
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
-        });
-    })();
-</script>
+
+                btn.disabled = true;
+
+                try {
+                    var res = await fetch('/api/v1/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ username: username, password: password, passwordConfirm: passwordConfirm, name: name, email: email })
+                    });
+                    var result = await res.json();
+                    if (!result || !result.success) {
+                        var code = result && result.error ? result.error.code : '';
+                        if (code === 'USER_3004') {
+                            showError('이미 사용중인 아이디 입니다. 다른 아이디를 사용하여 주세요.');
+                            return;
+                        }
+                        showError(result && result.error ? result.error.message : '회원가입에 실패했습니다.');
+                        return;
+                    }
+                    window.location.href = '/site/auth/login?redirect=' + encodeURIComponent(redirect);
+                } catch (err) {
+                    showError('회원가입 처리 중 오류가 발생했습니다.');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
-

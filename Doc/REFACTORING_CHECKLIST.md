@@ -85,7 +85,51 @@ blockquote, pre, code, hr, table, thead, tbody, tr, th, td, img
 
 ---
 
-## 6. 문서 체인
+## 6. UX 통합 디자인 시스템 (2026-03-19 적용)
+
+### 6.1 아이콘 라이브러리: Lucide 통일
+
+| 항목 | cms_rental | cms_user_react |
+|------|-----------|----------------|
+| 라이브러리 | Lucide CDN (`lucide.min.js` + `lucide.createIcons()`) | `lucide-react` |
+| 사용 방식 | `<i data-lucide="icon-name"></i>` → SVG 변환 | `<IconName />` React 컴포넌트 |
+| CSS 셀렉터 | `.lucide` (SVG), `width`/`height` 기반 | Tailwind `h-*`/`w-*` 유틸리티 |
+| Bootstrap Icons | **완전 제거** (CDN 포함) | 해당 없음 |
+
+### 6.2 폰트 크기: 컴팩트 스케일 통일
+
+| 단계 | CSS 변수 | 값 |
+|------|---------|------|
+| xs | `--font-size-xs` | 0.7rem |
+| sm | `--font-size-sm` | 0.8rem |
+| base | `--font-size-base` | 0.9rem |
+| lg | `--font-size-lg` | 1rem |
+| xl | `--font-size-xl` | 1.125rem |
+| 2xl | `--font-size-2xl` | 1.4rem |
+| 3xl | `--font-size-3xl` | 1.85rem |
+
+- cms_user_react: `@theme` 지시어로 Tailwind 유틸리티(`text-sm`, `text-base` 등)를 오버라이드
+
+### 6.3 레이아웃 너비: 1200px 통일
+
+- cms_rental: `--max-width: 1200px` (site.css)
+- cms_user_react: `max-w-[1200px]` (MainLayout, Header)
+
+### 6.4 색상 테마 시스템
+
+- 모든 색상은 CSS 변수(`--color-*`)로 관리
+- `data-theme` 속성 (`dark`, `light`, `sky`, `classic`)으로 테마 전환
+- 하드코딩 Tailwind 색상 → CSS 변수 교체 완료
+- auth 페이지(login/register): site.css 테마 시스템에 통합 완료
+
+### 6.5 게시글 본문 스타일
+
+- cms_rental: site.css `.site-post-content` 스타일
+- cms_user_react: `.site-prose` 클래스 (CSS 변수 기반, Tailwind `prose-invert` 제거)
+
+---
+
+## 7. 문서 체인
 
 ```
 cms/README.md           → 프로젝트 전체 개요

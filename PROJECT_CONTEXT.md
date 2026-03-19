@@ -169,7 +169,7 @@
 | **컨텐츠** | 파일 관리 (AdminFileController) | ✅ 완료 | file/list.html, 다중 업로드·refType/refId 필터 |
 | **미구현** | 설정 (settings) | 🔲 placeholder | 실제 폼 미구현, placeholder 템플릿만 존재 |
 
-### 5.3 Phase 3: 사용자단 API — 예정
+### 5.3 Phase 3: 사용자단 API — 완료
 
 | 단계 | 작업 | 상태 |
 |------|------|------|
@@ -179,6 +179,7 @@
 | 4 | PostService 비밀글 익명 처리 확인/보완 | roleId=null 시 SECRET_POST_ACCESS_DENIED (완료) |
 | 5 | SitePageService is_published 조건 검증 | findByPageCode 공개 페이지만 (완료) |
 | 6 | 문서 및 테스트 | Doc/api.md, Postman, 단위 테스트 (완료) |
+| 7 | UX 통합 디자인 동기화 | Lucide 통일, 다중 테마/폰트/레이아웃 동기화, auth 페이지 리팩터링 (완료) |
 
 ---
 
@@ -258,5 +259,5 @@
 
 ---
 
-*마지막 업데이트: 2026-02-24*
-*관리자 화면: 게시글 관리(AdminPostController, 파일 첨부), 파일 관리(AdminFileController, 다중 업로드) 완료 반영*
+*마지막 업데이트: 2026-03-19*
+*사용자 사이트 UX 통합: Lucide 아이콘 통일, 다중 테마/컴팩트 폰트/1200px 레이아웃 동기화, auth 페이지(site.css 기반) 리팩터링 반영*

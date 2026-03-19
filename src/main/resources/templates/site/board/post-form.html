@@ -10,7 +10,7 @@
     <article layout:fragment="content" class="site-post-form-page">
         <div class="site-post-form-header">
             <div class="site-post-form-icon">
-                <i class="bi bi-pencil-square"></i>
+                <i data-lucide="pen-square"></i>
             </div>
             <h1 class="site-post-form-title" th:text="${formTitle}">글쓰기</h1>
         </div>
@@ -51,7 +51,7 @@
 
             <div class="site-form-card-actions">
                 <button type="submit" class="site-btn site-btn-primary">
-                    <i class="bi bi-check-lg"></i>
+                    <i data-lucide="check"></i>
                     <span th:text="${submitLabel}">등록</span>
                 </button>
                 <a th:href="${listUrl}" class="site-btn site-btn-secondary">취소</a>

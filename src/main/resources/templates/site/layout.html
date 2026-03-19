@@ -11,8 +11,8 @@
     <meta name="description" th:content="${siteConfig?.seoDescription}">
     <meta name="keywords" th:content="${siteConfig?.seoKeywords}">
     <link rel="icon" th:href="@{/api/v1/public/site/favicon}" th:if="${siteConfig?.faviconUrl != null}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/site/css/site.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body th:attr="data-site-user=${siteUser != null}">
     <div id="app">
@@ -20,31 +20,31 @@
             <div class="site-header-inner">
                 <div class="site-header-left">
                     <a th:href="@{/site/}" class="site-logo">
-                        <span class="logo-icon"><i class="bi bi-cpu"></i></span>
+                        <span class="logo-icon"><i data-lucide="cpu"></i></span>
                         <span th:text="${siteConfig?.siteName ?: 'CMS Core'}">CMS Core</span>
                     </a>
                 </div>
                 <nav class="site-nav-desktop" aria-label="주 메뉴">
-                    <a th:href="@{/site/}" class="site-nav-link"><i class="bi bi-house"></i> <span>홈</span></a>
-                    <a th:href="@{/site/help}" class="site-nav-link"><i class="bi bi-question-circle"></i> <span>도움말</span></a>
+                    <a th:href="@{/site/}" class="site-nav-link"><i data-lucide="home"></i> <span>홈</span></a>
+                    <a th:href="@{/site/help}" class="site-nav-link"><i data-lucide="help-circle"></i> <span>도움말</span></a>
                     <ul class="site-menu-root">
                         <th:block th:each="menu : ${siteMenus}">
                             <li class="site-menu-item">
                                 <a th:href="${@siteMenuUtil.resolveHref(menu)}"
                                    th:attr="data-is-login-required=${menu.isLoginRequired and !siteUser} ? 'true' : null, target=${menu.target}"
                                    class="site-menu-link">
-                                    <i class="bi bi-folder" th:classappend="${menu.menuType == 'PAGE'} ? 'bi-file-text' : (${menu.menuType == 'BOARD'} ? 'bi-grid-3x2-gap' : (${menu.menuType == 'LINK'} ? 'bi-link-45deg' : 'bi-folder'))"></i>
+                                    <i th:attr="data-lucide=${menu.menuType == 'PAGE'} ? 'file-text' : (${menu.menuType == 'BOARD'} ? 'layout-grid' : (${menu.menuType == 'LINK'} ? 'external-link' : 'folder'))"></i>
                                     <span th:text="${menu.menuName}">메뉴</span>
                                 </a>
                                 <th:block th:if="${menu.children != null and !menu.children.isEmpty()}">
-                                    <span class="site-menu-arrow">▾</span>
+                                    <span class="site-menu-arrow"><i data-lucide="chevron-down"></i></span>
                                     <ul class="site-submenu">
                                         <th:block th:each="child : ${menu.children}">
                                             <li class="site-menu-item">
                                                 <a th:href="${@siteMenuUtil.resolveHref(child)}"
                                                    th:attr="data-is-login-required=${child.isLoginRequired and !siteUser} ? 'true' : null, target=${child.target}"
                                                    class="site-menu-link">
-                                                    <i class="bi bi-file-text" th:classappend="${child.menuType == 'BOARD'} ? 'bi-grid-3x2-gap' : (${child.menuType == 'LINK'} ? 'bi-link-45deg' : '')"></i>
+                                                    <i th:attr="data-lucide=${child.menuType == 'BOARD'} ? 'layout-grid' : (${child.menuType == 'LINK'} ? 'external-link' : 'file-text')"></i>
                                                     <span th:text="${child.menuName}">하위메뉴</span>
                                                 </a>
                                             </li>
@@ -56,18 +56,18 @@
                     </ul>
                     <div id="site-header-auth">
                         <th:block th:if="${siteUser}">
-                            <a th:href="@{/site/me}" class="site-nav-link"><i class="bi bi-person"></i> <span>내 정보</span></a>
+                            <a th:href="@{/site/me}" class="site-nav-link"><i data-lucide="user"></i> <span>내 정보</span></a>
                             <form th:action="@{/site/auth/logout}" method="post" class="site-nav-logout-form">
-                                <button type="submit" class="site-nav-logout"><i class="bi bi-box-arrow-left"></i> <span>로그아웃</span></button>
+                                <button type="submit" class="site-nav-logout"><i data-lucide="log-out"></i> <span>로그아웃</span></button>
                             </form>
                         </th:block>
                         <th:block th:unless="${siteUser}">
-                            <a th:href="@{/site/auth/login}" class="site-nav-link site-nav-login"><i class="bi bi-box-arrow-in-right"></i> <span>로그인</span></a>
+                            <a th:href="@{/site/auth/login}" class="site-nav-link site-nav-login"><i data-lucide="log-in"></i> <span>로그인</span></a>
                         </th:block>
                     </div>
                 </nav>
                 <button type="button" class="site-menu-toggle" id="site-menu-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="site-nav-mobile">
-                    <i class="bi bi-list" id="site-menu-toggle-icon"></i>
+                    <i data-lucide="menu" id="site-menu-toggle-icon"></i>
                 </button>
             </div>
             <nav class="site-nav-mobile" id="site-nav-mobile" aria-hidden="true" aria-label="모바일 메뉴">
@@ -75,12 +75,12 @@
                     <ul class="site-menu-mobile-root">
                         <li class="site-menu-mobile-item">
                             <div class="site-menu-mobile-row">
-                                <a th:href="@{/site/}" class="site-menu-mobile-link"><i class="bi bi-house"></i> 홈</a>
+                                <a th:href="@{/site/}" class="site-menu-mobile-link"><i data-lucide="home"></i> 홈</a>
                             </div>
                         </li>
                         <li class="site-menu-mobile-item">
                             <div class="site-menu-mobile-row">
-                                <a th:href="@{/site/help}" class="site-menu-mobile-link"><i class="bi bi-question-circle"></i> 도움말</a>
+                                <a th:href="@{/site/help}" class="site-menu-mobile-link"><i data-lucide="help-circle"></i> 도움말</a>
                             </div>
                         </li>
                         <th:block th:each="menu : ${siteMenus}">
@@ -88,19 +88,19 @@
                                 <div class="site-menu-mobile-row">
                                     <a th:href="${@siteMenuUtil.resolveHref(menu)}"
                                        th:attr="data-is-login-required=${menu.isLoginRequired and !siteUser} ? 'true' : null"
-                                       class="site-menu-mobile-link"><i class="bi bi-folder"></i> <span th:text="${menu.menuName}">메뉴</span></a>
+                                       class="site-menu-mobile-link"><i data-lucide="folder"></i> <span th:text="${menu.menuName}">메뉴</span></a>
                                 </div>
                             </li>
                             <li class="site-menu-mobile-item" th:if="${menu.children != null and !menu.children.isEmpty()}">
                                 <div class="site-menu-mobile-row">
-                                    <span class="site-menu-mobile-link"><i class="bi bi-folder"></i> <span th:text="${menu.menuName}">메뉴</span></span>
-                                    <button type="button" class="site-menu-mobile-toggle" aria-label="하위 메뉴 토글">▾</button>
+                                    <span class="site-menu-mobile-link"><i data-lucide="folder"></i> <span th:text="${menu.menuName}">메뉴</span></span>
+                                    <button type="button" class="site-menu-mobile-toggle" aria-label="하위 메뉴 토글"><i data-lucide="chevron-down"></i></button>
                                 </div>
                                 <ul class="site-submenu-mobile">
                                     <li class="site-menu-mobile-item" th:each="child : ${menu.children}">
                                         <div class="site-menu-mobile-row">
                                             <a th:href="${@siteMenuUtil.resolveHref(child)}"
-                                               class="site-menu-mobile-link"><i class="bi bi-file-text"></i> <span th:text="${child.menuName}">하위</span></a>
+                                               class="site-menu-mobile-link"><i data-lucide="file-text"></i> <span th:text="${child.menuName}">하위</span></a>
                                         </div>
                                     </li>
                                 </ul>
@@ -108,19 +108,19 @@
                         </th:block>
                         <li class="site-menu-mobile-item" th:if="${siteUser}">
                             <div class="site-menu-mobile-row">
-                                <a th:href="@{/site/me}" class="site-menu-mobile-link"><i class="bi bi-person"></i> 내 정보</a>
+                                <a th:href="@{/site/me}" class="site-menu-mobile-link"><i data-lucide="user"></i> 내 정보</a>
                             </div>
                         </li>
                         <li class="site-menu-mobile-item" th:if="${siteUser}">
                             <div class="site-menu-mobile-row">
                                 <form th:action="@{/site/auth/logout}" method="post" style="width:100%">
-                                    <button type="submit" class="site-menu-mobile-link site-mobile-logout" style="width:100%;border:none;background:none;text-align:left;cursor:pointer;"><i class="bi bi-box-arrow-left"></i> 로그아웃</button>
+                                    <button type="submit" class="site-menu-mobile-link site-mobile-logout" style="width:100%;border:none;background:none;text-align:left;cursor:pointer;"><i data-lucide="log-out"></i> 로그아웃</button>
                                 </form>
                             </div>
                         </li>
                         <li class="site-menu-mobile-item" th:unless="${siteUser}">
                             <div class="site-menu-mobile-row">
-                                <a th:href="@{/site/auth/login}" class="site-menu-mobile-link site-mobile-login"><i class="bi bi-box-arrow-in-right"></i> 로그인</a>
+                                <a th:href="@{/site/auth/login}" class="site-menu-mobile-link site-mobile-login"><i data-lucide="log-in"></i> 로그인</a>
                             </div>
                         </li>
                     </ul>
@@ -139,7 +139,7 @@
         <footer class="site-footer">
             <div class="site-footer-inner">
                 <div class="site-footer-left">
-                    <i class="bi bi-terminal"></i>
+                    <i data-lucide="terminal"></i>
                     <span th:text="${siteConfig?.siteName ?: 'CMS Core'}">CMS Core</span>
                     <th:block th:if="${siteConfig?.companyAddress != null and !siteConfig.companyAddress.isEmpty()}">
                         <span class="site-footer-divider">|</span>
@@ -158,12 +158,12 @@
                     <a th:href="@{/site/contact}" class="site-footer-link">연락처</a>
                     <span class="site-footer-divider">|</span>
                     <span>Built with</span>
-                    <i class="bi bi-heart-fill text-danger"></i>
+                    <i data-lucide="heart" class="text-danger"></i>
                     <span>Spring Boot + MyBatis</span>
                 </div>
                 <div class="site-footer-right">
                     <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="site-footer-link">
-                        <i class="bi bi-github"></i>
+                        <i data-lucide="github"></i>
                     </a>
                 </div>
             </div>
@@ -189,8 +189,24 @@
     </th:block>
     <script>
     (function(){
+        /* Lucide 아이콘 초기화 */
+        if(window.lucide){lucide.createIcons();}
+
         var t=document.getElementById('site-menu-toggle'),n=document.getElementById('site-nav-mobile'),i=document.getElementById('site-menu-toggle-icon');
-        if(t&&n){t.addEventListener('click',function(){var o=n.getAttribute('aria-hidden')!=='false';n.setAttribute('aria-hidden',!o);t.setAttribute('aria-expanded',o);if(i){i.className='bi '+(o?'bi-x':'bi-list');}});}
+        if(t&&n){t.addEventListener('click',function(){
+            var o=n.getAttribute('aria-hidden')!=='false';
+            n.setAttribute('aria-hidden',!o);
+            t.setAttribute('aria-expanded',o);
+            /* Lucide SVG로 교체된 토글 아이콘을 다시 렌더 */
+            if(i){
+                var parent=i.parentElement;
+                if(parent){
+                    parent.innerHTML='<i data-lucide="'+(o?'x':'menu')+'" id="site-menu-toggle-icon"></i>';
+                    i=document.getElementById('site-menu-toggle-icon');
+                    if(window.lucide){lucide.createIcons({nodes:[i]});}
+                }
+            }
+        });}
         document.querySelectorAll('.site-popup-close').forEach(function(btn){btn.onclick=function(){var o=document.getElementById('site-popup-'+btn.dataset.popupId);if(o)o.remove();if(btn.dataset.todayClose==='1'){var d=new Date();d.setDate(d.getDate()+1);document.cookie='site_popup_close_'+btn.dataset.popupId+'=1;path=/;expires='+d.toUTCString();}};});
         document.querySelectorAll('.site-popup-overlay').forEach(function(ov){ov.onclick=function(e){if(e.target===ov)ov.remove();};});
         window.__siteUser=document.body.getAttribute('data-site-user')==='true';

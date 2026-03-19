@@ -10,13 +10,13 @@
         <div class="site-board-head">
             <div class="site-board-title-wrap">
                 <div class="site-board-icon">
-                    <i class="bi bi-grid-3x3-gap"></i>
+                    <i data-lucide="layout-grid"></i>
                 </div>
                 <h1 class="site-board-title" th:text="${board.boardName}">게시판</h1>
             </div>
             <div class="site-board-actions" th:if="${canCreate}">
                 <a th:href="@{/site/board/{path}/write(path=${boardPath})}" class="site-btn site-btn-primary">
-                    <i class="bi bi-pencil-square"></i> 글쓰기
+                    <i data-lucide="pen-square"></i> 글쓰기
                 </a>
             </div>
         </div>
@@ -32,7 +32,7 @@
             </select>
             <div class="site-search-input-wrap">
                 <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요" class="site-search-input">
-                <button type="submit" class="site-search-btn"><i class="bi bi-search"></i></button>
+                <button type="submit" class="site-search-btn"><i data-lucide="search"></i></button>
             </div>
         </form>
 
@@ -42,14 +42,14 @@
                 <div th:each="post, stat : ${posts}" class="site-board-card-item">
                     <a th:href="@{/site/board/{path}/post/{id}(path=${boardPath}, id=${post.id})}" class="site-board-card-link">
                         <span class="site-board-card-title">
-                            <span class="site-badge-notice" th:if="${post.isNotice}"><i class="bi bi-pin-angle"></i> 공지</span>
-                            <span class="site-badge-secret" th:if="${post.isSecret}"><i class="bi bi-lock"></i></span>
+                            <span class="site-badge-notice" th:if="${post.isNotice}"><i data-lucide="pin"></i> 공지</span>
+                            <span class="site-badge-secret" th:if="${post.isSecret}"><i data-lucide="lock"></i></span>
                             <span th:text="${post.title} ?: '-'">제목</span>
                         </span>
                         <span class="site-board-card-meta">
-                            <i class="bi bi-person"></i> <span th:text="${post.writerName != null and !post.writerName.isEmpty() ? post.writerName : (post.writerUsername != null and !post.writerUsername.isEmpty() ? post.writerUsername : '-')}">-</span>
-                            · <i class="bi bi-calendar3"></i> <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd') : '-'}">-</span>
-                            · <i class="bi bi-eye"></i> <span th:text="${post.viewCount} ?: 0">0</span>
+                            <i data-lucide="user"></i> <span th:text="${post.writerName != null and !post.writerName.isEmpty() ? post.writerName : (post.writerUsername != null and !post.writerUsername.isEmpty() ? post.writerUsername : '-')}">-</span>
+                            · <i data-lucide="calendar"></i> <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd') : '-'}">-</span>
+                            · <i data-lucide="eye"></i> <span th:text="${post.viewCount} ?: 0">0</span>
                         </span>
                     </a>
                 </div>

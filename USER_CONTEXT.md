@@ -118,7 +118,7 @@
   - Public API: POST/PUT/DELETE /api/v1/public/boards/{boardId}/posts (세션 기반)
   - 라우트: /site/board/{boardId}/write, /site/board/{boardId}/post/{postId}/edit
 - Phase 8: React 디자인 동기화 ✅
-  - **site.css 전면 개편**: CSS 변수 기반 다크 테마 디자인 시스템 (React `index.css`와 동일)
+  - **site.css 전면 개편**: CSS 변수 기반 다중 테마(`dark/light/sky/classic`) 디자인 시스템 (React `index.css`와 동일)
   - **index.html 메인 페이지 개편**: Hero 섹션, Tech Stack, 기능 그리드, API Info, 최신글/게시판 바로가기
   - **헤더/네비게이션**: React와 동일한 그라데이션 로고, hover 배경 효과, 로그인 버튼 스타일
   - **게시판 템플릿**: 아이콘 헤더, 검색 폼, 번호 컬럼, 카드형 게시글 상세

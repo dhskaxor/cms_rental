@@ -243,8 +243,8 @@ CMS Core 사용자 사이트는 React (`cms_user_react`)와 동일한 CSS 변수
 |--------|--------|------|
 | `--font-sans` | Inter, system | 기본 폰트 |
 | `--font-mono` | JetBrains Mono | 코드 폰트 |
-| `--font-size-base` | 1rem | 기본 크기 |
-| `--font-size-xl` | 1.25rem | 제목 크기 |
+| `--font-size-base` | 0.9rem | 기본 크기 (컴팩트 스케일) |
+| `--font-size-xl` | 1.125rem | 제목 크기 |
 
 #### 간격 및 레이아웃
 
@@ -260,6 +260,12 @@ CMS Core 사용자 사이트는 React (`cms_user_react`)와 동일한 CSS 변수
 - `light`: 화이트 기반 고대비 테마
 - `sky`: 밝은 하늘색 기반 테마
 - `classic`: 기업형 뉴트럴 테마
+
+### 5.4 아이콘 라이브러리 기준 (cms ↔ cms_user_react)
+
+- `cms/site`: Lucide CDN + `data-lucide` (`lucide.createIcons()` 초기화)
+- `cms_user_react`: `lucide-react` 컴포넌트
+- 두 프로젝트 모두 Bootstrap Icons 사용을 종료하고 Lucide로 통일
 
 ### 5.3 테마 오버라이드 예시
 
@@ -325,4 +331,4 @@ html[data-theme="light"] {
 
 ---
 
-*마지막 업데이트: 2026-03-10*
+*마지막 업데이트: 2026-03-19*

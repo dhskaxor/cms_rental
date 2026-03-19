@@ -618,8 +618,9 @@ a:hover {
     transition: transform var(--transition-normal);
 }
 
-.site-logo .logo-icon .bi {
-    font-size: 1.25rem;
+.site-logo .logo-icon .lucide {
+    width: 1.25rem;
+    height: 1.25rem;
     color: white;
 }
 
@@ -688,16 +689,23 @@ a:hover {
     background: var(--color-bg-card);
 }
 
-.site-menu-link .bi {
-    font-size: 1rem;
+.site-menu-link .lucide {
+    width: 1rem;
+    height: 1rem;
     opacity: 0.8;
 }
 
 .site-menu-arrow {
-    font-size: var(--font-size-xs);
     color: var(--color-text-dim);
     opacity: 0.5;
     transition: transform var(--transition-normal);
+    display: inline-flex;
+    align-items: center;
+}
+
+.site-menu-arrow .lucide {
+    width: var(--font-size-xs);
+    height: var(--font-size-xs);
 }
 
 .site-menu-item:hover .site-menu-arrow {
@@ -759,8 +767,9 @@ a:hover {
     transition: all var(--transition-normal);
 }
 
-.site-nav-link .bi {
-    font-size: 1rem;
+.site-nav-link .lucide {
+    width: 1rem;
+    height: 1rem;
     opacity: 0.8;
 }
 
@@ -835,8 +844,9 @@ a:hover {
     color: var(--color-primary);
 }
 
-.site-menu-toggle .bi {
-    font-size: 1.5rem;
+.site-menu-toggle .lucide {
+    width: 1.5rem;
+    height: 1.5rem;
 }
 
 /* 모바일 네비게이션 - React와 동일한 드롭다운 스타일 */
@@ -1081,8 +1091,9 @@ a:hover {
     font-family: inherit;
 }
 
-.site-btn .bi {
-    font-size: 1rem;
+.site-btn .lucide {
+    width: 1rem;
+    height: 1rem;
 }
 
 /* Primary 버튼 */
@@ -1550,8 +1561,9 @@ a:hover {
     color: var(--color-primary);
 }
 
-.site-post-back .bi {
-    font-size: 1rem;
+.site-post-back .lucide {
+    width: 1rem;
+    height: 1rem;
 }
 
 .site-post-meta {
@@ -1628,8 +1640,9 @@ a:hover {
     color: var(--color-primary);
 }
 
-.site-post-file-link .bi {
-    font-size: var(--font-size-sm);
+.site-post-file-link .lucide {
+    width: var(--font-size-sm);
+    height: var(--font-size-sm);
 }
 
 /* 카드 템플릿용 상세 */
@@ -1683,8 +1696,9 @@ a:hover {
     border-radius: var(--radius-md);
 }
 
-.site-post-form-title .title-icon .bi {
-    font-size: 1.25rem;
+.site-post-form-title .title-icon .lucide {
+    width: 1.25rem;
+    height: 1.25rem;
     color: white;
 }
 
@@ -3334,6 +3348,32 @@ a:hover {
     .latest-posts-date {
         margin-left: 0;
     }
+}
+
+/* =============================================================================
+   Lucide 아이콘 공통 스타일
+   Lucide createIcons()가 <i data-lucide> -> <svg class="lucide"> 로 변환.
+   SVG는 currentColor를 사용하므로 부모의 color를 상속한다.
+============================================================================= */
+.lucide {
+    display: inline-block;
+    vertical-align: middle;
+    width: 1em;
+    height: 1em;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+/* 모바일 메뉴 내 아이콘 */
+.site-menu-mobile-link .lucide {
+    width: 1rem;
+    height: 1rem;
+    opacity: 0.8;
+}
+
+/* 위험 색상 (하트 등) */
+.text-danger {
+    color: var(--color-danger);
 }
 
 /* =============================================================================

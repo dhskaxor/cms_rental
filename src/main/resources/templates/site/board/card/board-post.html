@@ -9,16 +9,16 @@
     <article layout:fragment="content" class="site-post-detail site-post-card">
         <div class="site-post-nav">
             <a th:href="${listUrl}" class="site-post-back">
-                <i class="bi bi-arrow-left"></i>
+                <i data-lucide="arrow-left"></i>
                 <span>목록으로</span>
             </a>
             <div class="site-post-actions" th:if="${canUpdate or canDelete}">
                 <a th:if="${canUpdate}" th:href="@{/site/board/{path}/post/{id}/edit(path=${boardPath}, id=${post.id})}" class="site-btn site-btn-secondary">
-                    <i class="bi bi-pencil"></i> 수정
+                    <i data-lucide="pencil"></i> 수정
                 </a>
                 <form th:if="${canDelete}" th:action="@{/site/board/{path}/post/{id}/delete(path=${boardPath}, id=${post.id})}" method="post" class="inline" onsubmit="return confirm('이 글을 삭제하시겠습니까?');">
                     <button type="submit" class="site-btn site-btn-danger">
-                        <i class="bi bi-trash"></i> 삭제
+                        <i data-lucide="trash-2"></i> 삭제
                     </button>
                 </form>
             </div>
@@ -29,15 +29,15 @@
                 <h1 class="site-post-card-title" th:text="${post.title}">제목</h1>
                 <div class="site-post-card-meta">
                     <span class="site-post-meta-item">
-                        <i class="bi bi-person"></i>
+                        <i data-lucide="user"></i>
                         <span th:text="${post.writerName != null and !post.writerName.isEmpty() ? post.writerName : (post.writerUsername != null and !post.writerUsername.isEmpty() ? post.writerUsername : '-')}">작성자</span>
                     </span>
                     <span class="site-post-meta-item">
-                        <i class="bi bi-calendar3"></i>
+                        <i data-lucide="calendar"></i>
                         <span th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">날짜</span>
                     </span>
                     <span class="site-post-meta-item">
-                        <i class="bi bi-eye"></i>
+                        <i data-lucide="eye"></i>
                         조회 <span th:text="${post.viewCount} ?: 0">0</span>
                     </span>
                 </div>
@@ -48,13 +48,13 @@
             </div>
 
             <div class="site-post-files" th:if="${!#lists.isEmpty(files)}">
-                <div class="site-post-files-header"><i class="bi bi-paperclip"></i> 첨부파일 (<span th:text="${#lists.size(files)}">0</span>개)</div>
+                <div class="site-post-files-header"><i data-lucide="paperclip"></i> 첨부파일 (<span th:text="${#lists.size(files)}">0</span>개)</div>
                 <div class="site-post-files-list">
                     <a th:each="f : ${files}" th:href="${f.downloadUrl}" class="site-post-file-item" download>
-                        <i class="bi bi-file-earmark"></i>
+                        <i data-lucide="file-text"></i>
                         <span class="site-post-file-name" th:text="${f.originalName}">파일</span>
                         <span class="site-post-file-size" th:text="${f.fileSize != null ? f.fileSize + ' bytes' : ''}">용량</span>
-                        <i class="bi bi-download"></i>
+                        <i data-lucide="download"></i>
                     </a>
                 </div>
             </div>

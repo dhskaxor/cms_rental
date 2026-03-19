@@ -13,15 +13,15 @@
                class="site-contact-empty">연락처 정보가 등록되지 않았습니다. 관리자 사이트 설정에서 등록해 주세요.</p>
             <dl class="site-contact-list" th:if="${siteConfig != null}">
                 <div th:if="${siteConfig.companyAddress != null and !siteConfig.companyAddress.isEmpty()}">
-                    <dt><i class="bi bi-geo-alt"></i> 주소</dt>
+                    <dt><i data-lucide="map-pin"></i> 주소</dt>
                     <dd th:text="${siteConfig.companyAddress}">주소</dd>
                 </div>
                 <div th:if="${siteConfig.companyPhone != null and !siteConfig.companyPhone.isEmpty()}">
-                    <dt><i class="bi bi-telephone"></i> 전화</dt>
+                    <dt><i data-lucide="phone"></i> 전화</dt>
                     <dd><a th:href="'tel:' + ${siteConfig.companyPhone}" th:text="${siteConfig.companyPhone}">전화번호</a></dd>
                 </div>
                 <div th:if="${siteConfig.adminEmail != null and !siteConfig.adminEmail.isEmpty()}">
-                    <dt><i class="bi bi-envelope"></i> 이메일</dt>
+                    <dt><i data-lucide="mail"></i> 이메일</dt>
                     <dd><a th:href="'mailto:' + ${siteConfig.adminEmail}" th:text="${siteConfig.adminEmail}">이메일</a></dd>
                 </div>
             </dl>

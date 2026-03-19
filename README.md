@@ -1442,20 +1442,20 @@ src/main/resources/templates/site/page/
 
 #### CSS 디자인 시스템 (React 동기화)
 
-`site.css`는 React 프로젝트(`cms_user_react/src/index.css`)와 동일한 CSS 변수 기반 다크 테마 디자인 시스템을 사용합니다. `:root` 변수만 수정하면 전체 테마가 변경됩니다.
+`site.css`는 React 프로젝트(`cms_user_react/src/index.css`)와 동일한 CSS 변수 기반 **다중 테마**(`dark`, `light`, `sky`, `classic`) 디자인 시스템을 사용합니다. `html[data-theme]`와 `:root` 변수 변경으로 전체 테마가 전환됩니다.
 
 **색상 토큰**
 
-| 변수명 | 기본값 | 설명 |
-|--------|--------|------|
-| --color-primary | #00d4ff | 주 강조 색상 (시안) |
-| --color-primary-dark | #00a8cc | 호버/활성 상태 |
-| --color-secondary | #8b5cf6 | 보조 강조 (보라) |
-| --color-bg | #0a0a0f | 배경색 (다크 테마) |
-| --color-bg-card | #1a1a24 | 카드 배경 |
-| --color-text | #f1f5f9 | 기본 텍스트 |
-| --color-text-muted | #94a3b8 | 보조 텍스트 |
-| --color-border | #2a2a3a | 테두리 색상 |
+| 변수명 | 기본값(dark) | 설명 |
+|--------|--------------|------|
+| --color-primary | #38bdf8 | 주 강조 색상 |
+| --color-primary-dark | #0ea5e9 | 호버/활성 상태 |
+| --color-secondary | #a78bfa | 보조 강조 색상 |
+| --color-bg | #111827 | 배경색 |
+| --color-bg-card | #223043 | 카드 배경 |
+| --color-text | #f8fafc | 기본 텍스트 |
+| --color-text-muted | #b6c2d1 | 보조 텍스트 |
+| --color-border | #36465d | 테두리 색상 |
 
 **타이포그래피 & 레이아웃**
 
@@ -1893,9 +1893,9 @@ templates/site/page/
 
 | 구분 | 내용 |
 |------|------|
-| **CSS 디자인 시스템** | React `index.css`와 동일한 CSS 변수 기반 다크 테마 |
+| **CSS 디자인 시스템** | React `index.css`와 동일한 CSS 변수 기반 다중 테마(`dark/light/sky/classic`) |
 | **index.html 개편** | Hero 섹션, Tech Stack, 기능 그리드, API Info, 최신글/게시판 바로가기 |
-| **헤더/네비게이션** | 그라데이션 로고, hover 배경, 그라데이션 로그인 버튼, 모바일 토글 아이콘 |
+| **헤더/네비게이션** | Lucide 아이콘, 그라데이션 로고, hover 배경, 그라데이션 로그인 버튼, 모바일 토글 아이콘 |
 | **게시판 템플릿** | 아이콘 헤더, 검색 폼, 번호 컬럼, 카드형 상세 |
 | **최신글 API** | `GET /api/v1/public/posts/latest?boardIds=1,2&size=10` |
 | **SiteViewController** | `index()`에서 `getLatestPosts`, `collectBoardLinks`로 최신글·게시판 링크 서버 렌더링 |
@@ -1922,8 +1922,19 @@ templates/site/page/
 | 404 에러 | - | 모든 에러 → site/error 템플릿 통합 |
 | 사용법 페이지 | - | `/site/help` - 목차, 사용 가이드 |
 | 비회원 권한 | - | ANONYMOUS 역할, 익명 게시글 작성 |
-| React 동기화 | - | CSS 변수 다크 테마, index.html 개편, 최신글 API |
+| React 동기화 | - | CSS 변수 다중 테마, Lucide 아이콘 통일, 컴팩트 폰트/1200px 레이아웃 동기화 |
 | 문서화 | - | user_map.md, PUBLIC_POST_CREATE_IMPL_EXAMPLE.md |
+
+---
+
+### 19.11 UX 통합 디자인 동기화 (2026-03-19)
+
+| 구분 | 적용 내용 |
+|------|-----------|
+| 아이콘 체계 | 사용자 사이트(`templates/site/**`)의 Bootstrap Icons를 전면 제거하고 Lucide(`data-lucide`)로 통일 |
+| 인증 페이지 | `site/auth/login.html`, `site/auth/register.html`을 site.css 토큰 기반 테마 레이아웃으로 리팩터링 |
+| 테마 동기화 | cms_user_react와 동일하게 `siteTheme`(`dark/light/sky/classic`) 기준 UI 토큰 적용 |
+| 문서 동기화 | `Doc/REFACTORING_CHECKLIST.md`, `Doc/user_map.md`, `cms_user_react` 문서와 동기화 |
 
 ---
 
