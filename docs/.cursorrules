@@ -179,8 +179,8 @@ Spring Boot + MyBatis 기반이며, 프로젝트별 커스터마이징을 전제
 11) 모든 코드는 메서드 단위로 단위 테스트를 작성한다.
 12) 모든 코드 작성 후 단위 테스트를 실행하여 오류가 없는지 확인한다.
 13) 모든 코드 작성 후 readme.md / all_project.md / PROJECT_CONTEXT.md 파일을 업데이트한다.
-14) 모든 API 작성 후 Doc 폴더의 api.md 파일에 API 명세서를 자세히 작성한다.
-15) 모든 API 작성 후 Postman에서 테스트 가능하도록 Doc 폴더 하위에 postman 폴더를 생성하고 그 하위에 Postman Collection 파일을 작성한다.
+14) 모든 API 작성 후 docs/API.md 파일에 API 명세서를 자세히 작성한다.
+15) 모든 API 작성 후 Postman에서 테스트 가능하도록 docs/postman 폴더 하위에 Postman Collection 파일을 작성한다.
 16) 모든 코드 작성 후 코드 품질 및 일관성 유지를 위해 .cursorrules에 현행화하고 알려준다
 17) 사용자 UI는 cms / cms_user_react 두곳에 있는데, cms는 백엔드 템플릿 파일이고, cms_user_react는 프론트엔드 파일이다.
    두곳이 항상 동일하게 작동하도록 한곳이 수정되면 다른곳도 수정되도록 한다. UI도 비슷한 형태로 유지한다.
@@ -262,11 +262,11 @@ Spring Boot + MyBatis 기반이며, 프로젝트별 커스터마이징을 전제
    사용자 로그인 세션과 관리자 로그인 세션은 별도로 관리한다.
 4) 사용자 사이트 컨텍스트는 USER_CONTEXT.md, user_project.md로 관리한다.
    개발 시 @USER_CONTEXT.md @user_project.md를 참조하고 순차 실행한다.
-5) 사용자 사이트 API 문서는 Doc/user_map.md에 기록한다.
+5) 사용자 사이트 API 문서는 docs/API.md에 기록한다.
    사용자 사이트 관련 API 사용 방법, 엔드포인트, fetch 예시 등을 갱신한다.
 6) 게시판 URL은 boardCode 또는 boardId를 지원한다. API: GET /api/v1/public/boards/code/{boardCode}, GET /api/v1/public/boards/{boardId}
 7) 도움말(/site/help)에 Swagger UI 링크(/swagger-ui.html)를 제공한다.
-8) XSS 허용 태그는 cms_user_react sanitizer.ts를 마스터로 사용한다. cms는 Thymeleaf th:utext로 서버 렌더링. Doc/REFACTORING_CHECKLIST.md 참조.
+8) XSS 허용 태그는 cms_user_react sanitizer.ts를 마스터로 사용한다. cms는 Thymeleaf th:utext로 서버 렌더링. docs/CONTEXT.md 참조.
 
 ──────────────────────────────
 16. 계층형 데이터 규칙 (메뉴, 공통코드 등)
@@ -288,12 +288,12 @@ Spring Boot + MyBatis 기반이며, 프로젝트별 커스터마이징을 전제
 ──────────────────────────────
 1) 구현 완료 시 all_project.md의 14.3, 14.6, 해당 2-X 섹션을 업데이트한다.
 2) 사용자 사이트 구현 시 USER_CONTEXT.md, user_project.md를 업데이트한다.
-3) 사용자 사이트 API 사용 문서는 Doc/user_map.md에 기록한다.
+3) 사용자 사이트 API 사용 문서는 docs/API.md에 기록한다.
 4) Phase/우선순위 변경 시 PROJECT_CONTEXT.md의 5.2, 6절을 업데이트한다.
 5) 새 기능/구조 변경 시 README.md의 해당 섹션(5.x, 11.x 등)을 업데이트한다.
 6) 규칙 11의 13~15항에 따라 api.md, Postman Collection도 갱신한다.
 7) check/code 등 API 응답 형식 변경 시 api.md, Postman Collection 반드시 갱신한다.
-8) cms/site ↔ cms_user_react 동기화 시 Doc/REFACTORING_CHECKLIST.md를 갱신한다.
+8) cms/site ↔ cms_user_react 동기화 시 docs/CONTEXT.md를 갱신한다.
 
 이 규칙은 절대 위반하지 않는다.
 아키텍처 일관성을 유지하는 것이 최우선이다.
